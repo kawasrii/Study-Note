@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>仮説検定と検出力 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 仮説検定と検出力</span>
+  </div>
+</header>
+
+<main>
+<h1>仮説検定と検出力</h1>
+<p class="lead">タグ: 仮説検定 / p値 / 有意水準 / 第一種・第二種の過誤 / 検出力 / サンプルサイズ設計</p>
+
+<h2>検定の骨格 — 背理法の確率版</h2>
+<p>仮説検定は「<b>帰無仮説 H₀ が正しいと仮定したとき、手元のデータほど極端な結果が出る確率(p値)を計算し、それが小さすぎたら H₀ を疑う</b>」という論法。数学の背理法に似ているが、矛盾ではなく「起こりにくさ」で判断する点が違う。</p>
+<div class="note-box">H₀ は「棄却したい仮説」(差がない、効果がない)、H₁ は「示したい仮説」に置くのが定石。検定は H₀ を<b>棄却する</b>ことはできても<b>採択(証明)する</b>ことはできない — 棄却できなかったときの結論は「差があるとは言えない」であって「差がない」ではない。</div>
+
+<h2>2種類の過誤と検出力</h2>
+<div class="tbl-wrap"><table>
+<tr><th></th><th>H₀ が真</th><th>H₁ が真</th></tr>
+<tr><td><b>H₀ を棄却</b></td><td>第一種の過誤 (確率 α)</td><td>正しい判断 (検出力 1−β)</td></tr>
+<tr><td><b>H₀ を棄却しない</b></td><td>正しい判断 (1−α)</td><td>第二種の過誤 (確率 β)</td></tr>
+</table></div>
+<p>α(あわてんぼうの過誤:ないのにあると言う)と β(ぼんやりの過誤:あるのに見逃す)は<b>トレードオフ</b>。α を下げれば β は上がる。両方下げる唯一の方法が<b>サンプルサイズ n を増やす</b>こと。下のシミュレータで体感してほしい。</p>
+
+<div class="widget">
+  <div class="w-title">棄却域・過誤・検出力シミュレータ(片側Z検定:H₀: μ=0 vs H₁: μ=δ&gt;0)</div>
+  <div class="controls">
+    <label>有意水準 α <input type="range" id="alpha" min="0.005" max="0.2" step="0.005" value="0.05"> <span class="val" id="vA">0.05</span></label>
+    <label>真の効果 δ <input type="range" id="delta" min="0" max="2" step="0.05" value="0.8"> <span class="val" id="vD">0.8</span></label>
+    <label>標本サイズ n <input type="range" id="n" min="1" max="100" step="1" value="10"> <span class="val" id="vN">10</span></label>
+  </div>
+  <canvas class="plot" id="plot"></canvas>
+  <div class="readout" id="readout"></div>
+</div>
+
+<p>青い曲線が「H₀ の下での標本平均の分布」、橙が「H₁ の下での分布」。赤い縦線が<b>臨界値</b>で、その右側が棄却域。赤塗り = α、灰塗り = β。n を増やすと両方の山が痩せて(標準誤差 σ/√n が縮む)、重なりが減り、検出力が伸びる様子が見える。</p>
+
+<h2>p値の正しい読み方</h2>
+<p>p値は「<b>H₀ が正しいとき、観測値以上に極端なデータが得られる確率</b>」。次はすべて<b>誤読</b>:「H₀ が正しい確率」「効果の大きさ」「再現される確率」。p=0.001 は p=0.04 より効果が大きいことを意味しない — <b>効果量と信頼区間を併記する</b>のが現代の作法。</p>
+<div class="warn-box">n が巨大だと無意味に小さい差でも p&lt;0.05 になる(有意 ≠ 重要)。逆に n が小さいと大きな差でも有意にならない。準1級では「検出力 80% を確保するのに必要な n を求めよ」というサンプルサイズ設計の問題が頻出。</div>
+
+<h2>サンプルサイズ設計の公式(片側Z検定)</h2>
+<div class="formula">n = ( (z_α + z_β) · σ / δ )²</div>
+<p>z_α, z_β は標準正規分布の上側分位点。α=0.05(z=1.645)、検出力 80%(β=0.2, z=0.842)、効果 δ=0.5σ なら n = ((1.645+0.842)/0.5)² ≈ 24.7 → <b>25人</b>。効果が半分になると必要な n は4倍になる(δ² に反比例)点に注意。</p>
+
+<div class="ex-box">
+母標準偏差 σ=10 の母集団で、H₀: μ=50 vs H₁: μ&gt;50 を α=0.05、n=25 で片側Z検定する。真の μ が 54 のときの検出力を求めよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>標準誤差 = 10/√25 = 2。臨界値 = 50 + 1.645×2 = 53.29。<br>
+真の分布 N(54, 2²) の下で P(X̄ &gt; 53.29) = P(Z &gt; (53.29−54)/2) = P(Z &gt; −0.355) ≈ <b>0.639</b>。<br>
+上のシミュレータで α=0.05, δ=0.4σ 相当, n=25 に合わせると同じ値が出る。</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="distributions.html">← 確率分布ラボ</a>
+  <a href="regression.html">回帰分析 →</a>
+</div>
+</main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+function draw() {
+  const alpha = +$("#alpha").value, delta = +$("#delta").value, n = +$("#n").value;
+  $("#vA").textContent = alpha.toFixed(3);
+  $("#vD").textContent = delta.toFixed(2);
+  $("#vN").textContent = n;
+
+  const se = 1 / Math.sqrt(n);            // σ=1 とした標本平均の標準誤差
+  const crit = normInv(1 - alpha) * se;   // 臨界値
+  const power = 1 - normCdf(crit, delta, se);
+
+  const canvas = $("#plot");
+  const { ctx, W, H } = setupCanvas(canvas, 300);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 14, padB = 26, padT = 12, padR = 14;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  // x軸は固定:n を増やしたとき「山が痩せて重なりが減る」変化がそのまま見えるようにする
+  const xmin = -3, xmax = 5;
+  const ymax = normPdf(0, 0, se) * 1.15;
+  const X = x => padL + (x - xmin) / (xmax - xmin) * pw;
+  const Y = y => padT + ph - y / ymax * ph;
+
+  function fill(mu, from, to, color) {
+    ctx.fillStyle = color; ctx.beginPath();
+    ctx.moveTo(X(from), Y(0));
+    for (let i = 0; i <= 120; i++) {
+      const x = from + (to - from) * i / 120;
+      ctx.lineTo(X(x), Y(normPdf(x, mu, se)));
+    }
+    ctx.lineTo(X(to), Y(0)); ctx.closePath(); ctx.fill();
+  }
+  function curve(mu, color) {
+    ctx.strokeStyle = color; ctx.lineWidth = 2.2; ctx.beginPath();
+    for (let i = 0; i <= 300; i++) {
+      const x = xmin + (xmax - xmin) * i / 300;
+      const y = normPdf(x, mu, se);
+      i ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y));
+    }
+    ctx.stroke();
+  }
+
+  fill(0, crit, xmax, "rgba(197,48,48,.35)");      // α
+  fill(delta, xmin, crit, "rgba(128,128,128,.30)"); // β
+  curve(0, col.accent);
+  curve(delta, "#dd8844");
+
+  // 臨界値の線
+  ctx.strokeStyle = col.ng; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(X(crit), padT); ctx.lineTo(X(crit), padT + ph); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 軸・ラベル
+  ctx.strokeStyle = col.line;
+  ctx.beginPath(); ctx.moveTo(padL, padT + ph); ctx.lineTo(padL + pw, padT + ph); ctx.stroke();
+  ctx.fillStyle = col.soft; ctx.font = "12px sans-serif"; ctx.textAlign = "center";
+  ctx.fillText("H₀: μ=0", X(0), Y(normPdf(0, 0, se)) - 6);
+  ctx.fillText("H₁: μ=" + delta.toFixed(2), X(delta), Y(normPdf(delta, delta, se)) - 6);
+  ctx.fillText("臨界値 " + crit.toFixed(2), X(crit), padT + ph + 16);
+
+  const r = $("#readout");
+  r.replaceChildren();
+  const parts = [
+    ["α (第一種の過誤) = " + alpha.toFixed(3), null],
+    ["β (見逃し) = " + (1 - power).toFixed(3), null],
+    ["検出力 1−β = " + power.toFixed(3), true],
+  ];
+  parts.forEach(([txt, strong], i) => {
+    if (i) r.append(" ・ ");
+    const e = document.createElement(strong ? "b" : "span");
+    e.textContent = txt; r.append(e);
+  });
+}
+["alpha", "delta", "n"].forEach(id => $("#" + id).addEventListener("input", draw));
+window.addEventListener("resize", draw);
+draw();
+</script>
+</body>
+</html>

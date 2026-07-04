@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>確率分布ラボ | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 確率分布ラボ</span>
+  </div>
+</header>
+
+<main>
+<h1>確率分布ラボ</h1>
+<p class="lead">タグ: 正規分布 / 二項分布 / ポアソン分布 / t分布 / カイ二乗分布 / F分布 / 中心極限定理</p>
+
+<p>準1級では「分布の定義を暗記している」だけでは足りず、<b>パラメータを動かすと形がどう変わるか</b>、<b>分布同士がどうつながっているか</b>(二項→ポアソン→正規、正規→χ²→t・F)を問われます。まず下のラボで形を体感してから、各分布のノートを読んでください。</p>
+
+<div class="widget">
+  <div class="w-title">分布シミュレータ — 軸は固定スケール。パラメータを動かすと形の変化がそのまま見える</div>
+  <div class="controls">
+    <label>分布:
+      <select id="dist">
+        <option value="norm">正規分布 N(μ, σ²)</option>
+        <option value="binom">二項分布 B(n, p)</option>
+        <option value="pois">ポアソン分布 Po(λ)</option>
+        <option value="t">t分布 t(ν)</option>
+        <option value="chi2">カイ二乗分布 χ²(k)</option>
+        <option value="f">F分布 F(d₁, d₂)</option>
+      </select>
+    </label>
+    <label id="c1"><span id="l1">μ</span> <input type="range" id="p1" min="-4" max="4" step="0.1" value="0"> <span class="val" id="v1">0</span></label>
+    <label id="c2"><span id="l2">σ</span> <input type="range" id="p2" min="0.5" max="3" step="0.1" value="1"> <span class="val" id="v2">1</span></label>
+    <label><input type="checkbox" id="overlayNorm"> 正規近似を重ねる</label>
+    <label><input type="checkbox" id="autoScale"> 軸を自動調整(形の比較には不向き)</label>
+  </div>
+  <canvas class="plot" id="plot"></canvas>
+  <div class="readout" id="readout"></div>
+</div>
+<p class="lead">試してほしい操作:正規分布で μ を動かす → 山が<b>横に平行移動</b>する。σ を上げる → <b>低く・広く</b>なる(面積は常に1)。二項分布で n を上げる → 山が右へ動きながら広がり、釣鐘型に近づく。t分布で ν を上げる → 裾が軽くなり正規分布に近づく。緑の点線は期待値 E[X] の位置。</p>
+
+<h2>正規分布 N(μ, σ²)</h2>
+<div class="formula">f(x) = 1/√(2πσ²) · exp( −(x−μ)² / 2σ² ),  E[X]=μ, V[X]=σ²</div>
+<p>統計学の中心にある分布。μ が位置、σ が広がりを決める。<b>μ±σ に約68%、μ±2σ に約95%、μ±3σ に約99.7%</b> が入る(68-95-99.7則)。標準化 <span class="f">Z=(X−μ)/σ</span> で N(0,1) に変換して確率計算するのが基本動作。</p>
+<div class="note-box">再生性をもつ:独立な X₁~N(μ₁,σ₁²), X₂~N(μ₂,σ₂²) に対して X₁+X₂ ~ N(μ₁+μ₂, σ₁²+σ₂²)。<b>分散は引き算でも足される</b>(X₁−X₂ の分散は σ₁²+σ₂²)点が頻出の引っかけ。</div>
+
+<h2>二項分布 B(n, p)</h2>
+<div class="formula">P(X=k) = ₙCₖ pᵏ(1−p)ⁿ⁻ᵏ,  E[X]=np, V[X]=np(1−p)</div>
+<p>成功確率 p の試行を独立に n 回行った成功回数。上のラボで n を大きくすると釣鐘型に近づく — これが<b>正規近似</b>(目安 np≧5 かつ n(1−p)≧5)。p を小さく λ=np を一定に保つと<b>ポアソン分布に収束</b>する(少数の法則)。</p>
+
+<h2>ポアソン分布 Po(λ)</h2>
+<div class="formula">P(X=k) = e^(−λ) λᵏ / k!,  E[X]=V[X]=λ</div>
+<p>単位時間あたりの稀な事象の回数(事故件数、来客数)。<b>期待値と分散が等しい</b>のが特徴で、これが成り立たないデータ(過分散)には負の二項分布などを使う。再生性あり:Po(λ₁)+Po(λ₂)~Po(λ₁+λ₂)。</p>
+
+<h2>χ²・t・F — 正規分布から派生する3兄弟</h2>
+<div class="tbl-wrap"><table>
+<tr><th>分布</th><th>作り方</th><th>主な用途</th></tr>
+<tr><td>χ²(k)</td><td>独立な標準正規 Z₁,…,Z_k の二乗和 ΣZᵢ²</td><td>分散の推定・適合度検定・独立性検定</td></tr>
+<tr><td>t(ν)</td><td>Z / √(W/ν)  (Z~N(0,1), W~χ²(ν) 独立)</td><td>母分散未知の平均の検定・区間推定</td></tr>
+<tr><td>F(d₁,d₂)</td><td>(W₁/d₁)/(W₂/d₂)  (Wᵢ~χ²(dᵢ) 独立)</td><td>分散の比較・分散分析(ANOVA)</td></tr>
+</table></div>
+<div class="warn-box">t分布は自由度 ν→∞ で標準正規分布に収束する(ラボで ν を上げて確認)。また <b>t(ν) の二乗は F(1, ν) に従う</b>。E[χ²(k)]=k, V[χ²(k)]=2k は暗記必須。</div>
+
+<h2>中心極限定理 (CLT)</h2>
+<div class="formula">X̄ₙ の分布 → N(μ, σ²/n)  (n→∞, 元の分布が何であっても)</div>
+<p>「どんな分布から取ったサンプルでも、<b>平均を取れば正規分布に近づく</b>」。これが正規分布が至る所に現れる理由であり、標本平均に基づく検定・推定の理論的支柱。標準誤差 σ/√n が n の平方根でしか縮まない点(精度を10倍にするにはデータ100倍)も重要。</p>
+
+<div class="ex-box">
+X ~ B(400, 0.5) のとき、P(X ≧ 220) を正規近似で求めよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>E[X]=np=200, V[X]=np(1−p)=100 なので X ≈ N(200, 10²)。<br>
+Z = (220−200)/10 = 2.0 より P(X≧220) ≈ P(Z≧2.0) ≈ <b>0.0228</b>。<br>
+(連続修正を使うなら (219.5−200)/10=1.95 で ≈0.0256)</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="../index.html">← ホーム</a>
+  <a href="hypothesis-testing.html">仮説検定と検出力 →</a>
+</div>
+</main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+/* 軸は原則「固定スケール」:パラメータを変えたとき、位置の移動・幅の変化・高さの変化が
+   そのまま画面上の変化として見えることが学習上重要(自動スケールだと正規分布のμを
+   動かしても見た目が変わらない)。xfix=x軸範囲, yfix=y軸上限(null は自動)。 */
+const cfg = {
+  norm:  { p1: {l:"μ", min:-4, max:4, step:.1, v:0}, p2: {l:"σ", min:.5, max:3, step:.1, v:1}, discrete:false, xfix:[-10,10], yfix:0.85 },
+  binom: { p1: {l:"n", min:1, max:100, step:1, v:20}, p2: {l:"p", min:.01, max:.99, step:.01, v:.5}, discrete:true, xfix:[0,100], yfix:null },
+  pois:  { p1: {l:"λ", min:.5, max:30, step:.5, v:4}, p2: null, discrete:true, xfix:[0,45], yfix:null },
+  t:     { p1: {l:"ν (自由度)", min:1, max:60, step:1, v:3}, p2: null, discrete:false, xfix:[-6,6], yfix:0.45 },
+  chi2:  { p1: {l:"k (自由度)", min:1, max:30, step:1, v:4}, p2: null, discrete:false, xfix:[0,50], yfix:0.5 },
+  f:     { p1: {l:"d₁", min:1, max:40, step:1, v:5}, p2: {l:"d₂", min:1, max:40, step:1, v:10}, discrete:false, xfix:[0,5], yfix:1.6 },
+};
+const S = { dist: "norm" };
+const distSel = $("#dist"), p1 = $("#p1"), p2 = $("#p2");
+
+function applyCfg() {
+  const c = cfg[S.dist];
+  ["p1","p2"].forEach(name => {
+    const conf = c[name], input = $("#"+name), wrap = $("#c"+name.slice(1));
+    if (!conf) { wrap.style.display = "none"; return; }
+    wrap.style.display = "";
+    $("#l"+name.slice(1)).textContent = conf.l;
+    input.min = conf.min; input.max = conf.max; input.step = conf.step; input.value = conf.v;
+  });
+  draw();
+}
+
+function stats() {
+  const a = +p1.value, b = +p2.value;
+  switch (S.dist) {
+    case "norm":  return { mean: a, varr: b*b, label: `μ=${a}, σ=${b}` };
+    case "binom": return { mean: a*b, varr: a*b*(1-b), label: `n=${a}, p=${b}` };
+    case "pois":  return { mean: a, varr: a, label: `λ=${a}` };
+    case "t":     return { mean: a>1?0:NaN, varr: a>2? a/(a-2):NaN, label: `ν=${a}` };
+    case "chi2":  return { mean: a, varr: 2*a, label: `k=${a}` };
+    case "f":     return { mean: b>2? b/(b-2):NaN, varr: NaN, label: `d₁=${a}, d₂=${b}` };
+  }
+}
+
+function draw() {
+  const c = cfg[S.dist], a = +p1.value, b = +p2.value;
+  $("#v1").textContent = a; $("#v2").textContent = b;
+  const auto = $("#autoScale").checked;
+  const canvas = $("#plot");
+  const { ctx, W, H } = setupCanvas(canvas, 300);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 46, padB = 28, padT = 12, padR = 10;
+  const pw = W - padL - padR, ph = H - padT - padB;
+
+  // x軸範囲:固定が基本。自動調整はパラメータに追従(チェック時のみ)
+  let xmin, xmax;
+  if (!auto) { [xmin, xmax] = c.xfix; }
+  else if (S.dist === "norm") { xmin = a - 4.2 * b; xmax = a + 4.2 * b; }
+  else if (S.dist === "t") { xmin = -6; xmax = 6; }
+  else if (S.dist === "binom") { xmin = 0; xmax = a; }
+  else if (S.dist === "pois") { xmin = 0; xmax = Math.ceil(a + 4 * Math.sqrt(a) + 3); }
+  else if (S.dist === "chi2") { xmin = 0; xmax = Math.max(10, a + 4 * Math.sqrt(2 * a)); }
+  else { xmin = 0; xmax = 5; }
+
+  let xs = [], ys = [];
+  if (S.dist === "binom") { for (let k = 0; k <= a; k++) { xs.push(k); ys.push(binomPmf(k, a, b)); } }
+  else if (S.dist === "pois") { for (let k = 0; k <= Math.round(xmax); k++) { xs.push(k); ys.push(poisPmf(k, a)); } }
+  else {
+    const N = 300, x0 = (S.dist === "chi2" || S.dist === "f") ? Math.max(xmin, 1e-3) : xmin;
+    for (let i = 0; i <= N; i++) {
+      const x = x0 + (xmax - x0) * i / N;
+      xs.push(x);
+      ys.push(S.dist === "norm" ? normPdf(x, a, b) : S.dist === "t" ? tPdf(x, a) : S.dist === "chi2" ? chi2Pdf(x, a) : fPdf(x, a, b));
+    }
+  }
+  // y軸上限:固定が基本(σを変えたときの高さの変化が見えるように)
+  const ymax = (!auto && c.yfix) ? c.yfix : (Math.max(...ys.filter(isFinite)) * 1.12 || 1);
+  const X = x => padL + (x - xmin) / (xmax - xmin) * pw;
+  const Y = y => padT + ph - y / ymax * ph;
+
+  // 軸と目盛り(x・y両方)
+  ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ph); ctx.lineTo(padL + pw, padT + ph); ctx.stroke();
+  ctx.fillStyle = col.soft; ctx.font = "11px sans-serif";
+  ctx.textAlign = "center";
+  for (let i = 0; i <= 6; i++) {
+    const x = xmin + (xmax - xmin) * i / 6;
+    ctx.fillText((Math.abs(x) >= 100 ? x.toFixed(0) : x.toFixed(1)).replace(/\.0$/, ""), X(x), padT + ph + 16);
+  }
+  ctx.textAlign = "right";
+  [0, ymax / 2, ymax].forEach(yv => {
+    ctx.fillText((+yv.toFixed(2)).toString(), padL - 6, Y(yv) + 4);
+    if (yv > 0) { ctx.strokeStyle = col.line; ctx.beginPath(); ctx.moveTo(padL, Y(yv)); ctx.lineTo(padL + pw, Y(yv)); ctx.stroke(); }
+  });
+
+  // 描画領域でクリップ(固定スケールで曲線が上にはみ出す場合に備える)
+  ctx.save();
+  ctx.beginPath(); ctx.rect(padL, padT, pw, ph); ctx.clip();
+
+  if (c.discrete) {
+    const bw = xs.length > 1 ? Math.max(1.5, (X(xs[1]) - X(xs[0])) * 0.7) : 20;
+    ctx.fillStyle = col.accent;
+    xs.forEach((x, i) => ctx.fillRect(X(x) - bw / 2, Y(ys[i]), bw, padT + ph - Y(ys[i])));
+  } else {
+    ctx.strokeStyle = col.accent; ctx.lineWidth = 2.2; ctx.beginPath();
+    xs.forEach((x, i) => i ? ctx.lineTo(X(x), Y(ys[i])) : ctx.moveTo(X(x), Y(ys[i])));
+    ctx.stroke();
+  }
+
+  // 正規近似の重ね描き
+  const st = stats();
+  if ($("#overlayNorm").checked && isFinite(st.mean) && isFinite(st.varr) && st.varr > 0 && S.dist !== "norm") {
+    const s = Math.sqrt(st.varr);
+    ctx.strokeStyle = col.ng; ctx.lineWidth = 1.6; ctx.setLineDash([5, 4]); ctx.beginPath();
+    for (let i = 0; i <= 300; i++) {
+      const x = xmin + (xmax - xmin) * i / 300;
+      const y = normPdf(x, st.mean, s);
+      i ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y));
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  // 期待値 E[X] の位置(緑の点線)— μ を動かすと山ごと移動するのが見える
+  if (isFinite(st.mean) && st.mean >= xmin && st.mean <= xmax) {
+    ctx.strokeStyle = col.ok; ctx.lineWidth = 1.5; ctx.setLineDash([3, 4]);
+    ctx.beginPath(); ctx.moveTo(X(st.mean), padT); ctx.lineTo(X(st.mean), padT + ph); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = col.ok; ctx.textAlign = "center";
+    ctx.fillText("E[X]", X(st.mean), padT + 12);
+  }
+  ctx.restore();
+
+  const fmt = v => isFinite(v) ? (+v.toFixed(3)).toString() : "存在しない/定義されない";
+  const r = $("#readout");
+  r.replaceChildren();
+  r.append("パラメータ: " + st.label + " ・ ");
+  const b1 = document.createElement("b"); b1.textContent = "期待値 " + fmt(st.mean);
+  const b2 = document.createElement("b"); b2.textContent = "分散 " + fmt(st.varr);
+  const b3 = document.createElement("span"); b3.textContent = "標準偏差 " + fmt(Math.sqrt(st.varr));
+  r.append(b1, " ・ ", b2, " ・ ", b3);
+  if (S.dist === "chi2" && a <= 2 && !auto) r.append(" ※k≦2 は x→0 付近が高い/発散するため上端で切れます");
+}
+
+distSel.addEventListener("change", () => { S.dist = distSel.value; applyCfg(); });
+[p1, p2, $("#overlayNorm"), $("#autoScale")].forEach(x => x.addEventListener("input", draw));
+window.addEventListener("resize", draw);
+applyCfg();
+</script>
+</body>
+</html>

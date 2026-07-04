@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>コア語彙 100 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="page-eng">
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">英語 › コア語彙 100</span>
+  </div>
+</header>
+
+<main>
+<h1>コア語彙 100</h1>
+<p class="lead">タグ: 語彙 / フラッシュカード / 4択クイズ / 学習記録(このブラウザ内のみ保存)</p>
+
+<p>読解でもリスニングでも頻出する上級レベルの基礎100語。おすすめの回し方:<b>①フラッシュカードを1周(わからなくても止まらない)→ ②クイズで弱点を炙り出す → ③「まだ」の単語だけもう1周</b>。例文ごと音読すると定着が段違いに良くなります。</p>
+
+<h2>フラッシュカード</h2>
+<div class="widget">
+  <div class="w-title">カードをタップでめくる ・ Space=めくる ・ →=次へ</div>
+  <div id="fc"></div>
+</div>
+
+<h2>4択クイズ</h2>
+<div class="widget">
+  <div class="w-title">英単語 → 意味を選ぶ(出題はシャッフル)</div>
+  <div id="quiz"></div>
+</div>
+
+<h2>単語一覧(検索用)</h2>
+<div class="controls">
+  <input id="filter" type="search" placeholder="🔍 単語・意味で絞り込み" autocomplete="off"
+    style="flex:1; min-width:200px; font:inherit; padding:.4em .8em; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink);">
+</div>
+<div class="tbl-wrap"><table id="vtable">
+  <thead><tr><th>単語</th><th>品詞</th><th>意味</th><th>例文</th></tr></thead>
+  <tbody></tbody>
+</table></div>
+
+<div class="page-nav">
+  <a href="../index.html">← ホーム</a>
+  <a href="word-parts.html">語根・接頭辞 →</a>
+</div>
+</main>
+
+<script src="../data/vocab-core.js"></script>
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+Flashcards("fc", VOCAB_CORE, "sa_vocab_core_known");
+
+QuizMC("quiz", shuffle(VOCAB_CORE).slice(0, 20).map(v => {
+  const wrong = shuffle(VOCAB_CORE.filter(x => x.w !== v.w)).slice(0, 3).map(x => x.m);
+  return { q: v.w + " の意味は?", a: v.m, wrong, note: v.w + ": " + v.ex };
+}));
+
+// 一覧テーブル
+const tbody = document.querySelector("#vtable tbody");
+VOCAB_CORE.forEach(v => {
+  const tr = document.createElement("tr");
+  [v.w, v.pos, v.m, v.ex].forEach(t => {
+    const td = document.createElement("td");
+    td.textContent = t;
+    tr.appendChild(td);
+  });
+  tr.dataset.search = (v.w + " " + v.m).toLowerCase();
+  tbody.appendChild(tr);
+});
+$("#filter").addEventListener("input", e => {
+  const q = e.target.value.trim().toLowerCase();
+  [...tbody.children].forEach(tr => tr.style.display = (!q || tr.dataset.search.includes(q)) ? "" : "none");
+});
+</script>
+</body>
+</html>

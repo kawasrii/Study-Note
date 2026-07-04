@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>回帰分析入門〜重回帰 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 回帰分析</span>
+  </div>
+</header>
+
+<main>
+<h1>回帰分析入門〜重回帰</h1>
+<p class="lead">タグ: 最小二乗法 / 決定係数 / 残差 / 重回帰 / 多重共線性 / 自由度調整済みR²</p>
+
+<h2>最小二乗法 — 残差の二乗和を最小にする直線</h2>
+<p>単回帰モデル <span class="f">y = β₀ + β₁x + ε</span> では、予測とデータのずれ(残差)の二乗和を最小にするように係数を決める。解は closed form で書ける:</p>
+<div class="formula">β̂₁ = S_xy / S_xx = Σ(xᵢ−x̄)(yᵢ−ȳ) / Σ(xᵢ−x̄)²,  β̂₀ = ȳ − β̂₁x̄</div>
+<p>つまり<b>傾きは「x と y の共分散 ÷ x の分散」</b>。相関係数 r との関係 <span class="f">β̂₁ = r·(s_y/s_x)</span> も頻出。回帰直線は必ず重心 (x̄, ȳ) を通る。</p>
+
+<div class="widget">
+  <div class="w-title">最小二乗法プレイグラウンド — クリック/タップで点を追加、点をもう一度クリックで削除</div>
+  <div class="controls">
+    <button id="clear">全消去</button>
+    <button id="sample">サンプルデータ</button>
+    <button id="outlier">外れ値を1点追加</button>
+    <label><input type="checkbox" id="showResid" checked> 残差を表示</label>
+  </div>
+  <canvas class="plot" id="plot" style="touch-action: manipulation;"></canvas>
+  <div class="readout" id="readout">点を2つ以上打つと回帰直線が現れます。</div>
+</div>
+
+<div class="note-box">「外れ値を1点追加」を押してみてほしい。<b>たった1点で直線が大きく引きずられ、R² が激変する</b>。最小二乗法は残差を二乗するため外れ値に弱い — 実務ではまず散布図を描け、と言われる理由。</div>
+
+<h2>決定係数 R² — 「説明できた分散の割合」</h2>
+<div class="formula">R² = 1 − SSE/SST = 回帰で説明できた変動 / 全変動  (単回帰では R² = r²)</div>
+<p>R²=0.7 なら「y のばらつきの70%が x で説明できる」。ただし R² は<b>説明変数を増やすだけで必ず増える</b>ため、重回帰では罰則付きの<b>自由度調整済み R²</b> を使う:</p>
+<div class="formula">調整済みR² = 1 − (1−R²)·(n−1)/(n−p−1)  (p: 説明変数の数)</div>
+
+<h2>重回帰と多重共線性</h2>
+<p>説明変数が複数のモデル <span class="f">y = β₀ + β₁x₁ + … + β_p x_p + ε</span>。係数 βⱼ の解釈は「<b>他の変数を固定したまま</b> xⱼ を1増やしたときの y の変化」— この「他を固定」が単回帰との決定的な違い。</p>
+<p>説明変数同士が強く相関していると(多重共線性)、係数の推定が不安定になり、符号が直感と逆転することさえある。診断には <b>VIF = 1/(1−Rⱼ²)</b> を使い、目安として VIF &gt; 10 で問題視する。</p>
+<div class="warn-box">準1級では、回帰係数の t 検定(H₀: βⱼ=0)、回帰の分散分析表(F検定)、残差プロットによるモデル診断(等分散性・正規性・独立性の確認)まで問われる。「R²が高い=良いモデル」ではないことを残差の目視で確認する姿勢が重要。</div>
+
+<div class="ex-box">
+n=10 のデータで x̄=5, ȳ=20, S_xx=40, S_xy=60, S_yy=100 のとき、回帰直線と決定係数を求めよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>β̂₁ = 60/40 = 1.5, β̂₀ = 20 − 1.5×5 = 12.5 → <b>ŷ = 12.5 + 1.5x</b><br>
+R² = S_xy²/(S_xx·S_yy) = 3600/4000 = <b>0.9</b>(r = 0.949)</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="hypothesis-testing.html">← 仮説検定と検出力</a>
+  <a href="../index.html">ホーム →</a>
+</div>
+</main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+let pts = [];
+const XMIN = 0, XMAX = 10, YMIN = 0, YMAX = 10;
+const canvas = $("#plot");
+let geom = null;
+
+function draw() {
+  const { ctx, W, H } = setupCanvas(canvas, 320);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 30, padB = 24, padT = 10, padR = 10;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const X = x => padL + (x - XMIN) / (XMAX - XMIN) * pw;
+  const Y = y => padT + ph - (y - YMIN) / (YMAX - YMIN) * ph;
+  geom = { padL, padT, pw, ph, W, H,
+    invX: px => XMIN + (px - padL) / pw * (XMAX - XMIN),
+    invY: py => YMIN + (padT + ph - py) / ph * (YMAX - YMIN), X, Y };
+
+  // グリッド
+  ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+  for (let g = 0; g <= 10; g += 2) {
+    ctx.beginPath(); ctx.moveTo(X(g), padT); ctx.lineTo(X(g), padT + ph); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL, Y(g)); ctx.lineTo(padL + pw, Y(g)); ctx.stroke();
+  }
+
+  let fit = null;
+  if (pts.length >= 2) {
+    const n = pts.length;
+    const mx = pts.reduce((s, p) => s + p[0], 0) / n;
+    const my = pts.reduce((s, p) => s + p[1], 0) / n;
+    let sxx = 0, sxy = 0, syy = 0;
+    pts.forEach(([x, y]) => { sxx += (x - mx) ** 2; sxy += (x - mx) * (y - my); syy += (y - my) ** 2; });
+    if (sxx > 1e-9) {
+      const b1 = sxy / sxx, b0 = my - b1 * mx;
+      const r2 = syy > 1e-9 ? (sxy * sxy) / (sxx * syy) : 1;
+      fit = { b0, b1, r2 };
+    }
+  }
+
+  // 残差
+  if (fit && $("#showResid").checked) {
+    ctx.strokeStyle = "rgba(197,48,48,.55)"; ctx.lineWidth = 1.4;
+    pts.forEach(([x, y]) => {
+      const yh = fit.b0 + fit.b1 * x;
+      ctx.beginPath(); ctx.moveTo(X(x), Y(y)); ctx.lineTo(X(x), Y(yh)); ctx.stroke();
+    });
+  }
+  // 回帰直線
+  if (fit) {
+    ctx.strokeStyle = col.accent; ctx.lineWidth = 2.4; ctx.beginPath();
+    ctx.moveTo(X(XMIN), Y(fit.b0 + fit.b1 * XMIN));
+    ctx.lineTo(X(XMAX), Y(fit.b0 + fit.b1 * XMAX));
+    ctx.stroke();
+  }
+  // 点
+  pts.forEach(([x, y]) => {
+    ctx.fillStyle = col.ink;
+    ctx.beginPath(); ctx.arc(X(x), Y(y), 5, 0, Math.PI * 2); ctx.fill();
+  });
+
+  const r = $("#readout");
+  if (!fit) { r.textContent = "点を2つ以上打つと回帰直線が現れます。"; return; }
+  r.replaceChildren();
+  const eq = document.createElement("b");
+  eq.textContent = "ŷ = " + fit.b0.toFixed(2) + (fit.b1 >= 0 ? " + " : " − ") + Math.abs(fit.b1).toFixed(2) + "x";
+  const r2b = document.createElement("b");
+  r2b.textContent = "R² = " + fit.r2.toFixed(3);
+  r.append(eq, " ・ ", r2b, " ・ n = " + pts.length);
+}
+
+canvas.addEventListener("click", e => {
+  const rect = canvas.getBoundingClientRect();
+  const px = e.clientX - rect.left, py = e.clientY - rect.top;
+  const x = geom.invX(px), y = geom.invY(py);
+  if (x < XMIN || x > XMAX || y < YMIN || y > YMAX) return;
+  // 近くの既存点があれば削除
+  const hit = pts.findIndex(([a, b]) => Math.hypot(geom.X(a) - px, geom.Y(b) - py) < 12);
+  if (hit >= 0) pts.splice(hit, 1);
+  else pts.push([x, y]);
+  draw();
+});
+$("#clear").addEventListener("click", () => { pts = []; draw(); });
+$("#sample").addEventListener("click", () => {
+  pts = [];
+  for (let i = 0; i < 14; i++) {
+    const x = 0.5 + Math.random() * 9;
+    const y = 1.5 + 0.7 * x + (Math.random() - 0.5) * 2.2;
+    pts.push([x, Math.min(YMAX, Math.max(YMIN, y))]);
+  }
+  draw();
+});
+$("#outlier").addEventListener("click", () => { pts.push([9.5, 0.5]); draw(); });
+$("#showResid").addEventListener("input", draw);
+window.addEventListener("resize", draw);
+draw();
+</script>
+</body>
+</html>
