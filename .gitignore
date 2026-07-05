@@ -3,3 +3,4 @@ PUBLISH.md
 scripts/
 templates/
 CLAUDE.md
+.deploy-request
