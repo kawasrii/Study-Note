@@ -1,0 +1,5 @@
+# ローカル専用(公開リポジトリに含めない)
+PUBLISH.md
+scripts/
+templates/
+CLAUDE.md
