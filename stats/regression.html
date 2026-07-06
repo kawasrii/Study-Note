@@ -117,6 +117,32 @@ n=10 のデータに、次数1のモデルで R²=0.88、次数3のモデルで 
 
 <div class="warn-box">バンド幅 h・近傍数 k・スパン・罰則 λ・多項式の次数 d — 名前は違えど全部「<b>複雑さ(平滑さ)を決めるチューニングパラメータ</b>」であり、どれもバイアス・バリアンスのトレードオフを調整している。選択には交差検証を使うのが原則。この統一的な見方が身につけば、初見の手法でも本質を掴める。</div>
 
+<h2>ガウス過程回帰 — 「もっともらしい関数」の分布を推定する</h2>
+<p>ここまでの手法はどれも「1本の曲線」を答えとして返した。ガウス過程回帰(GPR)は発想が根本から違う。<b>「データに合いそうな関数すべての上の確率分布」</b>を答えとして返す — つまり各 x での予測が<b>点ではなく分布(平均と分散)</b>で出てくる。</p>
+<p>出発点は、関数 f そのものに事前分布を置くこと。「近い x では f の値も近い」という滑らかさの信念を、カーネル(共分散関数)で表す:</p>
+<div class="formula">k(x, x′) = σ_f² · exp( −(x−x′)² / 2ℓ² )  (RBFカーネル。ℓ: 長さスケール)</div>
+<p>データ (X, y) で条件付けると、新しい点 x* での予測分布が閉じた式で得られる:</p>
+<div class="formula">平均 μ* = k*ᵀ(K+σ_n²I)⁻¹y,  分散 σ*² = k(x*,x*) − k*ᵀ(K+σ_n²I)⁻¹k*</div>
+<p>ここが最大の特徴で、<b>データが密な場所では分散が小さく(自信あり)、データが無い場所では事前分布に戻って分散が大きくなる(正直に「わからない」と言う)</b>。下のラボの<b>青い帯(平均±2σ、95%信用区間)</b>がその「もっともらしさ」の可視化そのもの。</p>
+
+<div class="widget">
+  <div class="w-title">ガウス過程回帰ラボ — クリック/タップで点を追加、もう一度クリックで削除。帯 = 平均±2σ</div>
+  <div class="controls">
+    <label>長さスケール ℓ <input type="range" id="gpEll" min="0.3" max="3" step="0.05" value="1"> <span class="val" id="gpEllVal">1.00</span></label>
+    <label>観測ノイズ σₙ <input type="range" id="gpNoise" min="0.05" max="1.5" step="0.05" value="0.2"> <span class="val" id="gpNoiseVal">0.20</span></label>
+    <label><input type="checkbox" id="gpSamples" checked> サンプルパス(候補関数)を3本描く</label>
+  </div>
+  <div class="controls">
+    <button id="clear3">全消去</button>
+    <button id="sample3">サンプル(隙間のあるデータ)</button>
+  </div>
+  <canvas class="plot" id="plot3" style="touch-action: manipulation;"></canvas>
+  <div class="readout" id="readout3"></div>
+</div>
+<p class="lead">試してほしい操作:まず点が無い状態を見る → <b>帯が全域で太い=「何もわからない」状態(事前分布)</b>。細いサンプルパスは事前分布から引いた「あり得る関数」たち。「サンプル(隙間のあるデータ)」→ <b>点の近くで帯がキュッと締まり、データの隙間と両端でふくらむ</b>。サンプルパスも点の近くでは束になり、隙間では散らばる — これが「もっともらしさ」の姿。σₙ を上げる → 点を厳密に通らなくなり帯も緩む(データを疑っている)。ℓ を小さく → 曲線が細かく曲がれるようになり、点から少し離れただけで帯が開く。</p>
+
+<div class="note-box">カーネル回帰(Nadaraya–Watson)と式は似ているが、GPRは<b>ベイズ推論</b>なので不確実性が定量的に出るのが本質的な違い。「どこを次に測定・実験すべきか」を分散が教えてくれるため、ベイズ最適化(ハイパーパラメータ探索)や実験計画で主力になっている。弱点は計算量 O(n³)(逆行列)で、大規模データには近似法を使う。ℓ や σₙ 自体は周辺尤度の最大化で自動調整できる — これもベイズ流の利点。</div>
+
 <div class="ex-box">
 n=10 のデータで x̄=5, ȳ=20, S_xx=40, S_xy=60, S_yy=100 のとき、回帰直線と決定係数を求めよ。
 <details class="ans"><summary>解答を見る</summary>
@@ -393,8 +419,136 @@ $("#sample2s").addEventListener("click", () => {
   redraw2();
 });
 
-window.addEventListener("resize", () => { redraw1(); redraw2(); });
-redraw1(); redraw2();
+/* ================= ラボ3: ガウス過程回帰 ================= */
+function matInv(A) {
+  const n = A.length, inv = [];
+  for (let c = 0; c < n; c++) {
+    const e = new Array(n).fill(0); e[c] = 1;
+    const col = solveLin(A, e);
+    if (!col) return null;
+    inv.push(col);
+  }
+  // inv は列ベクトルの配列 → 転置して行列に(対称行列なのでそのままでも同じ)
+  return inv;
+}
+function matVec(M, v) { return M.map(row => row.reduce((s, m, j) => s + m * v[j], 0)); }
+function dot(a, b) { return a.reduce((s, x, i) => s + x * b[i], 0); }
+function randn() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+function cholesky(C) {
+  const m = C.length, L = C.map(() => new Array(m).fill(0));
+  for (let i = 0; i < m; i++) {
+    for (let j = 0; j <= i; j++) {
+      let s = C[i][j];
+      for (let k = 0; k < j; k++) s -= L[i][k] * L[j][k];
+      if (i === j) L[i][j] = Math.sqrt(Math.max(s, 1e-12));
+      else L[i][j] = s / L[j][j];
+    }
+  }
+  return L;
+}
+
+const GP_SF2 = 6.25; // 信号分散 σf²(振幅2.5がキャンバス0-10に合う)
+function gpFit(pts, ell, sn) {
+  const kern = (a, b) => GP_SF2 * Math.exp(-((a - b) ** 2) / (2 * ell * ell));
+  const n = pts.length;
+  const ymean = n ? pts.reduce((s, p) => s + p[1], 0) / n : 5;
+  let Ainv = null;
+  if (n > 0) {
+    const A = [];
+    for (let i = 0; i < n; i++) {
+      A.push([]);
+      for (let j = 0; j < n; j++) A[i][j] = kern(pts[i][0], pts[j][0]) + (i === j ? sn * sn + 1e-8 : 0);
+    }
+    Ainv = matInv(A);
+  }
+  const alpha = Ainv ? matVec(Ainv, pts.map(p => p[1] - ymean)) : null;
+  return {
+    mean: x => alpha ? ymean + pts.reduce((s, p, i) => s + alpha[i] * kern(x, p[0]), 0) : ymean,
+    sd: x => {
+      if (!Ainv) return Math.sqrt(GP_SF2);
+      const ks = pts.map(p => kern(x, p[0]));
+      return Math.sqrt(Math.max(0, GP_SF2 - dot(ks, matVec(Ainv, ks))));
+    },
+    cov: (xa, xb) => {
+      if (!Ainv) return kern(xa, xb);
+      const ka = pts.map(p => kern(xa, p[0]));
+      const kb = pts.map(p => kern(xb, p[0]));
+      return kern(xa, xb) - dot(ka, matVec(Ainv, kb));
+    },
+  };
+}
+
+const lab3 = makeBoard("plot3", (ctx, pts, geom, col) => {
+  const ell = +$("#gpEll").value, sn = +$("#gpNoise").value;
+  const gp = gpFit(pts, ell, sn);
+  const M = 80;
+  const gx = [], mu = [], sd = [];
+  for (let i = 0; i <= M; i++) {
+    const x = XMIN + (XMAX - XMIN) * i / M;
+    gx.push(x); mu.push(gp.mean(x)); sd.push(gp.sd(x));
+  }
+  // 帯(±2σ)
+  ctx.fillStyle = "rgba(43,108,176,.18)";
+  ctx.beginPath();
+  gx.forEach((x, i) => i ? ctx.lineTo(geom.X(x), geom.Y(mu[i] + 2 * sd[i])) : ctx.moveTo(geom.X(x), geom.Y(mu[i] + 2 * sd[i])));
+  for (let i = M; i >= 0; i--) ctx.lineTo(geom.X(gx[i]), geom.Y(mu[i] - 2 * sd[i]));
+  ctx.closePath(); ctx.fill();
+  // サンプルパス(事後分布から3本)
+  if ($("#gpSamples").checked) {
+    const C = [];
+    for (let i = 0; i <= M; i++) {
+      C.push([]);
+      for (let j = 0; j <= M; j++) C[i][j] = gp.cov(gx[i], gx[j]) + (i === j ? 1e-6 : 0);
+    }
+    const L = cholesky(C);
+    const cols = ["rgba(221,136,68,.7)", "rgba(47,133,90,.7)", "rgba(150,100,200,.7)"];
+    for (let s = 0; s < 3; s++) {
+      const z = gx.map(() => randn());
+      ctx.strokeStyle = cols[s]; ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      for (let i = 0; i <= M; i++) {
+        let f = mu[i];
+        for (let k = 0; k <= i; k++) f += L[i][k] * z[k];
+        i ? ctx.lineTo(geom.X(gx[i]), geom.Y(f)) : ctx.moveTo(geom.X(gx[i]), geom.Y(f));
+      }
+      ctx.stroke();
+    }
+  }
+  // 事後平均
+  ctx.strokeStyle = col.accent; ctx.lineWidth = 2.6;
+  ctx.beginPath();
+  gx.forEach((x, i) => i ? ctx.lineTo(geom.X(x), geom.Y(mu[i])) : ctx.moveTo(geom.X(x), geom.Y(mu[i])));
+  ctx.stroke();
+});
+
+function report3() {
+  const ell = +$("#gpEll").value, sn = +$("#gpNoise").value;
+  $("#gpEllVal").textContent = ell.toFixed(2);
+  $("#gpNoiseVal").textContent = sn.toFixed(2);
+  const r = $("#readout3");
+  r.textContent = lab3.pts.length === 0
+    ? "データなし = 事前分布そのもの。帯の太さが「無知の量」を表す。"
+    : "n = " + lab3.pts.length + " ・ 青帯: 平均±2σ(95%信用区間) ・ 細線: 事後分布からのサンプルパス";
+}
+function redraw3() { lab3.draw(); report3(); }
+
+["gpEll", "gpNoise", "gpSamples"].forEach(id => $("#" + id).addEventListener("input", redraw3));
+$("#clear3").addEventListener("click", () => { lab3.pts = []; redraw3(); });
+$("#sample3").addEventListener("click", () => {
+  lab3.pts = [];
+  [[0.8, 4.2], [1.4, 5.1], [2.0, 6.0], [2.6, 6.3], [6.8, 4.0], [7.6, 3.2], [8.8, 4.5]].forEach(p => {
+    lab3.pts.push([p[0], Math.min(YMAX, Math.max(YMIN, p[1] + (Math.random() - 0.5) * 0.5))]);
+  });
+  redraw3();
+});
+
+window.addEventListener("resize", () => { redraw1(); redraw2(); redraw3(); });
+redraw1(); redraw2(); redraw3();
 </script>
 </body>
 </html>
