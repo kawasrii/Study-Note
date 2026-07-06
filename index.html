@@ -34,6 +34,45 @@
     <div class="card-grid" id="grid-eng"></div>
   </section>
 
+  <h2>学習マップ — 全体の体系とページの対応</h2>
+  <p>個々のテーマが体系のどこに位置するか。<b>準1級の出題範囲を階層で俯瞰</b>して、埋まっている場所・これからの場所を把握できます。</p>
+
+  <div class="tree"><ul>
+  <li class="t-root">統計検定 準1級
+    <ul>
+    <li><span class="t-cat">確率と確率分布</span>
+      <ul>
+      <li><a href="stats/distributions.html">確率分布ラボ</a>(離散・連続・標本分布・中心極限定理)</li>
+      </ul>
+    </li>
+    <li><span class="t-cat">統計的推測</span>
+      <ul>
+      <li class="soon">推定(点推定・区間推定)— 準備中</li>
+      <li><a href="stats/hypothesis-testing.html">仮説検定と検出力</a>(検定の共通骨格・過誤・サンプルサイズ)</li>
+      </ul>
+    </li>
+    <li><span class="t-cat">統計モデリング</span>
+      <ul>
+      <li><a href="stats/regression.html">回帰分析</a>(最小二乗法〜多項式〜ノンパラ〜ガウス過程)</li>
+      <li class="soon">多変量解析(主成分・判別・クラスター)— 準備中</li>
+      <li class="soon">時系列解析(自己相関・ARモデル)— 準備中</li>
+      </ul>
+    </li>
+    <li><span class="t-cat">ベイズ統計</span>
+      <ul>
+      <li class="soon">ベイズの定理・事後分布・共役事前分布 — 準備中(ガウス過程回帰は回帰ページに収載済み)</li>
+      </ul>
+    </li>
+    </ul>
+  </li>
+  <li class="t-root">英語(語彙)
+    <ul>
+    <li><span class="t-cat">広さ</span>: <a href="english/vocab-core.html">コア語彙100</a> ・ <a href="english/word-parts.html">語根・接頭辞</a></li>
+    <li><span class="t-cat">深さ</span>: <span class="soon">紛らわしい語ペア・コロケーション — 準備中</span></li>
+    </ul>
+  </li>
+  </ul></div>
+
   <h2>使い方メモ</h2>
   <p>「準備中」のカードは今後追加予定の枠。<code>data/topics.js</code> に1件追加+ページを作れば目次と検索に自動反映されます。フラッシュカードの学習記録はこのブラウザ内(localStorage)にのみ保存されます。</p>
   <p>検索の仕様: タイトル・説明・タグを小文字化した<b>部分一致</b>(1語)。スペース区切りのAND検索は未対応。各ページのウィジェット直下には「🔧 実装メモ」があり、使用アルゴリズム・近似式・固定パラメータ・未実装事項を開示しています。</p>

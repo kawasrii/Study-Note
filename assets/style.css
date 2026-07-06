@@ -101,6 +101,31 @@ code, .f {
 details.ans { margin-top: .5em; }
 details.ans summary { cursor: pointer; color: var(--accent); font-size: .9rem; }
 
+/* 階層ツリー(体系マップ) */
+.tree { margin: 1em 0; font-size: .93rem; line-height: 1.75; }
+.tree ul { list-style: none; margin: 0; padding-left: 1.5em; }
+.tree > ul { padding-left: .2em; }
+.tree li { position: relative; padding-left: 1.1em; }
+.tree li::before {
+  content: ""; position: absolute; left: 0; top: .82em;
+  width: .8em; border-top: 1.5px solid var(--accent); opacity: .45;
+}
+.tree li::after {
+  content: ""; position: absolute; left: 0; top: 0; height: 100%;
+  border-left: 1.5px solid var(--accent); opacity: .45;
+}
+.tree li:last-child::after { height: .82em; }
+.tree .t-root { font-weight: 700; padding-left: 0; font-size: 1rem; }
+.tree .t-root::before, .tree .t-root::after { display: none; }
+.tree .t-cat { font-weight: 700; }
+.tree .here {
+  background: var(--accent-soft); border-radius: 4px; padding: 0 .35em;
+  font-weight: 700;
+}
+.tree .soon { color: var(--ink-soft); }
+.page-eng .tree li::before, .page-eng .tree li::after { border-color: var(--eng); }
+.page-eng .tree .here { background: var(--eng-soft); }
+
 /* 実装メモ(各ウィジェットの計算内容の開示) */
 details.impl {
   margin: .4em 0 1.2em; font-size: .87rem; color: var(--ink-soft);
