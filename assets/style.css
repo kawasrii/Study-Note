@@ -101,6 +101,16 @@ code, .f {
 details.ans { margin-top: .5em; }
 details.ans summary { cursor: pointer; color: var(--accent); font-size: .9rem; }
 
+/* 実装メモ(各ウィジェットの計算内容の開示) */
+details.impl {
+  margin: .4em 0 1.2em; font-size: .87rem; color: var(--ink-soft);
+  background: var(--surface); border: 1px dashed var(--line);
+  border-radius: var(--radius); padding: .5em .9em;
+}
+details.impl summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+details.impl ul { margin: .5em 0 .2em 1.2em; padding: 0; }
+details.impl li { margin: .3em 0; }
+
 table { border-collapse: collapse; width: 100%; margin: 1em 0; font-size: .92rem; }
 th, td { border: 1px solid var(--line); padding: .45em .6em; text-align: left; }
 th { background: var(--accent-soft); }
