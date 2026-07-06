@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>回帰分析入門〜重回帰 | StudyAcceleration</title>
+<title>回帰分析:最小二乗法から多項式・ノンパラメトリックまで | StudyAcceleration</title>
 <link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
@@ -15,10 +15,10 @@
 </header>
 
 <main>
-<h1>回帰分析入門〜重回帰</h1>
-<p class="lead">タグ: 最小二乗法 / 決定係数 / 残差 / 重回帰 / 多重共線性 / 自由度調整済みR²</p>
+<h1>回帰分析:最小二乗法から多項式・ノンパラメトリックまで</h1>
+<p class="lead">タグ: 最小二乗法 / 決定係数 / 多項式回帰 / 過学習 / 重回帰 / 多重共線性 / カーネル回帰 / k-NN / LOESS / スプライン</p>
 
-<h2>最小二乗法 — 残差の二乗和を最小にする直線</h2>
+<h2>最小二乗法 — 残差の二乗和を最小にする</h2>
 <p>単回帰モデル <span class="f">y = β₀ + β₁x + ε</span> では、予測とデータのずれ(残差)の二乗和を最小にするように係数を決める。解は closed form で書ける:</p>
 <div class="formula">β̂₁ = S_xy / S_xx = Σ(xᵢ−x̄)(yᵢ−ȳ) / Σ(xᵢ−x̄)²,  β̂₀ = ȳ − β̂₁x̄</div>
 <p>つまり<b>傾きは「x と y の共分散 ÷ x の分散」</b>。相関係数 r との関係 <span class="f">β̂₁ = r·(s_y/s_x)</span> も頻出。回帰直線は必ず重心 (x̄, ȳ) を通る。</p>
@@ -26,26 +26,96 @@
 <div class="widget">
   <div class="w-title">最小二乗法プレイグラウンド — クリック/タップで点を追加、点をもう一度クリックで削除</div>
   <div class="controls">
-    <button id="clear">全消去</button>
-    <button id="sample">サンプルデータ</button>
-    <button id="outlier">外れ値を1点追加</button>
+    <label>次数:
+      <select id="deg">
+        <option value="1">1 (直線)</option>
+        <option value="2">2 (放物線)</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="6">6</option>
+        <option value="8">8</option>
+      </select>
+    </label>
+    <button id="clear1">全消去</button>
+    <button id="sample1">サンプル(直線+ノイズ)</button>
+    <button id="sample1c">サンプル(曲線+ノイズ)</button>
+    <button id="outlier1">外れ値を1点追加</button>
     <label><input type="checkbox" id="showResid" checked> 残差を表示</label>
   </div>
-  <canvas class="plot" id="plot" style="touch-action: manipulation;"></canvas>
-  <div class="readout" id="readout">点を2つ以上打つと回帰直線が現れます。</div>
+  <canvas class="plot" id="plot1" style="touch-action: manipulation;"></canvas>
+  <div class="readout" id="readout1">点を2つ以上打つと回帰曲線が現れます。</div>
 </div>
+<p class="lead">試してほしい操作:「サンプル(曲線+ノイズ)」→ 次数1 → 明らかに合わない(過小適合)。次数を2〜3に → よく合う。次数8に → <b>曲線が点の間で暴れ、全点を無理やり通ろうとする(過学習)</b>。R²は次数を上げるほど必ず上がるが、調整済みR²はどこかで下がり始める。「外れ値を1点追加」→ たった1点で曲線全体が引きずられる。</p>
 
-<div class="note-box">「外れ値を1点追加」を押してみてほしい。<b>たった1点で直線が大きく引きずられ、R² が激変する</b>。最小二乗法は残差を二乗するため外れ値に弱い — 実務ではまず散布図を描け、と言われる理由。</div>
+<div class="note-box">「外れ値に弱い」のは残差を<b>二乗</b>するせいで、大きなずれほど過大にペナルティされるから。実務ではまず散布図を描け、と言われる理由。ロバスト回帰(Huber損失など)はこの弱点への対処。</div>
 
-<h2>決定係数 R² — 「説明できた分散の割合」</h2>
-<div class="formula">R² = 1 − SSE/SST = 回帰で説明できた変動 / 全変動  (単回帰では R² = r²)</div>
-<p>R²=0.7 なら「y のばらつきの70%が x で説明できる」。ただし R² は<b>説明変数を増やすだけで必ず増える</b>ため、重回帰では罰則付きの<b>自由度調整済み R²</b> を使う:</p>
-<div class="formula">調整済みR² = 1 − (1−R²)·(n−1)/(n−p−1)  (p: 説明変数の数)</div>
+<h2>決定係数 R² と調整済み R²</h2>
+<div class="formula">R² = 1 − SSE/SST  (単回帰では R² = r²)</div>
+<p>R²=0.7 なら「y のばらつきの70%がモデルで説明できる」。ただし R² は<b>説明変数(や次数)を増やすだけで必ず増える</b>。モデル比較には罰則付きの<b>調整済み R²</b> を使う:</p>
+<div class="formula">調整済みR² = 1 − (1−R²)·(n−1)/(n−p−1)  (p: 説明変数の数=多項式なら次数)</div>
+
+<h2>多項式回帰と過学習</h2>
+<div class="formula">y = β₀ + β₁x + β₂x² + … + β_d x^d + ε</div>
+<p>x の冪を説明変数に加えたモデル。x² や x³ は非線形でも、<b>係数 β について線形なので「線形モデル」の一種</b>であり、最小二乗法がそのまま使える(準1級の引っかけポイント)。</p>
+<p>次数 d はモデルの複雑さのダイヤルになっている。上のラボで見た通り:</p>
+<p>d が小さすぎる → データの構造を捉えられない(<b>バイアス大</b> = 過小適合)。d が大きすぎる → ノイズまで拾い、データが少し変わると推定が激変する(<b>バリアンス大</b> = 過学習)。この<b>バイアス・バリアンスのトレードオフ</b>が予測モデル全般を貫く原理で、次数選択には調整済みR²・AIC・交差検証(クロスバリデーション)を使う。</p>
+<div class="warn-box">n 個の点は次数 n−1 の多項式で<b>完全に通過</b>できる(R²=1)。だが外挿・内挿は滅茶苦茶になる。「R²が高い=良いモデル」ではない最も鮮明な反例なので、ラボで点6個+次数8を試して目に焼き付けておくこと。</div>
+
+<div class="ex-box">
+n=10 のデータに、次数1のモデルで R²=0.88、次数3のモデルで R²=0.90 が得られた。調整済みR²でどちらを選ぶべきか。
+<details class="ans"><summary>解答を見る</summary>
+<p>次数1: 1 − 0.12×9/8 = <b>0.865</b>。次数3: 1 − 0.10×9/6 = <b>0.850</b>。<br>
+調整済みR²では<b>次数1(単純なモデル)を選ぶ</b>。R²のわずかな改善は複雑化のコストに見合わない。</p>
+</details>
+</div>
 
 <h2>重回帰と多重共線性</h2>
 <p>説明変数が複数のモデル <span class="f">y = β₀ + β₁x₁ + … + β_p x_p + ε</span>。係数 βⱼ の解釈は「<b>他の変数を固定したまま</b> xⱼ を1増やしたときの y の変化」— この「他を固定」が単回帰との決定的な違い。</p>
 <p>説明変数同士が強く相関していると(多重共線性)、係数の推定が不安定になり、符号が直感と逆転することさえある。診断には <b>VIF = 1/(1−Rⱼ²)</b> を使い、目安として VIF &gt; 10 で問題視する。</p>
-<div class="warn-box">準1級では、回帰係数の t 検定(H₀: βⱼ=0)、回帰の分散分析表(F検定)、残差プロットによるモデル診断(等分散性・正規性・独立性の確認)まで問われる。「R²が高い=良いモデル」ではないことを残差の目視で確認する姿勢が重要。</div>
+<div class="warn-box">準1級では、回帰係数の t 検定(H₀: βⱼ=0)、回帰の分散分析表(F検定)、残差プロットによるモデル診断(等分散性・正規性・独立性の確認)まで問われる。</div>
+
+<h2>ノンパラメトリック回帰 — 形を仮定しない</h2>
+<p>ここまでのモデルは「直線」「d次多項式」という<b>関数の形を先に決めて</b>係数を推定した(パラメトリック)。ノンパラメトリック回帰は形を仮定せず、「<b>近くのデータ点は似た y をもつ</b>」という仮定だけで滑らかな曲線をデータに語らせる。</p>
+
+<h3>カーネル回帰(Nadaraya–Watson)</h3>
+<div class="formula">ŷ(x) = Σᵢ K((x−xᵢ)/h)·yᵢ / Σᵢ K((x−xᵢ)/h)</div>
+<p>各点 x での予測を、<b>近い点ほど大きい重みをつけた y の加重平均</b>で作る。K はカーネル(ガウス核など)、h は<b>バンド幅</b>で「どこまでを近所とみなすか」を決める。</p>
+
+<h3>k近傍(k-NN)回帰</h3>
+<p>x に最も近い <b>k 個の点の y の平均</b>を予測値にする、最も素朴な方法。曲線は階段状になる。k がバンド幅の役割を果たす。</p>
+
+<h3>LOESS(局所回帰)</h3>
+<p>各 x の近傍データに<b>重み付きの直線(局所的な回帰直線)</b>を当てはめ、その x での値だけ使う。加重平均であるカーネル回帰より端(境界)での偏りが小さく、散布図の傾向線として実務で広く使われる(ggplotの geom_smooth など)。近傍の広さは<b>スパン</b>(全データの何割を使うか)で指定し、重みには tricube 核 (1−t³)³ が定番。</p>
+
+<h3>スプライン回帰</h3>
+<p>区間の境目(<b>節点、ノット</b>)で滑らかにつながる区分多項式(通常3次)を当てはめる。ノットを増やすほど柔軟になる。<b>平滑化スプライン</b>は全点をノットにした上で、曲がりくねりに罰則をかけて滑らかさを自動調整する:</p>
+<div class="formula">minimize  Σ(yᵢ − f(xᵢ))² + λ∫(f″(x))² dx</div>
+<p>λ→∞ で直線(最小二乗直線)に、λ→0 で全点を通る補間になる。λ がここでもバンド幅・次数と同じ「複雑さのダイヤル」であることに注目。</p>
+
+<div class="widget">
+  <div class="w-title">ノンパラメトリック回帰ラボ — クリック/タップで点を追加、もう一度クリックで削除</div>
+  <div class="controls">
+    <label>手法:
+      <select id="method">
+        <option value="kernel">カーネル回帰(ガウス核)</option>
+        <option value="knn">k-NN回帰</option>
+        <option value="loess">LOESS(局所直線)</option>
+      </select>
+    </label>
+    <label><span id="parLabel">バンド幅 h</span> <input type="range" id="par" min="0.1" max="3" step="0.05" value="0.6"> <span class="val" id="parVal">0.6</span></label>
+    <label><input type="checkbox" id="cmpLine"> 最小二乗直線と比較</label>
+  </div>
+  <div class="controls">
+    <button id="clear2">全消去</button>
+    <button id="sample2">サンプル(波形+ノイズ)</button>
+    <button id="sample2s">サンプル(段差+ノイズ)</button>
+  </div>
+  <canvas class="plot" id="plot2" style="touch-action: manipulation;"></canvas>
+  <div class="readout" id="readout2">点を3つ以上打つと曲線が現れます。</div>
+</div>
+<p class="lead">試してほしい操作:「サンプル(波形+ノイズ)」→ バンド幅 h を最小へ → <b>曲線がノイズを追いかけてギザギザに(バリアンス大)</b>。h を最大へ → <b>ほぼ平らに潰れて波を捉えられない(バイアス大)</b>。ちょうど良い h が中間にある。「段差+ノイズ」で手法を切り替え → k-NNは階段状、カーネルは段差がなまり、LOESSは端で強い。「最小二乗直線と比較」を入れると、形を仮定するモデルとの違いが一目でわかる。</p>
+
+<div class="warn-box">バンド幅 h・近傍数 k・スパン・罰則 λ・多項式の次数 d — 名前は違えど全部「<b>複雑さ(平滑さ)を決めるチューニングパラメータ</b>」であり、どれもバイアス・バリアンスのトレードオフを調整している。選択には交差検証を使うのが原則。この統一的な見方が身につけば、初見の手法でも本質を掴める。</div>
 
 <div class="ex-box">
 n=10 のデータで x̄=5, ȳ=20, S_xx=40, S_xy=60, S_yy=100 のとき、回帰直線と決定係数を求めよ。
@@ -64,100 +134,267 @@ R² = S_xy²/(S_xx·S_yy) = 3600/4000 = <b>0.9</b>(r = 0.949)</p>
 <script src="../assets/app.js"></script>
 <script>
 "use strict";
-let pts = [];
 const XMIN = 0, XMAX = 10, YMIN = 0, YMAX = 10;
-const canvas = $("#plot");
-let geom = null;
 
-function draw() {
-  const { ctx, W, H } = setupCanvas(canvas, 320);
-  const col = themeColors();
-  ctx.clearRect(0, 0, W, H);
-  const padL = 30, padB = 24, padT = 10, padR = 10;
-  const pw = W - padL - padR, ph = H - padT - padB;
-  const X = x => padL + (x - XMIN) / (XMAX - XMIN) * pw;
-  const Y = y => padT + ph - (y - YMIN) / (YMAX - YMIN) * ph;
-  geom = { padL, padT, pw, ph, W, H,
-    invX: px => XMIN + (px - padL) / pw * (XMAX - XMIN),
-    invY: py => YMIN + (padT + ph - py) / ph * (YMAX - YMIN), X, Y };
-
-  // グリッド
-  ctx.strokeStyle = col.line; ctx.lineWidth = 1;
-  for (let g = 0; g <= 10; g += 2) {
-    ctx.beginPath(); ctx.moveTo(X(g), padT); ctx.lineTo(X(g), padT + ph); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(padL, Y(g)); ctx.lineTo(padL + pw, Y(g)); ctx.stroke();
-  }
-
-  let fit = null;
-  if (pts.length >= 2) {
-    const n = pts.length;
-    const mx = pts.reduce((s, p) => s + p[0], 0) / n;
-    const my = pts.reduce((s, p) => s + p[1], 0) / n;
-    let sxx = 0, sxy = 0, syy = 0;
-    pts.forEach(([x, y]) => { sxx += (x - mx) ** 2; sxy += (x - mx) * (y - my); syy += (y - my) ** 2; });
-    if (sxx > 1e-9) {
-      const b1 = sxy / sxx, b0 = my - b1 * mx;
-      const r2 = syy > 1e-9 ? (sxy * sxy) / (sxx * syy) : 1;
-      fit = { b0, b1, r2 };
+/* ---- 点打ちキャンバスの共通部品(軸は固定スケール) ---- */
+function makeBoard(canvasId, onDraw) {
+  const canvas = $("#" + canvasId);
+  const st = { pts: [], geom: null };
+  st.draw = function () {
+    const { ctx, W, H } = setupCanvas(canvas, 320);
+    const col = themeColors();
+    ctx.clearRect(0, 0, W, H);
+    const padL = 30, padB = 24, padT = 10, padR = 10;
+    const pw = W - padL - padR, ph = H - padT - padB;
+    const X = x => padL + (x - XMIN) / (XMAX - XMIN) * pw;
+    const Y = y => padT + ph - (y - YMIN) / (YMAX - YMIN) * ph;
+    st.geom = { X, Y, padL, padT, pw, ph,
+      invX: px => XMIN + (px - padL) / pw * (XMAX - XMIN),
+      invY: py => YMIN + (padT + ph - py) / ph * (YMAX - YMIN) };
+    ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+    for (let g = 0; g <= 10; g += 2) {
+      ctx.beginPath(); ctx.moveTo(X(g), padT); ctx.lineTo(X(g), padT + ph); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(padL, Y(g)); ctx.lineTo(padL + pw, Y(g)); ctx.stroke();
     }
-  }
-
-  // 残差
-  if (fit && $("#showResid").checked) {
-    ctx.strokeStyle = "rgba(197,48,48,.55)"; ctx.lineWidth = 1.4;
-    pts.forEach(([x, y]) => {
-      const yh = fit.b0 + fit.b1 * x;
-      ctx.beginPath(); ctx.moveTo(X(x), Y(y)); ctx.lineTo(X(x), Y(yh)); ctx.stroke();
-    });
-  }
-  // 回帰直線
-  if (fit) {
-    ctx.strokeStyle = col.accent; ctx.lineWidth = 2.4; ctx.beginPath();
-    ctx.moveTo(X(XMIN), Y(fit.b0 + fit.b1 * XMIN));
-    ctx.lineTo(X(XMAX), Y(fit.b0 + fit.b1 * XMAX));
-    ctx.stroke();
-  }
-  // 点
-  pts.forEach(([x, y]) => {
+    ctx.save();
+    ctx.beginPath(); ctx.rect(padL, padT, pw, ph); ctx.clip();
+    onDraw(ctx, st.pts, st.geom, col);
+    ctx.restore();
     ctx.fillStyle = col.ink;
-    ctx.beginPath(); ctx.arc(X(x), Y(y), 5, 0, Math.PI * 2); ctx.fill();
+    st.pts.forEach(([x, y]) => {
+      ctx.beginPath(); ctx.arc(X(x), Y(y), 5, 0, Math.PI * 2); ctx.fill();
+    });
+  };
+  canvas.addEventListener("click", e => {
+    const rect = canvas.getBoundingClientRect();
+    const px = e.clientX - rect.left, py = e.clientY - rect.top;
+    const g = st.geom;
+    const x = g.invX(px), y = g.invY(py);
+    if (x < XMIN || x > XMAX || y < YMIN || y > YMAX) return;
+    const hit = st.pts.findIndex(([a, b]) => Math.hypot(g.X(a) - px, g.Y(b) - py) < 12);
+    if (hit >= 0) st.pts.splice(hit, 1); else st.pts.push([x, y]);
+    st.draw();
   });
-
-  const r = $("#readout");
-  if (!fit) { r.textContent = "点を2つ以上打つと回帰直線が現れます。"; return; }
-  r.replaceChildren();
-  const eq = document.createElement("b");
-  eq.textContent = "ŷ = " + fit.b0.toFixed(2) + (fit.b1 >= 0 ? " + " : " − ") + Math.abs(fit.b1).toFixed(2) + "x";
-  const r2b = document.createElement("b");
-  r2b.textContent = "R² = " + fit.r2.toFixed(3);
-  r.append(eq, " ・ ", r2b, " ・ n = " + pts.length);
+  return st;
 }
 
-canvas.addEventListener("click", e => {
-  const rect = canvas.getBoundingClientRect();
-  const px = e.clientX - rect.left, py = e.clientY - rect.top;
-  const x = geom.invX(px), y = geom.invY(py);
-  if (x < XMIN || x > XMAX || y < YMIN || y > YMAX) return;
-  // 近くの既存点があれば削除
-  const hit = pts.findIndex(([a, b]) => Math.hypot(geom.X(a) - px, geom.Y(b) - py) < 12);
-  if (hit >= 0) pts.splice(hit, 1);
-  else pts.push([x, y]);
-  draw();
+function drawCurve(ctx, geom, fn, color, dash) {
+  ctx.strokeStyle = color; ctx.lineWidth = 2.4;
+  if (dash) ctx.setLineDash(dash);
+  ctx.beginPath();
+  let started = false;
+  for (let i = 0; i <= 240; i++) {
+    const x = XMIN + (XMAX - XMIN) * i / 240;
+    const y = fn(x);
+    if (!isFinite(y)) { started = false; continue; }
+    started ? ctx.lineTo(geom.X(x), geom.Y(y)) : ctx.moveTo(geom.X(x), geom.Y(y));
+    started = true;
+  }
+  ctx.stroke(); ctx.setLineDash([]);
+}
+
+/* ---- 連立一次方程式(部分ピボット付きガウス消去) ---- */
+function solveLin(A, b) {
+  const n = b.length, M = A.map((row, i) => row.concat([b[i]]));
+  for (let c = 0; c < n; c++) {
+    let piv = c;
+    for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[piv][c])) piv = r;
+    if (Math.abs(M[piv][c]) < 1e-12) return null;
+    [M[c], M[piv]] = [M[piv], M[c]];
+    for (let r = c + 1; r < n; r++) {
+      const f = M[r][c] / M[c][c];
+      for (let k = c; k <= n; k++) M[r][k] -= f * M[c][k];
+    }
+  }
+  const x = new Array(n).fill(0);
+  for (let r = n - 1; r >= 0; r--) {
+    let s = M[r][n];
+    for (let k = r + 1; k < n; k++) s -= M[r][k] * x[k];
+    x[r] = s / M[r][r];
+  }
+  return x;
+}
+
+/* ---- 多項式最小二乗フィット(x を [-1,1] に正規化して数値安定化) ---- */
+function polyFit(pts, deg) {
+  const n = pts.length;
+  const d = Math.min(deg, n - 1);
+  if (d < 1) return null;
+  const u = x => (x - 5) / 5;
+  const A = [], b = [];
+  for (let r = 0; r <= d; r++) {
+    A.push(new Array(d + 1).fill(0)); b.push(0);
+    for (const [x, y] of pts) {
+      const ux = u(x);
+      b[r] += y * Math.pow(ux, r);
+      for (let c = 0; c <= d; c++) A[r][c] += Math.pow(ux, r + c);
+    }
+  }
+  const beta = solveLin(A, b);
+  if (!beta) return null;
+  const fn = x => beta.reduce((s, bk, k) => s + bk * Math.pow(u(x), k), 0);
+  const my = pts.reduce((s, p) => s + p[1], 0) / n;
+  let sse = 0, sst = 0;
+  for (const [x, y] of pts) { sse += (y - fn(x)) ** 2; sst += (y - my) ** 2; }
+  const r2 = sst > 1e-12 ? 1 - sse / sst : 1;
+  const adj = (n - d - 1) > 0 ? 1 - (1 - r2) * (n - 1) / (n - d - 1) : NaN;
+  return { fn, r2, adj, d, beta };
+}
+
+/* ================= ラボ1: 最小二乗法+多項式 ================= */
+const lab1 = makeBoard("plot1", (ctx, pts, geom, col) => {
+  if (pts.length < 2) return;
+  const fit = polyFit(pts, +$("#deg").value);
+  if (!fit) return;
+  if ($("#showResid").checked) {
+    ctx.strokeStyle = "rgba(197,48,48,.55)"; ctx.lineWidth = 1.4;
+    pts.forEach(([x, y]) => {
+      ctx.beginPath(); ctx.moveTo(geom.X(x), geom.Y(y)); ctx.lineTo(geom.X(x), geom.Y(fit.fn(x))); ctx.stroke();
+    });
+  }
+  drawCurve(ctx, geom, fit.fn, col.accent);
 });
-$("#clear").addEventListener("click", () => { pts = []; draw(); });
-$("#sample").addEventListener("click", () => {
-  pts = [];
+
+function report1() {
+  const r = $("#readout1");
+  if (lab1.pts.length < 2) { r.textContent = "点を2つ以上打つと回帰曲線が現れます。"; return; }
+  const fit = polyFit(lab1.pts, +$("#deg").value);
+  if (!fit) { r.textContent = "フィットできません(点を増やしてください)。"; return; }
+  r.replaceChildren();
+  const b1 = document.createElement("b");
+  b1.textContent = "R² = " + fit.r2.toFixed(3);
+  const b2 = document.createElement("b");
+  b2.textContent = "調整済みR² = " + (isFinite(fit.adj) ? fit.adj.toFixed(3) : "—");
+  r.append("次数 " + fit.d + " ・ ", b1, " ・ ", b2, " ・ n = " + lab1.pts.length);
+  if (fit.d >= lab1.pts.length - 1 && lab1.pts.length >= 3)
+    r.append(" ※次数 ≥ n−1: 全点を通過する完全補間(過学習の極み)");
+}
+function redraw1() { lab1.draw(); report1(); }
+
+$("#deg").addEventListener("change", redraw1);
+$("#showResid").addEventListener("input", redraw1);
+$("#clear1").addEventListener("click", () => { lab1.pts = []; redraw1(); });
+$("#sample1").addEventListener("click", () => {
+  lab1.pts = [];
   for (let i = 0; i < 14; i++) {
     const x = 0.5 + Math.random() * 9;
     const y = 1.5 + 0.7 * x + (Math.random() - 0.5) * 2.2;
-    pts.push([x, Math.min(YMAX, Math.max(YMIN, y))]);
+    lab1.pts.push([x, Math.min(YMAX, Math.max(YMIN, y))]);
   }
-  draw();
+  redraw1();
 });
-$("#outlier").addEventListener("click", () => { pts.push([9.5, 0.5]); draw(); });
-$("#showResid").addEventListener("input", draw);
-window.addEventListener("resize", draw);
-draw();
+$("#sample1c").addEventListener("click", () => {
+  lab1.pts = [];
+  for (let i = 0; i < 16; i++) {
+    const x = 0.4 + Math.random() * 9.2;
+    const y = 5 + 3.2 * Math.sin(x * 0.75) + (Math.random() - 0.5) * 1.6;
+    lab1.pts.push([x, Math.min(YMAX, Math.max(YMIN, y))]);
+  }
+  redraw1();
+});
+$("#outlier1").addEventListener("click", () => { lab1.pts.push([9.5, 0.5]); redraw1(); });
+
+/* ================= ラボ2: ノンパラメトリック回帰 ================= */
+const npCfg = {
+  kernel: { l: "バンド幅 h", min: 0.1, max: 3, step: 0.05, v: 0.6 },
+  knn:    { l: "k (近傍数)", min: 1, max: 15, step: 1, v: 5 },
+  loess:  { l: "スパン(使用割合)", min: 0.2, max: 1, step: 0.05, v: 0.5 },
+};
+
+function kernelReg(pts, h) {
+  return x => {
+    let num = 0, den = 0;
+    for (const [xi, yi] of pts) {
+      const w = Math.exp(-((x - xi) ** 2) / (2 * h * h));
+      num += w * yi; den += w;
+    }
+    return den > 1e-12 ? num / den : NaN;
+  };
+}
+function knnReg(pts, k) {
+  const kk = Math.min(k, pts.length);
+  return x => {
+    const near = pts.slice().sort((a, b) => Math.abs(a[0] - x) - Math.abs(b[0] - x)).slice(0, kk);
+    return near.reduce((s, p) => s + p[1], 0) / near.length;
+  };
+}
+function loessReg(pts, span) {
+  const n = pts.length;
+  const m = Math.max(2, Math.ceil(span * n));
+  return x => {
+    const near = pts.slice().sort((a, b) => Math.abs(a[0] - x) - Math.abs(b[0] - x)).slice(0, m);
+    const dmax = Math.max(...near.map(p => Math.abs(p[0] - x))) || 1e-9;
+    let Sw = 0, Swx = 0, Swy = 0, Swxx = 0, Swxy = 0;
+    for (const [xi, yi] of near) {
+      const t = Math.min(1, Math.abs(xi - x) / dmax);
+      const w = Math.pow(1 - t ** 3, 3);
+      Sw += w; Swx += w * xi; Swy += w * yi; Swxx += w * xi * xi; Swxy += w * xi * yi;
+    }
+    const den = Sw * Swxx - Swx * Swx;
+    if (Math.abs(den) < 1e-9) return Sw > 1e-12 ? Swy / Sw : NaN;
+    const b1 = (Sw * Swxy - Swx * Swy) / den;
+    const b0 = (Swy - b1 * Swx) / Sw;
+    return b0 + b1 * x;
+  };
+}
+
+const lab2 = makeBoard("plot2", (ctx, pts, geom, col) => {
+  if (pts.length < 3) return;
+  const method = $("#method").value, par = +$("#par").value;
+  const fn = method === "kernel" ? kernelReg(pts, par)
+           : method === "knn" ? knnReg(pts, Math.round(par))
+           : loessReg(pts, par);
+  if ($("#cmpLine").checked) {
+    const lin = polyFit(pts, 1);
+    if (lin) drawCurve(ctx, geom, lin.fn, col.soft, [6, 5]);
+  }
+  drawCurve(ctx, geom, fn, "#dd8844");
+});
+
+function report2() {
+  const r = $("#readout2");
+  if (lab2.pts.length < 3) { r.textContent = "点を3つ以上打つと曲線が現れます。"; return; }
+  const method = $("#method").value, par = +$("#par").value;
+  const names = { kernel: "カーネル回帰 h=" + par.toFixed(2), knn: "k-NN回帰 k=" + Math.round(par), loess: "LOESS スパン=" + par.toFixed(2) };
+  r.textContent = names[method] + " ・ n = " + lab2.pts.length + "(橙: ノンパラ曲線、灰点線: 最小二乗直線)";
+}
+function redraw2() {
+  $("#parVal").textContent = (+$("#par").value).toFixed(2);
+  lab2.draw(); report2();
+}
+
+$("#method").addEventListener("change", () => {
+  const c = npCfg[$("#method").value];
+  const par = $("#par");
+  $("#parLabel").textContent = c.l;
+  par.min = c.min; par.max = c.max; par.step = c.step; par.value = c.v;
+  redraw2();
+});
+$("#par").addEventListener("input", redraw2);
+$("#cmpLine").addEventListener("input", redraw2);
+$("#clear2").addEventListener("click", () => { lab2.pts = []; redraw2(); });
+$("#sample2").addEventListener("click", () => {
+  lab2.pts = [];
+  for (let i = 0; i < 30; i++) {
+    const x = 0.3 + Math.random() * 9.4;
+    const y = 5 + 3 * Math.sin(x * 0.9) + (Math.random() - 0.5) * 2.0;
+    lab2.pts.push([x, Math.min(YMAX, Math.max(YMIN, y))]);
+  }
+  redraw2();
+});
+$("#sample2s").addEventListener("click", () => {
+  lab2.pts = [];
+  for (let i = 0; i < 30; i++) {
+    const x = 0.3 + Math.random() * 9.4;
+    const base = x < 5 ? 3 : 7;
+    const y = base + (Math.random() - 0.5) * 1.6;
+    lab2.pts.push([x, Math.min(YMAX, Math.max(YMIN, y))]);
+  }
+  redraw2();
+});
+
+window.addEventListener("resize", () => { redraw1(); redraw2(); });
+redraw1(); redraw2();
 </script>
 </body>
 </html>
