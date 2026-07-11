@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>多変量解析:主成分・判別・クラスター | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 多変量解析</span>
+  </div>
+</header>
+
+<main>
+<h1>多変量解析:主成分・判別・クラスター</h1>
+<p class="lead">タグ: 主成分分析 PCA / 固有値 / 寄与率 / 判別分析 LDA / マハラノビス距離 / クラスター分析 / k-means</p>
+
+<h2>全体マップ — 多変量解析は「目的」で分類する</h2>
+<p>変数が多いデータを扱う手法群。分類の軸は<b>①目的(縮約か・分類か・関係の記述か)</b>と<b>②正解ラベル(教師)の有無</b>。この2つで見れば、名前が似ていて混ざりがちな判別分析(教師あり)とクラスター分析(教師なし)も混同しない。</p>
+
+<div class="tree"><ul>
+<li class="t-root">多変量解析(たくさんの変数をまとめて扱う)
+  <ul>
+  <li><span class="t-cat">次元縮約</span> — 情報をなるべく保ったまま変数を減らす(教師なし)
+    <ul>
+    <li><span class="here">主成分分析(PCA)</span> — 分散最大の方向に軸を取り直す(ラボあり)</li>
+    <li class="soon">因子分析 — 背後の潜在因子を仮定 — 未収載</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">分類</span>
+    <ul>
+    <li>教師あり(正解ラベルを使って境界を学ぶ)
+      <ul>
+      <li><span class="here">判別分析(LDA)</span> — クラス間/クラス内分散比を最大化(解説+例題)</li>
+      <li class="soon">ロジスティック回帰による分類 — 未収載</li>
+      </ul>
+    </li>
+    <li>教師なし(ラベルなしで塊を見つける)
+      <ul>
+      <li><span class="here">k-means法</span> — 重心との距離で分割を反復改善(ラボあり)</li>
+      <li class="soon">階層的クラスタリング(デンドログラム)— 解説のみ</li>
+      </ul>
+    </li>
+    </ul>
+  </li>
+  <li class="t-cat soon">関係の記述 — 正準相関・多次元尺度構成法(MDS)— 未収載</li>
+  </ul>
+</li>
+</ul></div>
+
+<div class="tbl-wrap"><table>
+<tr><th>手法</th><th>目的</th><th>教師</th><th>最大化/最小化するもの</th><th>出力</th></tr>
+<tr><td>主成分分析</td><td>次元縮約</td><td>なし</td><td>射影後の<b>分散を最大化</b></td><td>主成分軸・寄与率・主成分得点</td></tr>
+<tr><td>判別分析</td><td>分類(境界を学ぶ)</td><td><b>あり</b></td><td>クラス間分散/クラス内分散の<b>比を最大化</b></td><td>判別関数・判別境界</td></tr>
+<tr><td>k-means</td><td>分類(塊を発見)</td><td>なし</td><td>クラスタ内二乗和(WCSS)を<b>最小化</b></td><td>クラスタ割当・重心</td></tr>
+<tr><td>階層的クラスタリング</td><td>分類(塊を発見)</td><td>なし</td><td>クラスタ間距離(結合基準による)</td><td>デンドログラム</td></tr>
+</table></div>
+
+<h2>主成分分析(PCA) — 分散が最大の方向に軸を取り直す</h2>
+<p>相関のある変数たちを、<b>互いに無相関な新しい軸(主成分)</b>に変換する。第1主成分はデータの<b>分散(ばらつき)が最大になる方向</b>、第2主成分はそれと直交する中で分散最大の方向…と取っていく。数学的には<b>分散共分散行列(または相関行列)の固有値問題</b>で、固有ベクトルが軸の向き、固有値 λ がその軸方向の分散になる。</p>
+<div class="formula">第k主成分の寄与率 = λₖ / Σλ,  累積寄与率 = (λ₁+…+λₖ) / Σλ</div>
+<p>「累積寄与率80%まで採用」のように使い、10変数を2〜3軸に圧縮して可視化・解釈する。<b>変数の単位が違うときは標準化(相関行列ベース)が必須</b> — しないと分散の大きい変数が主成分を独占する。</p>
+
+<div class="widget">
+  <div class="w-title">PCAラボ — クリック/タップで点を追加(もう一度で削除)。矢印=主成分軸</div>
+  <div class="controls">
+    <button id="clearP">全消去</button>
+    <button id="sampleP">サンプル(相関あり)</button>
+    <button id="samplePr">サンプル(相関ほぼなし)</button>
+    <label><input type="checkbox" id="showProj"> 第1主成分への射影を表示</label>
+  </div>
+  <canvas class="plot" id="plotPca" style="touch-action: manipulation;"></canvas>
+  <div class="readout" id="readoutPca">点を3つ以上打つと主成分軸が現れます。</div>
+</div>
+<p class="lead">試してほしい操作:「サンプル(相関あり)」→ <b>長い矢印(第1主成分)が点群の伸びている方向を向く</b>。矢印の長さは √固有値 に比例=その方向の標準偏差。「射影を表示」→ 各点が第1主成分軸上に潰される — これが「2次元→1次元への縮約」の実体で、失う情報は軸への垂線の長さ(第2主成分方向の分散)。「相関ほぼなし」→ 2つの固有値が近くなり、寄与率が50%ずつに — <b>縮約しても旨みがない状況</b>。点を1つずつ足して軸がグリッと回る様子も見てほしい。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このラボが実際に計算していること)</summary>
+<ul>
+<li><b>分散共分散行列(2×2)</b>を標本から計算(不偏分散、n−1 で割る)。<b>標準化はしていない</b>(このラボは両軸とも同じ0–10の尺度のため生の共分散行列を使用。単位が違う実データでは相関行列ベースにすべき、という本文の注意はこのため)</li>
+<li><b>固有値・固有ベクトル</b>: 2×2対称行列の<b>閉じた式</b> λ = (a+c)/2 ± √(((a−c)/2)²+b²)。数値反復(QR法等)は不使用</li>
+<li><b>矢印</b>: 重心から固有ベクトル方向に ±2√λ(=±2標準偏差)の長さで描画</li>
+<li><b>寄与率</b> = λ₁/(λ₁+λ₂)。readoutに固有値とともに表示</li>
+<li><b>射影</b>: 各点 x を 重心 + v₁v₁ᵀ(x−重心) に写して空心円で表示(v₁は第1固有ベクトル)</li>
+<li>3変数以上・標準化の切替・主成分得点のプロット(バイプロット)は未実装</li>
+</ul>
+</details>
+
+<h2>判別分析(LDA) — ラベルが最も分かれて見える方向</h2>
+<p>2クラスのラベル付きデータで、<b>クラス間のずれ(群間分散)がクラス内のばらつき(群内分散)に比べて最大になる方向 w</b> に射影して分類する:</p>
+<div class="formula">w ∝ S_pooled⁻¹ (μ₁ − μ₂),  新しい点は射影値が判別点(中点)のどちら側かで分類</div>
+<p>PCAと見比えると対比が鮮明:<b>PCAはラベル無視で「ばらつき最大」の方向、LDAはラベルを使って「分離最大」の方向</b>。2つの方向は一般に一致しない — 分散が大きい方向とクラスが分かれる方向は別物だから。等分散の正規母集団を仮定すると、LDAは<b>マハラノビス距離</b>(共分散を考慮した距離)が近い方のクラスに割り当てる操作と等価になる。</p>
+<div class="warn-box">準1級では「判別関数の係数の意味」「マハラノビス距離 D² = (x−μ)ᵀΣ⁻¹(x−μ)(ばらつきの大きい方向のずれは割り引く)」「誤判別率」が問われる。判別分析は<b>教師あり</b>・クラスターは<b>教師なし</b>という区別は選択肢問題の定番。</div>
+
+<div class="ex-box">
+2つの主成分の固有値が λ₁=3.2, λ₂=0.8 のとき、第1主成分の寄与率は?また元の2変数の分散の合計は?
+<details class="ans"><summary>解答を見る</summary>
+<p>寄与率 = 3.2/(3.2+0.8) = <b>80%</b><br>
+固有値の和は元の分散の和(トレース)に等しいので 3.2+0.8 = <b>4.0</b>。「固有値の和=全分散」はPCAの核心的性質。</p>
+</details>
+</div>
+
+<h2>クラスター分析 — ラベルなしで塊を見つける</h2>
+<p>代表格の <b>k-means法</b> は「①k個の重心を仮置き → ②各点を最寄りの重心に割当 → ③各クラスタの平均に重心を移動 → ②③を収束まで反復」というシンプルな交互最適化で、<b>クラスタ内二乗和(WCSS)を単調に減らす</b>。ただし<b>局所解に落ちる</b>(初期値で結果が変わる)、<b>kは自分で決める</b>(エルボー法などで選ぶ)、球状の塊しか見つけにくい、という3つの弱点も頻出論点。</p>
+<p>もう1つの系統が<b>階層的クラスタリング</b>:近いもの同士を順に併合して<b>デンドログラム(樹形図)</b>を作る。結合基準(最短距離法・最長距離法・ウォード法)で結果が変わる。kを事前に決めなくてよいのが利点。</p>
+
+<div class="widget">
+  <div class="w-title">k-meansラボ — 点を打って「実行」。初期値で結果が変わることも体験する</div>
+  <div class="controls">
+    <label>k:
+      <select id="kSel"><option>2</option><option selected>3</option><option>4</option></select>
+    </label>
+    <button id="runK">▶ 実行(ランダム初期値から収束まで)</button>
+    <button id="clearK">全消去</button>
+    <button id="sampleK">サンプル(3つの塊)</button>
+  </div>
+  <canvas class="plot" id="plotKm" style="touch-action: manipulation;"></canvas>
+  <div class="readout" id="readoutKm">点を打って「実行」を押してください。</div>
+</div>
+<p class="lead">試してほしい操作:「サンプル(3つの塊)」→ k=3 で実行 → 塊どおりに色分けされ、×印(重心)が各塊の中心に立つ。<b>「実行」を何度も押す</b> → 初期値が毎回ランダムなので、たまに変な分かれ方(局所解)になる — WCSSの値が実行ごとに違うことで確認できる。k=2 や k=4 にして実行 → <b>kを間違えると塊が併合・分裂する</b>。kはアルゴリズムが教えてくれない、という弱点の体感。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このラボが実際に計算していること)</summary>
+<ul>
+<li><b>アルゴリズム</b>: Lloyd法(標準のk-means)。割当→重心更新を<b>割当が変化しなくなるまで</b>反復(上限50回)</li>
+<li><b>初期値</b>: データ点から重複なしの一様ランダム抽出(<b>k-means++ は未実装</b> — 局所解に落ちやすいのはこのため。それ自体を教材にしている)</li>
+<li><b>距離</b>: ユークリッド距離の2乗。空クラスタが生じた場合はランダムな点を重心に再割当</li>
+<li><b>WCSS</b> = Σ 各点から所属重心への距離²。readoutに反復回数とともに表示</li>
+<li>エルボー法のためのk別WCSSプロット・k-means++・階層的クラスタリング(デンドログラム)は未実装</li>
+</ul>
+</details>
+
+<div class="ex-box">
+k-means法について正しいものを選べ:①WCSSは反復のたびに増加する ②kは自動的に決まる ③初期値によって結果が変わることがある ④教師ありの手法である
+<details class="ans"><summary>解答を見る</summary>
+<p><b>③が正しい</b>。①WCSSは単調に「減少」する(割当も重心更新もWCSSを下げる操作)。②kは事前に指定が必要(エルボー法などで選ぶ)。④ラベルを使わない「教師なし」学習。上のラボで①③は実際に確認できる。</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="bayes.html">← ベイズ法・マルコフ連鎖</a>
+  <a href="../index.html">ホーム →</a>
+</div>
+</main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+const XMIN = 0, XMAX = 10, YMIN = 0, YMAX = 10;
+
+/* ---- 共通: 点打ちボード(回帰ページと同方式) ---- */
+function makeBoard(canvasId, onDraw, pointColorFn) {
+  const canvas = $("#" + canvasId);
+  const st = { pts: [], geom: null };
+  st.draw = function () {
+    const { ctx, W, H } = setupCanvas(canvas, 320);
+    const col = themeColors();
+    ctx.clearRect(0, 0, W, H);
+    const padL = 30, padB = 24, padT = 10, padR = 10;
+    const pw = W - padL - padR, ph = H - padT - padB;
+    const X = x => padL + (x - XMIN) / (XMAX - XMIN) * pw;
+    const Y = y => padT + ph - (y - YMIN) / (YMAX - YMIN) * ph;
+    st.geom = { X, Y, padL, padT, pw, ph,
+      invX: px => XMIN + (px - padL) / pw * (XMAX - XMIN),
+      invY: py => YMIN + (padT + ph - py) / ph * (YMAX - YMIN) };
+    ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+    for (let g = 0; g <= 10; g += 2) {
+      ctx.beginPath(); ctx.moveTo(X(g), padT); ctx.lineTo(X(g), padT + ph); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(padL, Y(g)); ctx.lineTo(padL + pw, Y(g)); ctx.stroke();
+    }
+    ctx.save();
+    ctx.beginPath(); ctx.rect(padL, padT, pw, ph); ctx.clip();
+    onDraw(ctx, st.pts, st.geom, col);
+    ctx.restore();
+    st.pts.forEach((p, i) => {
+      ctx.fillStyle = pointColorFn ? pointColorFn(i) : col.ink;
+      ctx.beginPath(); ctx.arc(X(p[0]), Y(p[1]), 5, 0, Math.PI * 2); ctx.fill();
+    });
+  };
+  canvas.addEventListener("click", e => {
+    const rect = canvas.getBoundingClientRect();
+    const px = e.clientX - rect.left, py = e.clientY - rect.top;
+    const g = st.geom;
+    const x = g.invX(px), y = g.invY(py);
+    if (x < XMIN || x > XMAX || y < YMIN || y > YMAX) return;
+    const hit = st.pts.findIndex(p => Math.hypot(g.X(p[0]) - px, g.Y(p[1]) - py) < 12);
+    if (hit >= 0) st.pts.splice(hit, 1); else st.pts.push([x, y]);
+    st.onChange && st.onChange();
+    st.draw();
+  });
+  return st;
+}
+function gauss2(cx, cy, sx, sy, rho) { // 相関のある2変量正規サンプル1点
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  const z1 = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  const z2 = Math.sqrt(-2 * Math.log(u)) * Math.sin(2 * Math.PI * v);
+  const x = cx + sx * z1;
+  const y = cy + sy * (rho * z1 + Math.sqrt(1 - rho * rho) * z2);
+  return [Math.min(XMAX, Math.max(XMIN, x)), Math.min(YMAX, Math.max(YMIN, y))];
+}
+
+/* ================= ラボ1: PCA ================= */
+function pca(pts) {
+  const n = pts.length;
+  if (n < 3) return null;
+  const mx = pts.reduce((s, p) => s + p[0], 0) / n;
+  const my = pts.reduce((s, p) => s + p[1], 0) / n;
+  let a = 0, b = 0, c = 0; // cov行列 [[a,b],[b,c]]
+  pts.forEach(([x, y]) => { a += (x - mx) ** 2; b += (x - mx) * (y - my); c += (y - my) ** 2; });
+  a /= n - 1; b /= n - 1; c /= n - 1;
+  const tr2 = (a + c) / 2, det = Math.sqrt(((a - c) / 2) ** 2 + b * b);
+  const l1 = tr2 + det, l2 = Math.max(0, tr2 - det);
+  // 第1固有ベクトル
+  let v1;
+  if (Math.abs(b) > 1e-12) v1 = [l1 - c, b];
+  else v1 = a >= c ? [1, 0] : [0, 1];
+  const norm = Math.hypot(v1[0], v1[1]);
+  v1 = [v1[0] / norm, v1[1] / norm];
+  const v2 = [-v1[1], v1[0]];
+  return { mx, my, l1, l2, v1, v2 };
+}
+
+const labP = makeBoard("plotPca", (ctx, pts, geom, col) => {
+  const r = pca(pts);
+  if (!r) return;
+  function arrow(v, lam, color) {
+    const len = 2 * Math.sqrt(lam);
+    const x1 = r.mx - v[0] * len, y1 = r.my - v[1] * len;
+    const x2 = r.mx + v[0] * len, y2 = r.my + v[1] * len;
+    ctx.strokeStyle = color; ctx.lineWidth = 2.6;
+    ctx.beginPath(); ctx.moveTo(geom.X(x1), geom.Y(y1)); ctx.lineTo(geom.X(x2), geom.Y(y2)); ctx.stroke();
+    // 矢じり
+    const ang = Math.atan2(geom.Y(y2) - geom.Y(y1), geom.X(x2) - geom.X(x1));
+    ctx.beginPath();
+    ctx.moveTo(geom.X(x2), geom.Y(y2));
+    ctx.lineTo(geom.X(x2) - 10 * Math.cos(ang - 0.4), geom.Y(y2) - 10 * Math.sin(ang - 0.4));
+    ctx.moveTo(geom.X(x2), geom.Y(y2));
+    ctx.lineTo(geom.X(x2) - 10 * Math.cos(ang + 0.4), geom.Y(y2) - 10 * Math.sin(ang + 0.4));
+    ctx.stroke();
+  }
+  if ($("#showProj").checked) {
+    ctx.strokeStyle = "rgba(150,100,200,.5)"; ctx.lineWidth = 1.2;
+    pts.forEach(([x, y]) => {
+      const t = (x - r.mx) * r.v1[0] + (y - r.my) * r.v1[1];
+      const px = r.mx + t * r.v1[0], py = r.my + t * r.v1[1];
+      ctx.beginPath(); ctx.moveTo(geom.X(x), geom.Y(y)); ctx.lineTo(geom.X(px), geom.Y(py)); ctx.stroke();
+      ctx.strokeStyle = "rgba(150,100,200,.9)";
+      ctx.beginPath(); ctx.arc(geom.X(px), geom.Y(py), 4, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = "rgba(150,100,200,.5)";
+    });
+  }
+  arrow(r.v2, r.l2, "#dd8844");
+  arrow(r.v1, r.l1, col.accent);
+});
+labP.onChange = reportP;
+
+function reportP() {
+  const r = pca(labP.pts);
+  const el = $("#readoutPca");
+  if (!r) { el.textContent = "点を3つ以上打つと主成分軸が現れます。"; return; }
+  el.replaceChildren();
+  const b1 = document.createElement("b");
+  b1.textContent = "第1主成分の寄与率 " + (100 * r.l1 / (r.l1 + r.l2)).toFixed(1) + "%";
+  el.append("固有値 λ₁=" + r.l1.toFixed(2) + ", λ₂=" + r.l2.toFixed(2) + " ・ ", b1,
+    " ・ 青=第1主成分(±2√λ)、橙=第2主成分");
+}
+function redrawP() { labP.draw(); reportP(); }
+
+$("#clearP").addEventListener("click", () => { labP.pts = []; redrawP(); });
+$("#sampleP").addEventListener("click", () => {
+  labP.pts = [];
+  for (let i = 0; i < 40; i++) labP.pts.push(gauss2(5, 5, 2.2, 1.6, 0.8));
+  redrawP();
+});
+$("#samplePr").addEventListener("click", () => {
+  labP.pts = [];
+  for (let i = 0; i < 40; i++) labP.pts.push(gauss2(5, 5, 1.6, 1.6, 0.05));
+  redrawP();
+});
+$("#showProj").addEventListener("input", redrawP);
+
+/* ================= ラボ2: k-means ================= */
+const KM_COLORS = ["#2b6cb0", "#dd8844", "#2f855a", "#9664c8"];
+let kmAssign = [], kmCents = [], kmInfo = null;
+
+const labK = makeBoard("plotKm", (ctx, pts, geom, col) => {
+  // 重心を×印で描く
+  kmCents.forEach((c, j) => {
+    ctx.strokeStyle = KM_COLORS[j]; ctx.lineWidth = 3;
+    const s = 8, x = geom.X(c[0]), y = geom.Y(c[1]);
+    ctx.beginPath();
+    ctx.moveTo(x - s, y - s); ctx.lineTo(x + s, y + s);
+    ctx.moveTo(x - s, y + s); ctx.lineTo(x + s, y - s);
+    ctx.stroke();
+  });
+}, i => (kmAssign[i] != null ? KM_COLORS[kmAssign[i]] : themeColors().ink));
+labK.onChange = () => { kmAssign = []; kmCents = []; kmInfo = null; reportK(); };
+
+function runKmeans() {
+  const k = +$("#kSel").value;
+  const pts = labK.pts;
+  if (pts.length < k) { kmInfo = null; kmAssign = []; kmCents = []; reportK(); labK.draw(); return; }
+  // 初期重心: 重複なしランダム抽出
+  const idx = shuffle(pts.map((_, i) => i)).slice(0, k);
+  kmCents = idx.map(i => pts[i].slice());
+  kmAssign = new Array(pts.length).fill(0);
+  let iter = 0;
+  for (; iter < 50; iter++) {
+    let changed = false;
+    pts.forEach((p, i) => {
+      let best = 0, bd = Infinity;
+      kmCents.forEach((c, j) => {
+        const d = (p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2;
+        if (d < bd) { bd = d; best = j; }
+      });
+      if (kmAssign[i] !== best) { kmAssign[i] = best; changed = true; }
+    });
+    for (let j = 0; j < k; j++) {
+      const members = pts.filter((_, i) => kmAssign[i] === j);
+      if (members.length === 0) { kmCents[j] = pts[Math.floor(Math.random() * pts.length)].slice(); continue; }
+      kmCents[j] = [
+        members.reduce((s, p) => s + p[0], 0) / members.length,
+        members.reduce((s, p) => s + p[1], 0) / members.length,
+      ];
+    }
+    if (!changed && iter > 0) break;
+  }
+  let wcss = 0;
+  pts.forEach((p, i) => {
+    const c = kmCents[kmAssign[i]];
+    wcss += (p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2;
+  });
+  kmInfo = { iter: iter + 1, wcss };
+  reportK();
+  labK.draw();
+}
+
+function reportK() {
+  const el = $("#readoutKm");
+  if (!kmInfo) { el.textContent = "点を打って「実行」を押してください(点の数 ≥ k)。"; return; }
+  el.replaceChildren();
+  const b1 = document.createElement("b");
+  b1.textContent = "WCSS = " + kmInfo.wcss.toFixed(2);
+  el.append(kmInfo.iter + " 回の反復で収束 ・ ", b1, " ・ もう一度「実行」すると初期値が変わり、結果が変わることがある");
+}
+
+$("#runK").addEventListener("click", runKmeans);
+$("#clearK").addEventListener("click", () => { labK.pts = []; kmAssign = []; kmCents = []; kmInfo = null; reportK(); labK.draw(); });
+$("#sampleK").addEventListener("click", () => {
+  labK.pts = [];
+  [[2.5, 7.5], [7.5, 7], [5, 2.5]].forEach(([cx, cy]) => {
+    for (let i = 0; i < 15; i++) labK.pts.push(gauss2(cx, cy, 0.8, 0.8, 0));
+  });
+  kmAssign = []; kmCents = []; kmInfo = null;
+  reportK(); labK.draw();
+});
+
+window.addEventListener("resize", () => { redrawP(); labK.draw(); });
+redrawP(); labK.draw(); reportK();
+</script>
+</body>
+</html>

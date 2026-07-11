@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ベイズ法とマルコフ連鎖 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › ベイズ法・マルコフ連鎖</span>
+  </div>
+</header>
+
+<main>
+<h1>ベイズ法とマルコフ連鎖</h1>
+<p class="lead">タグ: ベイズの定理 / 事前分布 / 事後分布 / 共役事前分布 / ベータ分布 / マルコフ連鎖 / 遷移行列 / 定常分布</p>
+
+<h2>全体マップ — ベイズ統計と確率過程の体系</h2>
+<p>このページは準1級で2級から新たに加わる2つの柱、<b>ベイズ法</b>(データで信念を更新する推測の枠組み)と<b>確率過程</b>(時間発展する確率モデル)のうちマルコフ連鎖を扱う。両者は独立の話題に見えるが、ベイズ計算の主力エンジンMCMCが「マルコフ連鎖で事後分布からサンプルする」方法であり、深いところでつながっている。</p>
+
+<div class="tree"><ul>
+<li class="t-root">ベイズ統計(確率=信念の度合いとして更新する)
+  <ul>
+  <li><span class="t-cat">基礎</span>
+    <ul>
+    <li><span class="here">ベイズの定理</span> — 事後 ∝ 尤度 × 事前</li>
+    <li><span class="here">事前分布の選び方</span> — 一様・共役・(Jeffreys)</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">ベイズ推定</span>
+    <ul>
+    <li><span class="here">共役事前分布による更新</span> — ベータ×二項(このページのラボ)</li>
+    <li class="soon">正規×正規、ガンマ×ポアソン — 解説のみ・ラボ未収載</li>
+    <li class="soon">事後分布に基づく推定量(MAP・事後平均)・信用区間 — 一部このページ</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">計算法</span>
+    <ul>
+    <li class="soon">MCMC(メトロポリス法・ギブスサンプリング)— 考え方のみ解説</li>
+    </ul>
+  </li>
+  </ul>
+</li>
+<li class="t-root">確率過程(時間とともに変化する確率モデル)
+  <ul>
+  <li><span class="t-cat">離散時間</span>
+    <ul>
+    <li><span class="here">マルコフ連鎖</span> — 遷移行列・定常分布(このページのラボ)</li>
+    <li>ランダムウォーク — <a href="time-series.html">時系列解析ページ</a>に収載</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">連続時間</span>
+    <ul>
+    <li class="soon">ポアソン過程・ブラウン運動 — 未収載</li>
+    </ul>
+  </li>
+  </ul>
+</li>
+</ul></div>
+
+<div class="tbl-wrap"><table>
+<tr><th></th><th>頻度論</th><th>ベイズ</th></tr>
+<tr><td>母数 θ の扱い</td><td>未知の<b>定数</b></td><td><b>確率変数</b>(分布をもつ)</td></tr>
+<tr><td>答えの形</td><td>点推定+信頼区間</td><td><b>事後分布そのもの</b>(要約としてMAP・事後平均・信用区間)</td></tr>
+<tr><td>事前知識</td><td>使わない</td><td>事前分布として明示的に組み込む</td></tr>
+<tr><td>区間の解釈</td><td>「手順の95%が当たる」(信頼区間)</td><td>「θがこの区間にある確率95%」(信用区間)</td></tr>
+<tr><td>データが少ない時</td><td>不安定になりがち</td><td>事前分布が支える(その分、事前の影響が残る)</td></tr>
+</table></div>
+
+<h2>ベイズの定理 — 証拠で信念を更新する</h2>
+<div class="formula">P(θ|D) = P(D|θ)·P(θ) / P(D)  すなわち  事後分布 ∝ 尤度 × 事前分布</div>
+<p>事前分布 P(θ)(データを見る前の信念)に、尤度 P(D|θ)(そのθでこのデータが出る度合い)を掛けて規格化したものが事後分布 P(θ|D)。<b>「事前×尤度→事後」の1ステップがベイズ推論のすべて</b>で、データが増えるたびにこの更新を繰り返せる(昨日の事後が今日の事前になる)。</p>
+
+<div class="ex-box">
+有病率1%の病気の検査。感度(病気の人が陽性になる確率)90%、特異度(健康な人が陰性になる確率)95%。陽性と出た人が本当に病気である確率は?
+<details class="ans"><summary>解答を見る</summary>
+<p>P(病|陽) = P(陽|病)P(病) / [P(陽|病)P(病) + P(陽|健)P(健)]<br>
+= 0.9×0.01 / (0.9×0.01 + 0.05×0.99) = 0.009/0.0585 ≈ <b>0.154(約15%)</b><br>
+直感(90%!)と大きくずれるのは、<b>事前確率(有病率1%)が低い</b>から。ベイズの定理は「検査の性能」と「そもそもの起こりやすさ」を正しく合成する。</p>
+</details>
+</div>
+
+<h2>共役事前分布 — 更新が閉じた式で回る組み合わせ</h2>
+<p>事前分布をうまく選ぶと、事後分布が<b>同じ族の分布</b>になり、更新がパラメータの足し算だけで済む。これが共役性。代表例:</p>
+<div class="formula">事前 Beta(α, β) × 尤度 二項(s 成功, f 失敗) → 事後 Beta(α+s, β+f)</div>
+<p>ベータ分布のパラメータは「<b>仮想的な成功数 α・失敗数 β</b>」と読める。つまり事前分布とは「データを見る前に α+β 回分の経験を持っている」ことに相当し、実データ s, f がそこに合流していく。事後平均は (α+s)/(α+β+s+f) — <b>事前の重みとデータの重みの加重平均</b>になっている。</p>
+
+<div class="widget">
+  <div class="w-title">ベイズ更新ラボ(ベータ×二項)— 事前×尤度→事後 が動く様子を見る</div>
+  <div class="controls">
+    <label>事前 α <input type="range" id="pa" min="0.5" max="30" step="0.5" value="2"> <span class="val" id="paVal">2</span></label>
+    <label>事前 β <input type="range" id="pb" min="0.5" max="30" step="0.5" value="2"> <span class="val" id="pbVal">2</span></label>
+  </div>
+  <div class="controls">
+    <label>データ: 成功 s <input type="range" id="ds" min="0" max="50" step="1" value="7"> <span class="val" id="dsVal">7</span></label>
+    <label>失敗 f <input type="range" id="df" min="0" max="50" step="1" value="3"> <span class="val" id="dfVal">3</span></label>
+  </div>
+  <canvas class="plot" id="plotBeta"></canvas>
+  <div class="readout" id="readoutBeta"></div>
+</div>
+<p class="lead">試してほしい操作:まず s=f=0 にする → <b>事後=事前</b>(データがなければ信念は変わらない)。s を増やす → 事後(青実線)が右へ移動し尖っていく。事前を Beta(1,1)(一様)にする → <b>事後が尤度(橙点線)と一致</b> — 「事前知識ゼロならデータが全て」。逆に事前を α=30, β=30 と強くしてデータを少しにする → 事後が事前からほぼ動かない(<b>頑固な事前</b>)。データを増やすほど事前の影響が薄れることを、s, f を大きくして確認。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このラボが実際に計算していること)</summary>
+<ul>
+<li><b>ベータ分布pdf</b>: f(x)=x^(α−1)(1−x)^(β−1)/B(α,β)。<b>対数領域で計算</b>し、ln B(α,β)=lnΓ(α)+lnΓ(β)−lnΓ(α+β) は共通エンジンの lnGamma(Lanczos近似)を使用</li>
+<li><b>3本の曲線</b>: 事前 Beta(α,β)(灰点線)/ 正規化した尤度 = Beta(s+1, f+1)(橙点線)/ 事後 Beta(α+s, β+f)(青実線)。尤度は面積1に規格化して同じ土俵で表示</li>
+<li><b>読み出し値</b>: 事後平均 (α+s)/(α+β+s+f)、MAP (α+s−1)/(α+β+s+f−2)(分母&gt;0のとき)。95%信用区間は<b>数値積分(累積台形則、格子501点)の2.5%・97.5%分位点</b>による近似</li>
+<li><b>軸固定</b>: x∈[0,1]、y上限12(α+s が大きく尖った場合ははみ出しをクリップ — 上端で切れていたら「それだけ確信が強い」ということ)</li>
+<li>α,β&lt;1(端で発散する形状)はスライダー範囲外(最小0.5では発散するがクリップで対応)。Jeffreys事前 Beta(0.5,0.5) は選択可能</li>
+</ul>
+</details>
+
+<div class="warn-box">頻出ポイント:①事後平均 (α+s)/(α+β+s+f) は「事前平均 α/(α+β)」と「標本比率 s/(s+f)」の<b>加重平均</b>に分解できる(重みは α+β と s+f)。②一様事前 Beta(1,1) のときの MAP は最尤推定量 s/(s+f) に一致する。③正規(分散既知)×正規、ポアソン×ガンマも同じ構造(事後精度=事前精度+データ精度)。</div>
+
+<h2>MCMC — 事後分布から「歩いて」サンプルする(考え方だけ)</h2>
+<p>共役でない一般のモデルでは事後分布の規格化定数 P(D) が計算できない。そこで「事後分布を<b>定常分布にもつマルコフ連鎖</b>を設計し、その連鎖を長く走らせてサンプルを集める」のがMCMC(メトロポリス法・ギブスサンプリング)。比 P(θ′|D)/P(θ|D) には P(D) が現れない — これが「規格化定数いらず」の種。次節のマルコフ連鎖の収束(定常分布への到達)が、まさにMCMCが機能する理論的根拠になる。</p>
+
+<h2>マルコフ連鎖 — 「直前だけが未来を決める」</h2>
+<div class="formula">マルコフ性: P(Xₜ₊₁ | Xₜ, Xₜ₋₁, …) = P(Xₜ₊₁ | Xₜ)</div>
+<p>状態の移り変わりを<b>遷移行列 P</b>(行=今の状態、列=次の状態、各行の和=1)で表す。時刻 t の分布を行ベクトル πₜ とすると πₜ₊₁ = πₜP。<b>定常分布 π は πP = π を満たす分布</b>で、既約(全状態が行き来可能)かつ非周期なら、どんな初期分布から出発しても πₜ → π に収束する(エルゴード性)。</p>
+<div class="formula">2状態(晴・雨)の例: P(晴→雨)=p, P(雨→晴)=q のとき 定常分布 π晴 = q/(p+q)</div>
+
+<div class="widget">
+  <div class="w-title">マルコフ連鎖ラボ — どこから出発しても同じ分布に吸い込まれる</div>
+  <div class="controls">
+    <label>p = P(晴→雨) <input type="range" id="mp" min="0.05" max="0.95" step="0.05" value="0.3"> <span class="val" id="mpVal">0.30</span></label>
+    <label>q = P(雨→晴) <input type="range" id="mq" min="0.05" max="0.95" step="0.05" value="0.6"> <span class="val" id="mqVal">0.60</span></label>
+  </div>
+  <canvas class="plot" id="plotMarkov"></canvas>
+  <div class="readout" id="readoutMarkov"></div>
+</div>
+<p class="lead">試してほしい操作:3本の曲線は「初日晴れ(P₀(晴)=1)」「初日雨(=0)」「半々(=0.5)」から出発した P(晴) の時間発展。<b>出発点が違っても全員、緑の点線(定常分布)へ収束する</b> — これがエルゴード性であり、MCMCで「バーンイン後は初期値を忘れる」と言われる根拠。p, q を両方大きく(0.95)する → 交互に行き来して振動しながら収束(固有値 1−p−q が負)。p, q を両方小さく → 収束が遅い(状態に粘る)。p と q の比率を変える → 定常分布の高さ q/(p+q) が動く。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このラボが実際に計算していること)</summary>
+<ul>
+<li><b>モデル</b>: 2状態マルコフ連鎖。遷移行列 P=[[1−p, p],[q, 1−q]]。分布の時間発展は πₜ₊₁=πₜP の<b>厳密な行列反復</b>(t=0…30)で、乱数シミュレーションではない</li>
+<li><b>定常分布</b>: π晴=q/(p+q) の閉じた式(緑点線)。収束の速さは第2固有値 λ₂=1−p−q の絶対値で決まり、readoutに表示</li>
+<li><b>3本の曲線</b>: 初期分布 π₀(晴)=1, 0, 0.5 の3通りを同時に描画(初期値によらない収束を見せるため)</li>
+<li><b>軸固定</b>: t∈[0,30]、y∈[0,1]</li>
+<li>3状態以上・周期的連鎖(収束しない例)・吸収マルコフ連鎖・実際のMCMCサンプリングは未実装</li>
+</ul>
+</details>
+
+<div class="ex-box">
+遷移確率 P(晴→雨)=0.3, P(雨→晴)=0.6 のマルコフ連鎖の定常分布を求めよ。また今日が雨のとき、十分先の日が晴れである確率は?
+<details class="ans"><summary>解答を見る</summary>
+<p>πP=π より π晴×0.3 = π雨×0.6(流出=流入のバランス)。π晴+π雨=1 と合わせて<br>
+π晴 = 0.6/(0.3+0.6) = <b>2/3</b>, π雨 = 1/3。<br>
+エルゴード性により初期状態は忘れられるので、十分先が晴れの確率も <b>2/3</b>(上のラボでp=0.3, q=0.6にすると全曲線が2/3≈0.667に収束するのが見える)。</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="time-series.html">← 時系列解析</a>
+  <a href="multivariate.html">多変量解析 →</a>
+</div>
+</main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+
+/* ================= ラボ1: ベータ×二項のベイズ更新 ================= */
+function betaPdf(x, a, b) {
+  if (x <= 0 || x >= 1) return 0;
+  const lnB = lnGamma(a) + lnGamma(b) - lnGamma(a + b);
+  return Math.exp((a - 1) * Math.log(x) + (b - 1) * Math.log(1 - x) - lnB);
+}
+
+function credInterval(a, b) { // 数値積分で95%信用区間
+  const N = 500, xs = [], cdf = [0];
+  let acc = 0;
+  for (let i = 0; i <= N; i++) xs.push(i / N);
+  for (let i = 1; i <= N; i++) {
+    acc += (betaPdf(xs[i - 1], a, b) + betaPdf(xs[i], a, b)) / 2 / N;
+    cdf.push(acc);
+  }
+  const total = acc;
+  const find = q => {
+    for (let i = 1; i <= N; i++) if (cdf[i] >= q * total) return xs[i];
+    return 1;
+  };
+  return [find(0.025), find(0.975)];
+}
+
+function drawBeta() {
+  const a = +$("#pa").value, b = +$("#pb").value, s = +$("#ds").value, f = +$("#df").value;
+  $("#paVal").textContent = a; $("#pbVal").textContent = b;
+  $("#dsVal").textContent = s; $("#dfVal").textContent = f;
+
+  const canvas = $("#plotBeta");
+  const { ctx, W, H } = setupCanvas(canvas, 260);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 34, padB = 24, padT = 10, padR = 10;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const YMAX = 12;
+  const X = x => padL + x * pw;
+  const Y = y => padT + ph - y / YMAX * ph;
+
+  ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ph); ctx.lineTo(padL + pw, padT + ph); ctx.stroke();
+  ctx.fillStyle = col.soft; ctx.font = "11px sans-serif"; ctx.textAlign = "center";
+  [0, 0.25, 0.5, 0.75, 1].forEach(v => ctx.fillText(v, X(v), padT + ph + 16));
+  ctx.textAlign = "right";
+  [0, 6, 12].forEach(v => ctx.fillText(v, padL - 5, Y(v) + 4));
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(padL, padT, pw, ph); ctx.clip();
+  function curve(aa, bb, color, dash, width) {
+    ctx.strokeStyle = color; ctx.lineWidth = width;
+    ctx.setLineDash(dash || []);
+    ctx.beginPath();
+    for (let i = 0; i <= 300; i++) {
+      const x = i / 300, y = betaPdf(x, aa, bb);
+      i ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y));
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+  curve(a, b, col.soft, [5, 4], 1.6);                    // 事前
+  if (s + f > 0) curve(s + 1, f + 1, "#dd8844", [2, 3], 1.6); // 尤度(正規化)
+  curve(a + s, b + f, col.accent, null, 2.6);            // 事後
+  ctx.restore();
+
+  const pa2 = a + s, pb2 = b + f;
+  const mean = pa2 / (pa2 + pb2);
+  const map = (pa2 + pb2 - 2) > 0 ? (pa2 - 1) / (pa2 + pb2 - 2) : NaN;
+  const [lo, hi] = credInterval(pa2, pb2);
+  const r = $("#readoutBeta");
+  r.replaceChildren();
+  const b1 = document.createElement("b");
+  b1.textContent = "事後 Beta(" + pa2 + ", " + pb2 + ")";
+  const b2 = document.createElement("b");
+  b2.textContent = "事後平均 " + mean.toFixed(3);
+  r.append(b1, " ・ ", b2,
+    " ・ MAP " + (isFinite(map) ? map.toFixed(3) : "—") +
+    " ・ 95%信用区間 [" + lo.toFixed(3) + ", " + hi.toFixed(3) + "]");
+}
+["pa", "pb", "ds", "df"].forEach(id => $("#" + id).addEventListener("input", drawBeta));
+
+/* ================= ラボ2: マルコフ連鎖の収束 ================= */
+function drawMarkov() {
+  const p = +$("#mp").value, q = +$("#mq").value;
+  $("#mpVal").textContent = p.toFixed(2);
+  $("#mqVal").textContent = q.toFixed(2);
+
+  const TMAX = 30;
+  const stat = q / (p + q);
+  const paths = [1, 0, 0.5].map(x0 => {
+    const path = [x0];
+    let x = x0;
+    for (let t = 1; t <= TMAX; t++) { x = x * (1 - p) + (1 - x) * q; path.push(x); }
+    return path;
+  });
+
+  const canvas = $("#plotMarkov");
+  const { ctx, W, H } = setupCanvas(canvas, 260);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 34, padB = 24, padT = 10, padR = 10;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const X = t => padL + t / TMAX * pw;
+  const Y = y => padT + ph - y * ph;
+
+  ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ph); ctx.lineTo(padL + pw, padT + ph); ctx.stroke();
+  ctx.fillStyle = col.soft; ctx.font = "11px sans-serif"; ctx.textAlign = "right";
+  [0, 0.5, 1].forEach(v => ctx.fillText(v, padL - 5, Y(v) + 4));
+  ctx.textAlign = "center";
+  [0, 10, 20, 30].forEach(t => ctx.fillText("t=" + t, X(t), padT + ph + 16));
+
+  // 定常分布
+  ctx.strokeStyle = col.ok; ctx.lineWidth = 1.8; ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(padL, Y(stat)); ctx.lineTo(padL + pw, Y(stat)); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = col.ok; ctx.textAlign = "left";
+  ctx.fillText("定常分布 π晴=" + stat.toFixed(3), padL + 6, Y(stat) - 6);
+
+  const colors = [col.accent, "#dd8844", "#9664c8"];
+  paths.forEach((path, i) => {
+    ctx.strokeStyle = colors[i]; ctx.lineWidth = 2;
+    ctx.beginPath();
+    path.forEach((v, t) => t ? ctx.lineTo(X(t), Y(v)) : ctx.moveTo(X(t), Y(v)));
+    ctx.stroke();
+  });
+
+  const lam2 = 1 - p - q;
+  const r = $("#readoutMarkov");
+  r.replaceChildren();
+  const b1 = document.createElement("b");
+  b1.textContent = "π晴 = q/(p+q) = " + stat.toFixed(3);
+  r.append(b1, " ・ 第2固有値 λ₂ = 1−p−q = " + lam2.toFixed(2) +
+    "(|λ₂|が小さいほど収束が速い" + (lam2 < 0 ? "。負なので振動しながら収束" : "") + ")");
+}
+["mp", "mq"].forEach(id => $("#" + id).addEventListener("input", drawMarkov));
+
+window.addEventListener("resize", () => { drawBeta(); drawMarkov(); });
+drawBeta(); drawMarkov();
+</script>
+</body>
+</html>

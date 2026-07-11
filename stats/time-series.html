@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>時系列解析:定常性・ACF・ARMA | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 時系列解析</span>
+  </div>
+</header>
+
+<main>
+<h1>時系列解析:定常性・自己相関・ARMAモデル</h1>
+<p class="lead">タグ: 時系列 / 定常性 / 自己相関 ACF / AR / MA / ARMA / ランダムウォーク / 単位根</p>
+
+<h2>全体マップ — 時系列解析の体系</h2>
+<p>時系列データは「観測が独立」というこれまでの前提が崩れた世界。<b>過去との相関(自己相関)をどうモデル化するか</b>が主題で、体系は「定常か非定常か」で大きく分かれる。</p>
+
+<div class="tree"><ul>
+<li class="t-root">時系列解析(順序のあるデータの分析)
+  <ul>
+  <li><span class="t-cat">記述・分解</span> — まず眺めて成分に分ける
+    <ul>
+    <li class="soon">トレンド・季節・不規則成分への分解、移動平均平滑化 — 未収載</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">定常過程のモデル</span> — 平均・分散・自己相関が時間によらない
+    <ul>
+    <li><span class="here">ホワイトノイズ</span> — 無相関な雑音。全モデルの材料</li>
+    <li><span class="here">ARモデル(自己回帰)</span> — 自分の過去に回帰する。ACFは指数減衰</li>
+    <li><span class="here">MAモデル(移動平均)</span> — 過去のノイズの合成。ACFは有限で切断</li>
+    <li class="soon">ARMA(p,q) — ARとMAの合成 — 解説のみ</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">非定常過程</span> — 平均や分散が時間とともに変わる
+    <ul>
+    <li><span class="here">ランダムウォーク</span> — AR(1)のφ=1(単位根)。分散が発散</li>
+    <li class="soon">ARIMA(差分をとって定常化)・季節調整 — 解説のみ</li>
+    </ul>
+  </li>
+  <li class="soon"><span class="t-cat">状態空間モデル・スペクトル解析</span> — 未収載</li>
+  </ul>
+</li>
+</ul></div>
+
+<div class="tbl-wrap"><table>
+<tr><th>モデル</th><th>定義</th><th>定常性</th><th>ACFの形</th><th>役割</th></tr>
+<tr><td>ホワイトノイズ</td><td>xₜ=εₜ</td><td>定常</td><td>lag≧1で0</td><td>「構造なし」の基準</td></tr>
+<tr><td>AR(1)</td><td>xₜ=φxₜ₋₁+εₜ</td><td>|φ|&lt;1 で定常</td><td>φᵏ で指数減衰</td><td>持続性・慣性の表現</td></tr>
+<tr><td>MA(1)</td><td>xₜ=εₜ+θεₜ₋₁</td><td>常に定常</td><td>lag1のみ非零、以降<b>切断</b></td><td>短期の残響の表現</td></tr>
+<tr><td>ランダムウォーク</td><td>xₜ=xₜ₋₁+εₜ</td><td><b>非定常</b>(分散∝t)</td><td>減衰が極端に遅い</td><td>株価などの基準モデル</td></tr>
+</table></div>
+
+<h2>定常性 — 時系列版「同じ土俵」の条件</h2>
+<p>(弱)定常とは、<b>①平均が一定、②分散が一定、③自己共分散がラグ k だけで決まる</b>(時点によらない)こと。定常でないと「標本平均や標本ACFが何を推定しているのか」が定まらず、推測の土台が崩れる。だから実務の第一歩は<b>定常化(差分・対数変換・トレンド除去)</b>になる。</p>
+<div class="note-box">AR(1) が定常になる条件 <b>|φ|&lt;1</b> は最頻出。定常時の性質: E[xₜ]=0、V[xₜ]=σ²/(1−φ²)、自己相関 ρₖ=φᵏ。φ→1 の極限がランダムウォークで、V[xₜ]=tσ² と時間に比例して発散する(=単位根、非定常)。</div>
+
+<h2>自己相関関数 ACF — 時系列の指紋</h2>
+<div class="formula">ρₖ = Cov(xₜ, xₜ₊ₖ) / V(xₜ),  標本ACF: rₖ = Σ(xₜ−x̄)(xₜ₊ₖ−x̄) / Σ(xₜ−x̄)²</div>
+<p>ラグ k 離れた観測同士の相関。モデルによって特徴的な形になるため、<b>ACFの形からモデルを同定する</b>のが古典的手順:AR(p)は指数的に減衰(切れない)、MA(q)は<b>ラグ q で切断</b>。ARを見分けるには偏自己相関 PACF(AR(p)は ラグ p で切断)を併用する。</p>
+
+<div class="widget">
+  <div class="w-title">時系列シミュレータ — モデルの「見た目」と「ACFの指紋」を対応させる</div>
+  <div class="controls">
+    <label>モデル:
+      <select id="model">
+        <option value="wn">ホワイトノイズ</option>
+        <option value="ar" selected>AR(1)</option>
+        <option value="ma">MA(1)</option>
+        <option value="rw">ランダムウォーク</option>
+      </select>
+    </label>
+    <label id="parWrap"><span id="parLabel">φ</span> <input type="range" id="par" min="-0.95" max="0.95" step="0.05" value="0.7"> <span class="val" id="parVal">0.7</span></label>
+    <button id="regen">↻ 再生成</button>
+  </div>
+  <canvas class="plot" id="plotSeries"></canvas>
+  <div class="readout" id="readout1"></div>
+  <canvas class="plot" id="plotAcf" style="margin-top:10px;"></canvas>
+  <div class="readout">下段: 標本ACF(棒)と理論ACF(緑点)。灰帯は「無相関なら95%がこの中」の目安 ±2/√T。</div>
+</div>
+<p class="lead">試してほしい操作:AR(1)で φ を 0 → 0.9 へ → <b>系列が「粘る」ようになり、ACFの減衰が遅くなる</b>。φ を負に → 系列がジグザグし、ACFが正負交互に。MA(1)に切替 → <b>ACFがラグ1だけ立って以降ピタッと消える(切断)</b> — ARとの決定的な違い。ランダムウォーク → 平均に戻らず漂流し、ACFがいつまでも高い(非定常のサイン)。「再生成」を押すたび別の実現値が出る — <b>同じモデルでも見た目は毎回違うが、ACFの形は保たれる</b>ことを確認。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このラボが実際に計算していること)</summary>
+<ul>
+<li><b>乱数</b>: Box–Muller法による標準正規乱数(σ=1固定)。シードなし(再生成ごとに異なる実現値)</li>
+<li><b>系列生成</b>: T=150点。AR(1)は初期値0から<b>バーンイン100点</b>を捨てて定常分布に慣らす。MA(1)は xₜ=εₜ+θεₜ₋₁ をそのまま、ランダムウォークは累積和、ホワイトノイズは εₜ</li>
+<li><b>標本ACF</b>: rₖ = Σₜ(xₜ−x̄)(xₜ₊ₖ−x̄) / Σₜ(xₜ−x̄)²(分母はラグ0、k=1…20)</li>
+<li><b>理論ACF(緑点)</b>: AR(1)は φᵏ、MA(1)は ρ₁=θ/(1+θ²)・ρ₂以降=0、ホワイトノイズは全て0。ランダムウォークは定常でなく理論ACFが定義できないため<b>非表示</b></li>
+<li><b>灰帯</b>: ±2/√T ≈ ±0.163。ホワイトノイズ仮定下での標本ACFの近似95%範囲(Bartlett近似の最簡形)</li>
+<li><b>軸固定</b>: 上段 y∈[−8,8](ランダムウォークははみ出したらクリップ。それ自体が「分散発散」の教材)、下段 y∈[−1,1]</li>
+<li>偏自己相関(PACF)・ARMA・ARIMAの推定(最尤法など)は未実装 — 本文の解説のみ</li>
+</ul>
+</details>
+
+<h2>ARモデルとMAモデル — 「粘り」と「残響」</h2>
+<div class="formula">AR(1): xₜ = φxₜ₋₁ + εₜ  /  MA(1): xₜ = εₜ + θεₜ₋₁  (εₜ ~ ホワイトノイズ)</div>
+<p>ARは「今日は昨日の φ 倍+ノイズ」— 過去の<b>値</b>が残るので影響が無限に(指数的に減衰しながら)続く。MAは「今日は今日のノイズ+昨日のノイズの θ 倍」— 過去の<b>ノイズ</b>が q 期だけ残る残響であり、q+1 期先には完全に消える。この違いがそのまま ACF の「減衰 vs 切断」に対応する。両者を合成した ARMA(p,q)、差分してから当てはめる ARIMA(p,d,q) が実用の標準形。</p>
+<div class="warn-box">頻出の引っかけ:①「MA過程は常に定常」(パラメータによらない — ARとの対比で問われる)。②AR(1)の定常条件は |φ|&lt;1 であり、φ=1 は単位根=ランダムウォーク。③ランダムウォークは差分 Δxₜ=xₜ−xₜ₋₁ をとるとホワイトノイズ(定常)になる — 「単位根過程は差分で定常化」はARIMAの d の意味そのもの。</div>
+
+<div class="ex-box">
+AR(1)過程 xₜ = 0.8xₜ₋₁ + εₜ(V[εₜ]=σ²=9)が定常のとき、V[xₜ] と ρ₂(ラグ2の自己相関)を求めよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>V[xₜ] = σ²/(1−φ²) = 9/(1−0.64) = <b>25</b><br>
+ρₖ = φᵏ より ρ₂ = 0.8² = <b>0.64</b></p>
+</details>
+</div>
+
+<div class="ex-box">
+ある系列の標本ACFがラグ1で0.45、ラグ2以降はほぼ0(±2/√T の帯の内側)だった。AR(1) と MA(1) のどちらが有力か。
+<details class="ans"><summary>解答を見る</summary>
+<p><b>MA(1) が有力</b>。AR(1)なら ρ₂=ρ₁²≈0.20 が帯の外に見えるはず(指数減衰)だが、ラグ2で切断されているのはMAの指紋。なお ρ₁=θ/(1+θ²)=0.45 を解くと θ≈0.63(MA(1)の |ρ₁|≤0.5 という制約も確認ポイント)。</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="regression.html">← 回帰分析</a>
+  <a href="bayes.html">ベイズ法・マルコフ連鎖 →</a>
+</div>
+</main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+const T = 150, MAXLAG = 20;
+
+function randn() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+const cfg = {
+  wn: { par: null },
+  ar: { par: { l: "φ", min: -0.95, max: 0.95, step: 0.05, v: 0.7 } },
+  ma: { par: { l: "θ", min: -0.95, max: 0.95, step: 0.05, v: 0.7 } },
+  rw: { par: null },
+};
+
+let series = [];
+
+function generate() {
+  const m = $("#model").value, p = +$("#par").value;
+  series = [];
+  if (m === "wn") { for (let t = 0; t < T; t++) series.push(randn()); }
+  else if (m === "ar") {
+    let x = 0;
+    for (let t = 0; t < T + 100; t++) { x = p * x + randn(); if (t >= 100) series.push(x); }
+  } else if (m === "ma") {
+    let prev = randn();
+    for (let t = 0; t < T; t++) { const e = randn(); series.push(e + p * prev); prev = e; }
+  } else { // rw
+    let x = 0;
+    for (let t = 0; t < T; t++) { x += randn(); series.push(x); }
+  }
+}
+
+function sampleAcf(x, maxLag) {
+  const n = x.length, mean = x.reduce((s, v) => s + v, 0) / n;
+  const c0 = x.reduce((s, v) => s + (v - mean) ** 2, 0);
+  const r = [];
+  for (let k = 1; k <= maxLag; k++) {
+    let s = 0;
+    for (let t = 0; t + k < n; t++) s += (x[t] - mean) * (x[t + k] - mean);
+    r.push(c0 > 1e-12 ? s / c0 : 0);
+  }
+  return r;
+}
+
+function theoAcf(m, p, maxLag) {
+  const r = [];
+  for (let k = 1; k <= maxLag; k++) {
+    if (m === "ar") r.push(Math.pow(p, k));
+    else if (m === "ma") r.push(k === 1 ? p / (1 + p * p) : 0);
+    else if (m === "wn") r.push(0);
+    else r.push(NaN); // rw: 理論ACFは定義しない
+  }
+  return r;
+}
+
+function drawSeries() {
+  const canvas = $("#plotSeries");
+  const { ctx, W, H } = setupCanvas(canvas, 240);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 34, padB = 22, padT = 8, padR = 8;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const YMIN = -8, YMAX = 8;
+  const X = t => padL + t / (T - 1) * pw;
+  const Y = y => padT + ph - (y - YMIN) / (YMAX - YMIN) * ph;
+
+  ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, Y(0)); ctx.lineTo(padL + pw, Y(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ph); ctx.stroke();
+  ctx.fillStyle = col.soft; ctx.font = "11px sans-serif"; ctx.textAlign = "right";
+  [-8, -4, 0, 4, 8].forEach(v => ctx.fillText(v, padL - 5, Y(v) + 4));
+  ctx.textAlign = "center";
+  [0, 50, 100, 150].forEach(t => ctx.fillText("t=" + t, X(Math.min(t, T - 1)), padT + ph + 15));
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(padL, padT, pw, ph); ctx.clip();
+  ctx.strokeStyle = col.accent; ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  series.forEach((v, t) => t ? ctx.lineTo(X(t), Y(v)) : ctx.moveTo(X(t), Y(v)));
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawAcf() {
+  const canvas = $("#plotAcf");
+  const { ctx, W, H } = setupCanvas(canvas, 200);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 34, padB = 22, padT = 8, padR = 8;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const X = k => padL + (k - 0.5) / MAXLAG * pw;
+  const Y = y => padT + ph / 2 - y * (ph / 2);
+
+  // 有意帯 ±2/√T
+  const band = 2 / Math.sqrt(T);
+  ctx.fillStyle = "rgba(128,128,128,.18)";
+  ctx.fillRect(padL, Y(band), pw, Y(-band) - Y(band));
+
+  ctx.strokeStyle = col.line;
+  ctx.beginPath(); ctx.moveTo(padL, Y(0)); ctx.lineTo(padL + pw, Y(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ph); ctx.stroke();
+  ctx.fillStyle = col.soft; ctx.font = "11px sans-serif"; ctx.textAlign = "right";
+  [-1, 0, 1].forEach(v => ctx.fillText(v, padL - 5, Y(v) + 4));
+  ctx.textAlign = "center";
+  [1, 5, 10, 15, 20].forEach(k => ctx.fillText(k, X(k), padT + ph + 15));
+
+  const m = $("#model").value, p = +$("#par").value;
+  const r = sampleAcf(series, MAXLAG);
+  const th = theoAcf(m, p, MAXLAG);
+  const bw = pw / MAXLAG * 0.42;
+
+  r.forEach((v, i) => {
+    ctx.fillStyle = col.accent;
+    const y0 = Y(0), y1 = Y(Math.max(-1, Math.min(1, v)));
+    ctx.fillRect(X(i + 1) - bw / 2, Math.min(y0, y1), bw, Math.abs(y1 - y0));
+  });
+  th.forEach((v, i) => {
+    if (!isFinite(v)) return;
+    ctx.fillStyle = col.ok;
+    ctx.beginPath(); ctx.arc(X(i + 1), Y(v), 3.5, 0, Math.PI * 2); ctx.fill();
+  });
+}
+
+function report() {
+  const m = $("#model").value, p = +$("#par").value;
+  const r = $("#readout1");
+  r.replaceChildren();
+  if (m === "ar") {
+    const st = Math.abs(p) < 1;
+    const b = document.createElement("b");
+    b.textContent = st ? "定常(|φ|<1) ・ 理論分散 σ²/(1−φ²) = " + (1 / (1 - p * p)).toFixed(2) : "非定常";
+    r.append("AR(1), φ=" + p.toFixed(2) + " ・ ", b);
+  } else if (m === "ma") {
+    const b = document.createElement("b");
+    b.textContent = "常に定常 ・ 理論 ρ₁ = θ/(1+θ²) = " + (p / (1 + p * p)).toFixed(3);
+    r.append("MA(1), θ=" + p.toFixed(2) + " ・ ", b);
+  } else if (m === "rw") {
+    const b = document.createElement("b");
+    b.textContent = "非定常: V[xₜ]=tσ² が発散(単位根)。差分をとると定常化";
+    r.append("ランダムウォーク ・ ", b);
+  } else {
+    r.append("ホワイトノイズ ・ すべてのラグで無相関(灰帯に収まるのが正常)");
+  }
+}
+
+function redraw() { drawSeries(); drawAcf(); report(); }
+function regen() { generate(); redraw(); }
+
+$("#model").addEventListener("change", () => {
+  const c = cfg[$("#model").value];
+  $("#parWrap").style.display = c.par ? "" : "none";
+  if (c.par) {
+    $("#parLabel").textContent = c.par.l;
+    const s = $("#par");
+    s.min = c.par.min; s.max = c.par.max; s.step = c.par.step; s.value = c.par.v;
+  }
+  regen();
+});
+$("#par").addEventListener("input", () => { $("#parVal").textContent = (+$("#par").value).toFixed(2); regen(); });
+$("#regen").addEventListener("click", regen);
+window.addEventListener("resize", redraw);
+regen();
+</script>
+</body>
+</html>
