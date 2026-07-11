@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>分割表の解析:オッズ比・独立性・シンプソンのパラドックス | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 分割表</span>
+  </div>
+</header>
+
+<main>
+<h1>分割表の解析:オッズ比・独立性・シンプソンのパラドックス</h1>
+<p class="lead">タグ: 分割表 / リスク比 / オッズ比 / 独立性のχ²検定 / 適合度検定 / フィッシャーの正確検定 / 対数線形モデル / シンプソンのパラドックス</p>
+<p class="lead">※導入版(フェーズ1): 全体像と主要概念・例題を押さえるページ。ラボはフェーズ2で追加予定。</p>
+
+<h2>全体マップ — この分野の体系</h2>
+<p>カテゴリ×カテゴリの度数表(クロス集計)を扱う。「<b>関連の強さを測る</b>(オッズ比など)」と「<b>関連の有無を検定する</b>(χ²・正確検定)」の2本立て+層で割ると結論が逆転しうるという教訓(シンプソン)で構成される。</p>
+
+<div class="tree"><ul>
+<li class="t-root">分割表の解析
+  <ul>
+  <li><span class="t-cat">関連の強さの指標(2×2)</span>
+    <ul>
+    <li><span class="here">リスク差・リスク比・オッズ比(と対数オッズ比の信頼区間)</span></li>
+    </ul>
+  </li>
+  <li><span class="t-cat">検定</span>
+    <ul>
+    <li><span class="here">独立性のχ²検定・適合度のχ²検定</span></li>
+    <li><span class="here">フィッシャーの正確検定</span> — 期待度数が小さいとき</li>
+    <li class="soon">マクネマー検定(対応のある2×2)— 未収載</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">大きな表・モデル化</span>
+    <ul>
+    <li class="soon">残差分析・対数線形モデル — 触りのみ</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">落とし穴</span>
+    <ul>
+    <li><span class="here">シンプソンのパラドックス</span> — <a href="causal-inference.html">因果推論</a>への入口</li>
+    </ul>
+  </li>
+  </ul>
+</li>
+</ul></div>
+
+<div class="tbl-wrap"><table>
+<tr><th>指標</th><th>定義(2×2: a,b / c,d)</th><th>特徴</th></tr>
+<tr><td>リスク差</td><td>a/(a+b) − c/(c+d)</td><td>絶対的な差。公衆衛生的インパクト</td></tr>
+<tr><td>リスク比 RR</td><td>[a/(a+b)] / [c/(c+d)]</td><td>倍率。コホート研究で使える</td></tr>
+<tr><td>オッズ比 OR</td><td>ad/bc</td><td><b>ケース・コントロール研究でも推定可</b>。稀な疾患ではRR≈OR。ロジスティック回帰と直結</td></tr>
+</table></div>
+
+<h2>オッズ比 — 分割表とロジスティック回帰をつなぐ要</h2>
+<div class="formula">OR = ad/bc,  ln OR の標準誤差 SE = √(1/a+1/b+1/c+1/d)</div>
+<p>OR=1 が「関連なし」。信頼区間は<b>対数スケールで作ってから戻す</b>: exp(ln OR ± 1.96·SE)。区間が1をまたぐかどうかが検定と対応する。<a href="glm.html">ロジスティック回帰</a>の係数 e^β はまさに(他の変数を調整した)オッズ比。</p>
+
+<h2>独立性のχ²検定 — 「もし無関係ならこの度数のはず」との距離</h2>
+<div class="formula">χ² = ΣΣ (観測度数−期待度数)²/期待度数,  期待度数=行計×列計/総計,  自由度=(r−1)(c−1)</div>
+<p>H₀「行と列は独立」の下での期待度数からのズレを合算する。<b>期待度数が小さい(目安: 5未満のセルがある)と近似が崩れる</b>ので、2×2ならフィッシャーの正確検定(超幾何分布で正確なp値を計算)を使う。適合度検定(理論分布との一致)も同じχ²統計量で、自由度は カテゴリ数−1−推定した母数の数。</p>
+
+<h2>シンプソンのパラドックス — 合計の表はウソをつく</h2>
+<p>層(例: 重症度)ごとに見ると治療Aが常に優れているのに、<b>合計表ではBが優れて見える</b>ことが起こる。原因は層と治療選択の偏り(交絡)。「分割表の関連=因果」ではない最重要の反例で、正しく扱うには層別解析や<a href="causal-inference.html">因果推論</a>の枠組みが必要になる。</p>
+<div class="warn-box">頻出の整理:①χ²検定は「関連の有無」しか言えず<b>強さはオッズ比で別に測る</b>(nが大きいと微弱な関連でも有意になる)。②ケース・コントロール研究ではリスク比は直接推定できないがオッズ比はできる。③χ²統計量はセルの度数を半分にすると半分になる=<b>関連の強さが同じでも標本サイズで変わる</b>。</div>
+
+<div class="ex-box">
+喫煙者100人中20人、非喫煙者200人中10人が疾患を発症した。オッズ比と95%信頼区間を求めよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>表: a=20, b=80, c=10, d=190。OR = (20×190)/(80×10) = <b>4.75</b>。<br>
+ln OR = 1.558, SE = √(1/20+1/80+1/10+1/190) = √0.1678 ≈ 0.410。<br>
+95%CI: exp(1.558±1.96×0.410) = <b>[2.13, 10.6]</b>。1を含まないので5%水準で有意な関連。</p>
+</details>
+</div>
+
+<div class="ex-box">
+2×3の分割表で独立性のχ²検定を行うときの自由度は?また総計n=60、ある行計=30、ある列計=12のセルの期待度数は?
+<details class="ans"><summary>解答を見る</summary>
+<p>自由度 = (2−1)(3−1) = <b>2</b>。期待度数 = 30×12/60 = <b>6</b>。</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="nonparametric.html">← ノンパラメトリック法</a>
+  <a href="regression.html">回帰分析 →</a>
+</div>
+</main>
+</body>
+</html>

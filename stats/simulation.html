@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>シミュレーションとリサンプリング | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › シミュレーション</span>
+  </div>
+</header>
+
+<main>
+<h1>シミュレーションとリサンプリング</h1>
+<p class="lead">タグ: 乱数生成 / 逆関数法 / 棄却法 / モンテカルロ法 / ブートストラップ / ジャックナイフ</p>
+<p class="lead">※導入版(フェーズ1): 全体像と主要概念・例題を押さえるページ。乱数生成の可視化ラボはフェーズ2で追加予定。</p>
+
+<h2>全体マップ — この分野の体系</h2>
+<p>数式で解けない問題を「乱数で実験して」解く技術群。<b>①欲しい分布の乱数を作る → ②大量に流して期待値・確率を近似する(モンテカルロ) → ③手元のデータ自体を乱数の源にする(リサンプリング)</b>の3層構造。</p>
+
+<div class="tree"><ul>
+<li class="t-root">シミュレーション
+  <ul>
+  <li><span class="t-cat">乱数生成</span>
+    <ul>
+    <li><span class="here">一様乱数(疑似乱数)を種に変換する</span></li>
+    <li><span class="here">逆関数法</span> — F⁻¹(U) で任意の分布へ</li>
+    <li><span class="here">棄却法・ボックス=ミュラー法(正規乱数)</span></li>
+    </ul>
+  </li>
+  <li><span class="t-cat">モンテカルロ法</span>
+    <ul>
+    <li><span class="here">期待値・確率・積分の近似と誤差 O(1/√n)</span></li>
+    <li>MCMC — <a href="bayes.html">ベイズ法ページ</a>(事後分布からのサンプリング)</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">リサンプリング</span>
+    <ul>
+    <li><span class="here">ブートストラップ</span> — 標本から復元抽出して分布を再現</li>
+    <li><span class="here">ジャックナイフ</span> — 1個抜きの systematic 版</li>
+    <li>並べ替え検定 — <a href="nonparametric.html">ノンパラメトリック法ページ</a></li>
+    </ul>
+  </li>
+  </ul>
+</li>
+</ul></div>
+
+<div class="tbl-wrap"><table>
+<tr><th>手法</th><th>乱数の源</th><th>主な用途</th><th>キーワード</th></tr>
+<tr><td>モンテカルロ法</td><td>仮定した分布からの乱数</td><td>積分・確率・検定の帰無分布の近似</td><td>誤差は 1/√n でしか縮まない</td></tr>
+<tr><td>ブートストラップ</td><td><b>手元の標本</b>(復元抽出)</td><td>標準誤差・信頼区間(理論式が無い統計量でも)</td><td>経験分布を母集団の代役に</td></tr>
+<tr><td>ジャックナイフ</td><td>1個抜き標本×n通り</td><td>バイアス・分散の推定</td><td>ブートストラップの先祖・決定的</td></tr>
+</table></div>
+
+<h2>逆関数法 — 一様乱数を任意の分布に変換する</h2>
+<div class="formula">U ~ 一様(0,1) のとき X = F⁻¹(U) は 分布関数 F に従う</div>
+<p>根拠は P(F⁻¹(U)≤x) = P(U≤F(x)) = F(x) の1行。累積分布関数の逆関数が書ける分布(指数・コーシー・ワイブル等)ではこれが最速。書けない正規分布には<b>ボックス=ミュラー法</b>(一様乱数2つ → 独立な標準正規2つ:このサイトの全ラボの正規乱数はこれ)、密度しか分からない分布には<b>棄却法</b>(覆いからサンプルして受理/棄却)を使う。</p>
+
+<h2>モンテカルロ法 — 「サイコロで積分する」</h2>
+<div class="formula">E[g(X)] ≈ (1/n)Σg(xᵢ),  誤差(標準誤差) = σ_g/√n</div>
+<p>大数の法則がそのまま計算アルゴリズムになったもの。重要なのは精度のスケーリング:<b>誤差は 1/√n — 桁を1つ上げるのに試行が100倍要る</b>。一方で誤差率が次元によらないため、高次元積分では数値積分の格子法より圧倒的に有利になる。</p>
+
+<h2>ブートストラップ — 標本を母集団の身代わりにする</h2>
+<p>手順:①手元の標本(サイズn)から<b>復元抽出でn個</b>取り直した「ブートストラップ標本」をB回(例: 2000回)作る → ②各標本で統計量 θ̂*を計算 → ③θ̂*のばらつきを標準誤差の推定に、分位点を信頼区間(パーセンタイル法)に使う。<b>中央値や相関係数など、標準誤差の理論式が難しい統計量でも機械的に精度評価できる</b>のが革命的な点。</p>
+<div class="warn-box">注意点が頻出:①ブートストラップは「n が小さすぎる」問題を救わない(標本が母集団を代表していることが前提)。②時系列など独立でないデータには素朴な復元抽出は不可(ブロック・ブートストラップ等が必要)。③並べ替え検定との違い — 並べ替えは<b>H₀を課して</b>ラベルを混ぜる(検定用)、ブートストラップは分布ごと再現する(推定精度用)。</div>
+
+<div class="ex-box">
+一様乱数 U から、指数分布 Exp(λ) に従う乱数を逆関数法で作る式を導け。
+<details class="ans"><summary>解答を見る</summary>
+<p>F(x)=1−e^{−λx} を u について解く: u=1−e^{−λx} → x=−ln(1−u)/λ。<br>
+<b>X = −ln(1−U)/λ</b>(1−U も一様なので X=−ln U/λ でも同じ)。</p>
+</details>
+</div>
+
+<div class="ex-box">
+モンテカルロ法で確率 p≈0.5 を標準誤差 0.005 以下で推定したい。必要な試行回数はおよそいくらか。
+<details class="ans"><summary>解答を見る</summary>
+<p>SE=√(p(1−p)/n) ≤ 0.005 → n ≥ 0.25/0.005² = <b>10,000回</b>。<br>
+さらに10倍の精度(0.0005)には100万回 — 1/√n の遅さの体感値として覚えておく。</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="stochastic-processes.html">← 確率過程</a>
+  <a href="sampling.html">標本調査法 →</a>
+</div>
+</main>
+</body>
+</html>

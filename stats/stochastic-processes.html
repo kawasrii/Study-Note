@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>確率過程:ポアソン過程とブラウン運動 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 確率過程</span>
+  </div>
+</header>
+
+<main>
+<h1>確率過程:ポアソン過程とブラウン運動</h1>
+<p class="lead">タグ: 確率過程 / ポアソン過程 / 指数分布 / 無記憶性 / ブラウン運動 / ウィーナー過程 / 独立増分</p>
+<p class="lead">※導入版(フェーズ1): 全体像と主要概念・例題を押さえるページ。見本路シミュレータはフェーズ2で追加予定。</p>
+
+<h2>全体マップ — この分野の体系</h2>
+<p>時間とともに変化するランダムな現象のモデル。<b>時間が離散か連続か × 状態が離散か連続か</b>の2×2で整理すると全体が1枚に収まる。</p>
+
+<div class="tree"><ul>
+<li class="t-root">確率過程
+  <ul>
+  <li><span class="t-cat">離散時間</span>
+    <ul>
+    <li>マルコフ連鎖(状態離散)— <a href="bayes.html">ベイズ法・マルコフ連鎖ページ</a></li>
+    <li>ランダムウォーク(状態離散/連続)— <a href="time-series.html">時系列解析ページ</a></li>
+    </ul>
+  </li>
+  <li><span class="t-cat">連続時間</span>
+    <ul>
+    <li><span class="here">ポアソン過程</span>(状態離散: 件数が増えていく)— 指数分布と表裏一体</li>
+    <li><span class="here">ブラウン運動(ウィーナー過程)</span>(状態連続)— ランダムウォークの極限</li>
+    <li class="soon">複合ポアソン過程・出生死滅過程 — 未収載</li>
+    </ul>
+  </li>
+  </ul>
+</li>
+</ul></div>
+
+<div class="tbl-wrap"><table>
+<tr><th></th><th>ポアソン過程 N(t)</th><th>ブラウン運動 W(t)</th></tr>
+<tr><td>何を表す</td><td>時刻tまでの事象の<b>件数</b>(階段状に増加)</td><td>連続にゆらぐ<b>位置</b></td></tr>
+<tr><td>周辺分布</td><td>N(t) ~ Po(λt)</td><td>W(t) ~ N(0, t)</td></tr>
+<tr><td>増分の性質</td><td>独立・定常増分</td><td>独立・定常増分(正規)</td></tr>
+<tr><td>付随する分布</td><td>到着間隔 ~ 指数分布 Exp(λ)</td><td>√t スケーリング(分散∝t)</td></tr>
+<tr><td>親戚</td><td>二項過程の極限</td><td>ランダムウォークの極限</td></tr>
+</table></div>
+
+<h2>ポアソン過程 — 「件数の窓」と「間隔の窓」</h2>
+<div class="formula">N(t) ~ Po(λt)(件数の見方) ⇔ 到着間隔 T ~ Exp(λ)(間隔の見方)</div>
+<p>ランダムに発生する事象(来客・故障・地震)のモデル。<b>同じ現象を「時間窓の中の件数」で見ればポアソン分布、「次が来るまでの待ち時間」で見れば指数分布</b> — この双対が最重要で、どちらの窓で問われても行き来できること。定義は①N(0)=0、②独立増分、③微小時間の発生確率が λh に比例(2件以上は無視できる)。</p>
+<div class="note-box">指数分布の<b>無記憶性</b> P(T&gt;s+t | T&gt;s) = P(T&gt;t):「もう10分待ったから次はすぐ来る」は成り立たない。また分割(間引き): 各事象を確率pで採用すると採用側は Po(λpt)、合流: 独立な Po(λ₁)+Po(λ₂) 過程の重ね合わせは Po(λ₁+λ₂) 過程 — いずれも頻出の操作。</div>
+
+<h2>ブラウン運動 — ランダムウォークの連続極限</h2>
+<div class="formula">W(0)=0, 増分 W(t+s)−W(s) ~ N(0, t) が過去と独立, 見本路は連続</div>
+<p><a href="time-series.html">ランダムウォーク</a>の歩幅を小さく・歩数を多くした極限(中心極限定理が効いて増分が正規になる)。<b>分散が時間に比例</b>(標準偏差は√t — 拡散のスケーリング則)、見本路は連続だが至る所で微分不可能、という性質が問われる。金融(株価の対数)や物理(拡散)の基礎モデルで、ドリフト付き μt+σW(t) や幾何ブラウン運動へ拡張される。</p>
+<div class="warn-box">「W(1)とW(2)は独立」は<b>誤り</b> — 独立なのは<b>増分</b>(W(2)−W(1)とW(1))であって値そのものではない。Cov(W(s), W(t)) = min(s,t) はこの区別を試す定番(導出: W(t)=W(s)+増分 と分解して展開)。</div>
+
+<div class="ex-box">
+問い合わせが平均 λ=2件/時間 のポアソン過程で届く。(a)午後1時〜3時の2時間に届く件数の分布は?ちょうど3件の確率は?(b)いま届いた直後、次の問い合わせまでの待ち時間が30分を超える確率は?
+<details class="ans"><summary>解答を見る</summary>
+<p>(a) N ~ Po(λt)=Po(4)。P(N=3)=e⁻⁴·4³/3! = e⁻⁴·64/6 ≈ <b>0.195</b><br>
+(b) T ~ Exp(2)。P(T&gt;0.5)=e^{−2×0.5}=e⁻¹ ≈ <b>0.368</b></p>
+</details>
+</div>
+
+<div class="ex-box">
+標準ブラウン運動について Cov(W(2), W(5)) を求めよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>W(5)=W(2)+(W(5)−W(2)) と分解。増分は W(2) と独立なので<br>
+Cov(W(2),W(5)) = Cov(W(2),W(2)) + 0 = V[W(2)] = <b>2</b>(一般に min(s,t))。</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="bayes.html">← ベイズ法・マルコフ連鎖</a>
+  <a href="simulation.html">シミュレーション →</a>
+</div>
+</main>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>多次元確率分布:同時・条件付き・2変量正規 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 多次元確率分布</span>
+  </div>
+</header>
+
+<main>
+<h1>多次元確率分布:同時・条件付き・2変量正規</h1>
+<p class="lead">タグ: 同時分布 / 周辺分布 / 条件付き分布 / 共分散 / 相関係数 / 多項分布 / 2変量正規分布 / 条件付き期待値 / 全分散の公式</p>
+<p class="lead">※導入版(フェーズ1): 全体像と主要概念・例題を押さえるページ。ラボはフェーズ2で追加予定。</p>
+
+<h2>全体マップ — この分野の体系</h2>
+<p>変数が2つ以上あるとき、確率の情報は「同時分布」に全部入っている。そこから<b>周辺化(片方を消す)</b>と<b>条件付け(片方を固定する)</b>という2つの操作で情報を取り出す — この2操作が体系の背骨。</p>
+
+<div class="tree"><ul>
+<li class="t-root">多次元確率分布
+  <ul>
+  <li><span class="t-cat">基本操作</span>
+    <ul>
+    <li><span class="here">同時分布 → 周辺分布(和・積分で片方を消す)</span></li>
+    <li><span class="here">同時分布 → 条件付き分布(固定して規格化)</span></li>
+    </ul>
+  </li>
+  <li><span class="t-cat">関係の要約</span>
+    <ul>
+    <li><span class="here">共分散・相関係数・独立性</span></li>
+    <li><span class="here">条件付き期待値・全分散の公式</span></li>
+    </ul>
+  </li>
+  <li><span class="t-cat">代表的な多次元分布</span>
+    <ul>
+    <li><span class="here">多項分布</span> — 二項分布の多カテゴリ版</li>
+    <li><span class="here">2変量正規分布</span> — 条件付き分布が回帰直線そのもの</li>
+    <li class="soon">多変量正規(一般次元)・ディリクレ分布 — 未収載</li>
+    </ul>
+  </li>
+  </ul>
+</li>
+</ul></div>
+
+<div class="tbl-wrap"><table>
+<tr><th>分布</th><th>設定</th><th>周辺分布</th><th>共分散の符号</th><th>ポイント</th></tr>
+<tr><td>多項分布</td><td>n回試行をk種に分類</td><td>各カテゴリは二項 B(n,pᵢ)</td><td>Cov(Xᵢ,Xⱼ)=−npᵢpⱼ(<b>必ず負</b>)</td><td>合計がnに固定→片方が増えれば他方が減る</td></tr>
+<tr><td>2変量正規</td><td>(X,Y)が楕円状に分布</td><td>それぞれ正規</td><td>ρで自由</td><td>条件付き分布も正規で、期待値は<b>直線</b></td></tr>
+</table></div>
+
+<h2>周辺化と条件付け — 2つの基本操作</h2>
+<div class="formula">周辺: f_X(x)=∫f(x,y)dy  /  条件付き: f(y|x)=f(x,y)/f_X(x)</div>
+<p>周辺化は「興味のない変数を潰して消す」、条件付けは「値を知った上で残りの分布を見る」。<b>独立 ⇔ f(x,y)=f_X(x)f_Y(y) ⇔ 条件付き分布が条件によらない</b>。離散なら積分が和になるだけで構造は同じ。</p>
+
+<h2>多項分布 — 二項分布のk色版</h2>
+<div class="formula">P(X₁=n₁,…,X_k=n_k) = n!/(n₁!…n_k!) · p₁^{n₁}…p_k^{n_k}</div>
+<p>E[Xᵢ]=npᵢ, V[Xᵢ]=npᵢ(1−pᵢ)(周辺が二項だから)。そして<b>Cov(Xᵢ,Xⱼ)=−npᵢpⱼ と必ず負</b>になる — 合計が n に固定されているので、あるカテゴリが多く出れば他は必然的に減るため。この「制約が負の相関を生む」直感は頻出。</p>
+
+<h2>2変量正規分布 — 条件付けると回帰直線が現れる</h2>
+<div class="formula">Y|X=x ~ N( μ_Y + ρ(σ_Y/σ_X)(x−μ_X),  σ_Y²(1−ρ²) )</div>
+<p>2変量正規の条件付き分布は再び正規で、<b>条件付き期待値は x の1次式 — これが回帰直線 E[Y|x] の正体</b>(傾き ρσ_Y/σ_X は<a href="regression.html">回帰分析</a>の β̂₁=r·s_y/s_x と対応)。条件付き分散 σ_Y²(1−ρ²) は x によらず一定で、決定係数 R²=ρ² が「説明されて減った分散の割合」であることもここから読める。</p>
+<div class="warn-box">2変量正規では「無相関 ⇔ 独立」が<b>成立する</b>(一般の分布では不成立)。「周辺が両方正規でも同時分布が2変量正規とは限らない」という逆向きの引っかけもある。</div>
+
+<h2>条件付き期待値と全分散の公式 — 分散の分解</h2>
+<div class="formula">E[Y]=E[E[Y|X]](繰り返し期待値) / V[Y]=E[V[Y|X)]+V(E[Y|X])(全分散)</div>
+<p>全分散の公式は「Yのばらつき = <b>グループ内のばらつきの平均 + グループ間のばらつき</b>」という分解。<a href="anova-doe.html">分散分析</a>の平方和分解、混合分布の分散計算、階層モデルなど至る所で再登場する、準1級屈指の重要公式。</p>
+
+<div class="ex-box">
+サイコロを12回振る。1の目の回数を X、2の目の回数を Y とするとき、Cov(X,Y) と相関係数を求めよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>多項分布で n=12, p₁=p₂=1/6。Cov(X,Y)=−np₁p₂=−12/36=<b>−1/3</b>。<br>
+V[X]=V[Y]=12·(1/6)(5/6)=5/3。ρ=(−1/3)/(5/3)=<b>−0.2</b>。</p>
+</details>
+</div>
+
+<div class="ex-box">
+(X,Y)が2変量正規で μ_X=50, μ_Y=60, σ_X=10, σ_Y=5, ρ=0.8 のとき、X=70 を知った下での Y の条件付き期待値と条件付き標準偏差を求めよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>E[Y|X=70] = 60 + 0.8×(5/10)×(70−50) = 60+8 = <b>68</b><br>
+V[Y|X] = 5²(1−0.64) = 9 → 条件付き標準偏差 = <b>3</b>。<br>
+(相関を知ることで標準偏差が5→3に減る = 情報の価値)</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="probability-foundations.html">← 確率と確率変数</a>
+  <a href="distributions.html">確率分布ラボ →</a>
+</div>
+</main>
+</body>
+</html>

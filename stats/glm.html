@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>質的変数の回帰と一般化線形モデル | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 一般化線形モデル</span>
+  </div>
+</header>
+
+<main>
+<h1>質的変数の回帰と一般化線形モデル(GLM)</h1>
+<p class="lead">タグ: ダミー変数 / ロジスティック回帰 / オッズ / オッズ比 / ロジット / ポアソン回帰 / リンク関数 / 一般化線形モデル</p>
+<p class="lead">※導入版(フェーズ1): 全体像と主要概念・例題を押さえるページ。ロジスティック曲線のラボはフェーズ2で追加予定。</p>
+
+<h2>全体マップ — この分野の体系</h2>
+<p><a href="regression.html">通常の回帰</a>は「連続な y を正規ノイズで」という前提だった。y が 0/1 や回数のとき、その前提を外して回帰の枠組みを拡張したのが一般化線形モデル(GLM)。「<b>質的な変数が説明側に来る場合(ダミー変数)</b>」と「<b>応答側に来る場合(ロジスティック回帰など)</b>」を区別して整理する。</p>
+
+<div class="tree"><ul>
+<li class="t-root">質的変数と回帰・GLM
+  <ul>
+  <li><span class="t-cat">説明変数が質的</span>
+    <ul>
+    <li><span class="here">ダミー変数(0/1)の導入と係数の解釈</span></li>
+    <li class="soon">交互作用項・カテゴリ数が多い場合 — 触りのみ</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">応答変数が質的・非正規(GLM)</span>
+    <ul>
+    <li><span class="here">2値応答: ロジスティック回帰</span> — 準1級最頻出</li>
+    <li><span class="here">計数応答: ポアソン回帰</span></li>
+    <li class="soon">プロビットモデル・順序ロジット — 未収載</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">GLMの統一的枠組み</span>
+    <ul>
+    <li><span class="here">3要素: 分布(指数型分布族)+線形予測子+リンク関数</span></li>
+    <li>推定は<a href="estimation.html">最尤法</a>(反復計算)。評価は逸脱度・AIC(<a href="model-selection.html">モデル選択</a>)</li>
+    </ul>
+  </li>
+  </ul>
+</li>
+</ul></div>
+
+<div class="tbl-wrap"><table>
+<tr><th>応答 y のタイプ</th><th>仮定する分布</th><th>リンク関数</th><th>モデル名</th></tr>
+<tr><td>連続値</td><td>正規</td><td>恒等 μ=xβ</td><td>通常の線形回帰</td></tr>
+<tr><td>0/1(合格/不合格)</td><td>二項(ベルヌーイ)</td><td>ロジット ln(p/(1−p))=xβ</td><td>ロジスティック回帰</td></tr>
+<tr><td>回数(0,1,2,…)</td><td>ポアソン</td><td>対数 ln λ=xβ</td><td>ポアソン回帰</td></tr>
+</table></div>
+
+<h2>ダミー変数 — カテゴリを回帰に乗せる</h2>
+<div class="formula">y = β₀ + β₁x + β₂D + ε  (D=1: 処置群, D=0: 対照群)</div>
+<p>β₂ は「<b>他の条件が同じとき、D=1 グループは D=0 より平均で β₂ だけ高い</b>」という切片の差。カテゴリが k 種なら、ダミーは k−1 本(基準カテゴリを1つ決める) — k 本入れると完全な多重共線性で推定不能になる(ダミー変数トラップ)。交互作用項 D×x を足せば「傾きの差」も表せる。</p>
+
+<h2>ロジスティック回帰 — 確率を回帰する正しい方法</h2>
+<div class="formula">ln( p/(1−p) ) = β₀ + β₁x  ⇔  p = 1/(1+e^{−(β₀+β₁x)})</div>
+<p>確率 p をそのまま直線で当てると 0–1 の範囲を飛び出す。そこで p を<b>オッズ p/(1−p)(起こる:起こらない の比)</b>にし、対数を取ったロジットを線形にする。すると p は滑らかなS字(シグモイド)曲線になり、必ず 0–1 に収まる。</p>
+<div class="note-box"><b>係数の解釈が最頻出</b>: x が1増えるとロジットが β₁ 増える = <b>オッズが e^β₁ 倍</b>になる(オッズ比)。e^β₁=1.5 なら「x が1増えるとオッズが1.5倍」。確率 p そのものが1.5倍になるのではない点に注意。推定は最尤法(閉じた式はなく反復計算)、係数の検定はWald検定 z=β̂/SE。</div>
+
+<h2>ポアソン回帰 — 回数データの回帰</h2>
+<div class="formula">ln λ = β₀ + β₁x  (y ~ Po(λ))</div>
+<p>事故件数・来店回数など非負の計数データ用。対数リンクなので係数は乗法的に効く:x が1増えると期待回数が e^β₁ 倍。観測期間が違うデータはオフセット項 ln(期間) を加えて率を揃える。<b>過分散(分散&gt;平均)</b>のときはポアソンの前提が崩れており、負の二項回帰などを検討 — という論点が頻出。</p>
+
+<h2>GLMの3要素 — 統一フレーム</h2>
+<p>①応答の分布(指数型分布族: 正規・二項・ポアソン・ガンマ…)、②線形予測子 η=xβ、③リンク関数 g(μ)=η。この3点セットを選ぶだけで回帰が組める、というのがGLMの見方。線形回帰もロジスティックもポアソン回帰も<b>同じ機械の設定違い</b>にすぎない — この統一観が身につくと暗記が激減する。</p>
+
+<div class="ex-box">
+ロジスティック回帰で合格(y=1)を勉強時間 x で説明したところ β̂₁=0.8 だった。勉強時間が1時間増えると何がどう変わるか。オッズ比で答えよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>オッズ比 = e^0.8 ≈ <b>2.23</b>。勉強時間が1時間増えると<b>合格オッズが約2.23倍</b>になる。<br>
+(確率が2.23倍になるのではない。例えば p=0.5(オッズ1)からなら新オッズ2.23 → p=2.23/3.23≈0.69)</p>
+</details>
+</div>
+
+<div class="ex-box">
+β₀=−3, β₁=0.5 のロジスティックモデルで、x=8 のときの予測確率を求めよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>ロジット = −3+0.5×8 = 1。p = 1/(1+e^{−1}) ≈ <b>0.731</b>。</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="regression.html">← 回帰分析</a>
+  <a href="model-selection.html">モデル選択 →</a>
+</div>
+</main>
+</body>
+</html>

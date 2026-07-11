@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>モデル選択:AIC・交差検証・正則化 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › モデル選択</span>
+  </div>
+</header>
+
+<main>
+<h1>モデル選択:AIC・交差検証・正則化</h1>
+<p class="lead">タグ: AIC / BIC / 情報量規準 / 交差検証 / クロスバリデーション / 正則化 / リッジ回帰 / Lasso / 過学習</p>
+<p class="lead">※導入版(フェーズ1): 全体像と主要概念・例題を押さえるページ。ラボはフェーズ2で追加予定。</p>
+
+<h2>全体マップ — この分野の体系</h2>
+<p>「当てはまりを良くするだけなら複雑なモデルが必ず勝つ」— <a href="regression.html">回帰分析</a>で見た過学習の問題への3つの解答が、①罰則付きの当てはまり指標(情報量規準)、②未知データで直接測る(交差検証)、③そもそも複雑になれないよう縛る(正則化)。</p>
+
+<div class="tree"><ul>
+<li class="t-root">モデル選択(複雑さと当てはまりのバランスを取る)
+  <ul>
+  <li><span class="t-cat">情報量規準</span> — 尤度にパラメータ数の罰則を課す
+    <ul>
+    <li><span class="here">AIC</span> — 予測の良さを狙う</li>
+    <li><span class="here">BIC</span> — 真のモデルの特定を狙う(罰則がより重い)</li>
+    <li class="soon">自由度調整済みR²(<a href="regression.html">回帰ページ</a>)・Cp・DIC — 触りのみ</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">交差検証(CV)</span>
+    <ul>
+    <li><span class="here">k-fold CV・LOOCV</span> — データを分けて予測性能を直接測る</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">正則化(縮小推定)</span>
+    <ul>
+    <li><span class="here">リッジ回帰(L2罰則)・Lasso(L1罰則)</span></li>
+    </ul>
+  </li>
+  </ul>
+</li>
+</ul></div>
+
+<div class="tbl-wrap"><table>
+<tr><th>方法</th><th>式・手順</th><th>狙い</th><th>特徴</th></tr>
+<tr><td>AIC</td><td>−2 ln L + 2k</td><td>予測誤差の最小化</td><td>nが大きくても比較的複雑なモデルを許す</td></tr>
+<tr><td>BIC</td><td>−2 ln L + k ln n</td><td>真のモデルの選択(一致性)</td><td>n≧8で罰則がAICより重く、より単純を選ぶ</td></tr>
+<tr><td>k-fold CV</td><td>k分割し「残り1つで検証」を一巡</td><td>予測誤差の直接推定</td><td>仮定が少なく万能。計算コスト大</td></tr>
+<tr><td>リッジ/Lasso</td><td>残差二乗和+λΣβ²/λΣ|β|</td><td>分散を抑えて予測改善</td><td>Lassoは係数を<b>ちょうど0</b>にできる(変数選択)</td></tr>
+</table></div>
+
+<h2>AIC — 「当てはまり − 複雑さ」の採点</h2>
+<div class="formula">AIC = −2 ln L̂ + 2k  (L̂: 最大尤度, k: パラメータ数)。小さいほど良い</div>
+<p>第1項は当てはまりの良さ(小さいほど良い)、第2項が複雑さの罰金。理論的には「予測分布と真の分布のKL距離の推定量」で、<b>予測を良くするための規準</b>。絶対値に意味はなく<b>同じデータでのモデル間の差だけ</b>が意味を持つ(目安: 差が2未満なら実質互角)。BICは罰則が k ln n で、n が大きいほど単純なモデルへ傾く — 「予測のAIC、真実のBIC」という目的の違いで使い分ける。</p>
+
+<h2>交差検証 — 「見せていないデータ」で採点する</h2>
+<p>データをk個(標準は5か10)に分割し、k−1個で学習して残り1個で予測誤差を測る、をk回転して平均する。<b>訓練誤差(見せたデータでの成績)は常に楽観的</b>なので、未知データでの成績を推定するのが目的。k=n の特別な場合がLOOCV(1個抜き)。<a href="regression.html">回帰分析ページ</a>のバンド幅・次数などのチューニングパラメータ選択の標準手段。</p>
+<div class="warn-box">CVの頻出注意:①前処理(標準化・変数選択)も<b>各foldの学習側だけで</b>行うこと — 全データでやってから分割すると情報漏れ(リーケージ)で楽観バイアス。②時系列データでは未来を訓練に使わないよう時間順の分割を使う。</div>
+
+<h2>正則化 — 係数に「重り」を付けて暴れを防ぐ</h2>
+<div class="formula">リッジ: min Σ(y−xβ)² + λΣβⱼ²  /  Lasso: min Σ(y−xβ)² + λΣ|βⱼ|</div>
+<p>λ が複雑さのダイヤル(λ=0で通常の最小二乗、λ→∞で全係数0)。<b>少しのバイアスと引き換えに分散を大きく減らす</b>のが狙いで、多重共線性や「変数がデータ数より多い」状況で威力を発揮する。L1罰則(Lasso)は解の角の性質により<b>一部の係数を厳密に0にする=自動変数選択</b>ができる点がリッジとの本質的な違い。λはCVで選ぶのが標準。</p>
+<div class="note-box">ベイズ的な見方: リッジは係数に正規事前分布、Lassoはラプラス事前分布を置いたMAP推定と等価。<a href="bayes.html">ベイズ法</a>の「事前分布が推定を安定させる」という話と同じ構造が、ここでは「罰則」の顔で現れている。</div>
+
+<div class="ex-box">
+モデルA: パラメータ3個で ln L̂=−50、モデルB: パラメータ6個で ln L̂=−47。AICではどちらを選ぶか。n=100のときBICでは?
+<details class="ans"><summary>解答を見る</summary>
+<p>AIC_A=100+6=<b>106</b>, AIC_B=94+12=<b>106</b> → AICでは互角(差0)。<br>
+BIC(ln 100≈4.605): BIC_A=100+13.8=<b>113.8</b>, BIC_B=94+27.6=<b>121.6</b> → BICは<b>Aを選ぶ</b>。<br>
+罰則の重いBICが単純なモデルに傾く典型例。</p>
+</details>
+</div>
+
+<div class="ex-box">
+リッジ回帰とLassoの共通点と、決定的に違う点をそれぞれ1つ挙げよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>共通点: 係数を0方向に<b>縮小</b>してバイアスを許容し分散を減らす(λはCVで選択)。<br>
+相違点: Lasso(L1)は係数を<b>ちょうど0</b>にできるので変数選択を兼ねる。リッジ(L2)は0に近づけるだけで0にはしない(多重共線性の下でも全変数を残して安定化)。</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="glm.html">← 一般化線形モデル</a>
+  <a href="anova-doe.html">分散分析と実験計画法 →</a>
+</div>
+</main>
+</body>
+</html>

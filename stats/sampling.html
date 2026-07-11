@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>標本調査法 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 標本調査法</span>
+  </div>
+</header>
+
+<main>
+<h1>標本調査法:抽出デザインと推定精度</h1>
+<p class="lead">タグ: 単純無作為抽出 / 有限母集団修正 / 層化抽出 / 比例配分 / ネイマン配分 / 集落抽出 / 多段抽出 / 系統抽出</p>
+<p class="lead">※導入版(フェーズ1): 全体像と主要概念・例題を押さえるページ。配分比較のラボはフェーズ2で追加予定。</p>
+
+<h2>全体マップ — この分野の体系</h2>
+<p>「母集団の<b>誰を・どう選ぶか</b>」の設計論。これまでの理論は「無限母集団からのiid標本」を仮定していたが、実際の調査は<b>有限母集団から非復元で</b>抽出する — そこで生まれる修正と、精度・コストを両立させる工夫(層化・集落・多段)が主題。</p>
+
+<div class="tree"><ul>
+<li class="t-root">標本調査法
+  <ul>
+  <li><span class="t-cat">確率抽出(無作為性が保証される)</span>
+    <ul>
+    <li><span class="here">単純無作為抽出(SRS)と有限母集団修正</span> — 基準となる方式</li>
+    <li><span class="here">層化抽出</span> — 均質な層に分けてから抽出(精度<b>向上</b>)</li>
+    <li><span class="here">集落(クラスター)抽出</span> — 塊ごと抽出(コスト減、精度は通常<b>低下</b>)</li>
+    <li><span class="here">多段抽出・系統抽出</span></li>
+    </ul>
+  </li>
+  <li><span class="t-cat">非確率抽出</span>
+    <ul>
+    <li class="soon">有意抽出・割当法 — 誤差が評価できない(注意点のみ)</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">推定の工夫</span>
+    <ul>
+    <li class="soon">比推定・回帰推定 — 補助情報の利用 — 未収載</li>
+    </ul>
+  </li>
+  </ul>
+</li>
+</ul></div>
+
+<div class="tbl-wrap"><table>
+<tr><th>方式</th><th>やり方</th><th>精度</th><th>コスト・条件</th></tr>
+<tr><td>単純無作為</td><td>全員に等確率</td><td>基準</td><td>全員の名簿が必要</td></tr>
+<tr><td>層化抽出</td><td>層(性別・地域等)ごとに無作為抽出</td><td><b>↑</b>(層内が均質なほど)</td><td>層の情報が必要</td></tr>
+<tr><td>集落抽出</td><td>集落(学校・世帯等)を選び全数調査</td><td><b>↓</b>(集落内が似ているほど)</td><td>移動コスト小・名簿は集落単位でよい</td></tr>
+<tr><td>多段抽出</td><td>市→学校→生徒 と段階的に抽出</td><td>↓(段数分の誤差が乗る)</td><td>大規模調査の現実解</td></tr>
+<tr><td>系統抽出</td><td>名簿から等間隔に抽出</td><td>ほぼSRS並</td><td>簡便。名簿に周期があると危険</td></tr>
+</table></div>
+
+<h2>有限母集団修正(FPC) — 「たくさん抜けば誤差は減る」の定量化</h2>
+<div class="formula">V(x̄) = (1 − n/N) · S²/n  (N: 母集団サイズ, n: 標本サイズ, 非復元)</div>
+<p>無限母集団の S²/n に <b>(1−n/N)</b> が掛かる。n/N(抽出率)が大きいほど分散が縮み、全数調査(n=N)で誤差ゼロ。逆に<b>抽出率が数%以下なら修正はほぼ1で無視してよい</b> — 「母集団が1億でも1万でも、n=1000の精度はほぼ同じ」という直感に反する重要事実。</p>
+
+<h2>層化抽出 — 分散を「層間」ぶんだけタダで消す</h2>
+<div class="formula">x̄_st = Σ(N_h/N)x̄_h,  V(x̄_st) = Σ(N_h/N)² V(x̄_h)</div>
+<p><a href="multidim-dist.html">全分散の公式</a>で見た「全分散=層内+層間」のうち、層化は<b>層間分散を推定誤差から消す</b>。だから層内が均質(層間の差が大きい)ほど得をする。標本の層への配り方が設計の腕の見せ所:</p>
+<div class="formula">比例配分: n_h ∝ N_h  /  ネイマン(最適)配分: n_h ∝ N_h·S_h</div>
+<p>ネイマン配分は「大きい層・<b>ばらつきの大きい層</b>に多めに配る」— 分散最小の理論解。層内標準偏差 S_h が全部等しければ比例配分と一致する。</p>
+<div class="warn-box">集落抽出が層化と逆に精度を落とすのは、<b>同じ集落の個体は似ている</b>(級内相関が正)ため、実質的な情報量が見かけの n より少ないから。「層化は層<b>内</b>を均質に、集落は集落<b>間</b>を均質にすると得」という対比が頻出。</div>
+
+<div class="ex-box">
+N=2000 の母集団から n=400 を非復元で単純無作為抽出した。S²=100 のとき V(x̄) を求め、FPCを無視した場合と比較せよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>V(x̄) = (1−400/2000)×100/400 = 0.8×0.25 = <b>0.2</b><br>
+無視すると 100/400 = 0.25。FPCで<b>2割減</b> — 抽出率20%は無視できない水準。</p>
+</details>
+</div>
+
+<div class="ex-box">
+2層からなる母集団: 層1(N₁=600, S₁=4)、層2(N₂=400, S₂=16)。総標本 n=100 をネイマン配分せよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>N₁S₁=2400, N₂S₂=6400。n₁=100×2400/8800≈<b>27</b>, n₂=100×6400/8800≈<b>73</b>。<br>
+比例配分なら 60:40 だが、層2はばらつきが4倍大きいので大幅に増員される。</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="simulation.html">← シミュレーション</a>
+  <a href="missing-data.html">欠測値 →</a>
+</div>
+</main>
+</body>
+</html>

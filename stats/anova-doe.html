@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>分散分析と実験計画法 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 分散分析と実験計画法</span>
+  </div>
+</header>
+
+<main>
+<h1>分散分析と実験計画法</h1>
+<p class="lead">タグ: 分散分析 ANOVA / 平方和の分解 / F検定 / 交互作用 / フィッシャーの3原則 / 乱塊法 / 直交表</p>
+<p class="lead">※導入版(フェーズ1): 全体像と主要概念・例題を押さえるページ。平方和分解の可視化ラボはフェーズ2で追加予定。</p>
+
+<h2>全体マップ — この分野の体系</h2>
+<p>「3群以上の平均を比べる」道具が分散分析(ANOVA)、「比較が正しくできるようにデータの取り方を設計する」のが実験計画法。<b>後者が先にあって前者が活きる</b>(計画が悪いと解析では救えない)という関係を押さえる。</p>
+
+<div class="tree"><ul>
+<li class="t-root">分散分析と実験計画法
+  <ul>
+  <li><span class="t-cat">実験計画の原則</span>
+    <ul>
+    <li><span class="here">フィッシャーの3原則(反復・無作為化・局所管理)</span></li>
+    </ul>
+  </li>
+  <li><span class="t-cat">分散分析(ANOVA)</span>
+    <ul>
+    <li><span class="here">一元配置</span> — 1因子・3群以上の平均差の検定</li>
+    <li><span class="here">二元配置と交互作用</span> — 2因子の主効果+組み合わせ効果</li>
+    <li class="soon">多重比較(Tukey・Bonferroni)— 触りのみ</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">計画のデザイン</span>
+    <ul>
+    <li><span class="here">完全無作為化法・乱塊法</span></li>
+    <li class="soon">直交表による一部実施要因計画 — 触りのみ</li>
+    </ul>
+  </li>
+  </ul>
+</li>
+</ul></div>
+
+<div class="tbl-wrap"><table>
+<tr><th>変動要因</th><th>平方和</th><th>自由度</th><th>平均平方</th><th>F値</th></tr>
+<tr><td>群間(要因)</td><td>SSB</td><td>a−1</td><td>MSB=SSB/(a−1)</td><td rowspan="2">F=MSB/MSW<br>~ F(a−1, n−a)</td></tr>
+<tr><td>群内(誤差)</td><td>SSW</td><td>n−a</td><td>MSW=SSW/(n−a)</td></tr>
+<tr><td>全体</td><td>SST=SSB+SSW</td><td>n−1</td><td>—</td><td>—</td></tr>
+</table></div>
+
+<h2>フィッシャーの3原則 — 比較を成立させる設計</h2>
+<p><b>①反復</b>(同条件を複数回 → 誤差分散が推定できる)、<b>②無作為化</b>(処理の割付をランダムに → 系統誤差を偶然誤差に転化。<a href="causal-inference.html">因果推論</a>の土台でもある)、<b>③局所管理</b>(似た条件のブロック内で比較 → 既知のばらつき要因を除去)。どの操作がどの原則かを判定させる問題が定番。</p>
+
+<h2>一元配置分散分析 — ばらつきを2つに割る</h2>
+<div class="formula">SST(全変動) = SSB(群間変動) + SSW(群内変動)</div>
+<p>「群平均が互いに離れているか」を「群内の自然なばらつき」と比べるのが本質。H₀: μ₁=…=μ_a のもとで F=MSB/MSW ~ F(a−1, n−a) となり、Fが大きければ棄却。<b>t検定を繰り返さない理由</b>(検定の多重性: 5%の検定を繰り返すと全体の第一種過誤率が膨らむ)もセットで頻出。この分解は<a href="multidim-dist.html">全分散の公式</a>(群内平均+群間)の標本版。</p>
+
+<h2>二元配置と交互作用 — 「組み合わせの妙」を検出する</h2>
+<div class="formula">SST = SS_A + SS_B + SS_{A×B} + SSE</div>
+<p>因子が2つ(例: 肥料×品種)のとき、各因子の<b>主効果</b>に加えて<b>交互作用</b>(片方の効果がもう片方の水準によって変わる)を分離できる。交互作用図で線が平行 → 交互作用なし、交差・非平行 → あり。<b>交互作用が有意なら主効果の単独解釈は危険</b>、が最重要の読み方。交互作用を推定するには各セルに反復が必要。</p>
+<div class="warn-box">前提は「各群の母集団が正規で<b>等分散</b>」。分散分析は名前に反して「<b>平均の差</b>」の検定であることも引っかけの定番。乱塊法はブロック(局所管理)を要因として取り込んだ設計で、ブロック間変動を誤差から除くため検出力が上がる。</div>
+
+<div class="ex-box">
+3群(各群5個、n=15)の一元配置で SST=100、SSB=40 だった。分散分析表を完成させ、F値を求めよ(F₀.₀₅(2,12)=3.89)。
+<details class="ans"><summary>解答を見る</summary>
+<p>SSW=100−40=60。自由度: 群間 a−1=2, 群内 n−a=12。<br>
+MSB=40/2=20, MSW=60/12=5 → <b>F=20/5=4.0 &gt; 3.89 → 有意水準5%で棄却</b>(群平均に差があるといえる)。</p>
+</details>
+</div>
+
+<div class="ex-box">
+「畑を土質の似た4ブロックに分け、各ブロック内で3種の肥料をランダムに割り付けた」— フィッシャーの3原則のどれが使われているか。
+<details class="ans"><summary>解答を見る</summary>
+<p><b>局所管理</b>(ブロック化)と<b>無作為化</b>(ブロック内のランダム割付)。各肥料が複数ブロックに現れるので<b>反復</b>も満たす — 3原則すべてを使った<b>乱塊法</b>の典型例。</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="model-selection.html">← モデル選択</a>
+  <a href="multivariate.html">多変量解析 →</a>
+</div>
+</main>
+</body>
+</html>

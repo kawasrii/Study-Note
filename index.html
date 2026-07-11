@@ -38,33 +38,55 @@
   <p>個々のテーマが体系のどこに位置するか。<b>準1級の出題範囲を階層で俯瞰</b>して、埋まっている場所・これからの場所を把握できます。</p>
 
   <div class="tree"><ul>
-  <li class="t-root">統計検定 準1級
+  <li class="t-root">統計検定 準1級(公式出題範囲の15大項目+2027年追加の因果推論を全カバー)
     <ul>
     <li><span class="t-cat">確率と確率分布</span>
       <ul>
-      <li><a href="stats/distributions.html">確率分布ラボ</a>(離散・連続・標本分布・中心極限定理)</li>
+      <li><a href="stats/probability-foundations.html">確率と確率変数</a>(条件付き確率・母関数・極限定理・デルタ法)</li>
+      <li><a href="stats/multidim-dist.html">多次元確率分布</a>(同時・条件付き・2変量正規・全分散の公式)</li>
+      <li><a href="stats/distributions.html">確率分布ラボ</a>(離散・連続・標本分布)🎛</li>
       </ul>
     </li>
     <li><span class="t-cat">統計的推測</span>
       <ul>
-      <li class="soon">推定(点推定・区間推定・最尤法)— 準備中</li>
-      <li><a href="stats/hypothesis-testing.html">仮説検定と検出力</a>(検定の共通骨格・過誤・サンプルサイズ)</li>
+      <li><a href="stats/estimation.html">推定</a>(最尤法・クラメール・ラオ・漸近正規性・区間推定)</li>
+      <li><a href="stats/hypothesis-testing.html">仮説検定と検出力</a>(過誤・サンプルサイズ)🎛</li>
+      <li><a href="stats/nonparametric.html">ノンパラメトリック検定</a>(符号・順位・並べ替え)</li>
+      <li><a href="stats/contingency.html">分割表の解析</a>(オッズ比・χ²・シンプソン)</li>
       </ul>
     </li>
-    <li><span class="t-cat">統計モデリング</span>
+    <li><span class="t-cat">回帰とモデリング</span>
       <ul>
-      <li><a href="stats/regression.html">回帰分析</a>(最小二乗法〜多項式〜ノンパラ〜ガウス過程)</li>
-      <li><a href="stats/multivariate.html">多変量解析</a>(主成分・判別・クラスター)</li>
-      <li><a href="stats/time-series.html">時系列解析</a>(定常性・ACF・AR/MA・単位根)</li>
+      <li><a href="stats/regression.html">回帰分析</a>(最小二乗法〜多項式〜ノンパラ〜ガウス過程)🎛</li>
+      <li><a href="stats/glm.html">質的変数の回帰とGLM</a>(ダミー変数・ロジスティック・ポアソン回帰)</li>
+      <li><a href="stats/model-selection.html">モデル選択</a>(AIC・交差検証・リッジ/Lasso)</li>
+      <li><a href="stats/anova-doe.html">分散分析と実験計画法</a>(F検定・交互作用・3原則)</li>
       </ul>
     </li>
-    <li><span class="t-cat">ベイズ統計・確率過程</span>
+    <li><span class="t-cat">多変量・時系列</span>
       <ul>
-      <li><a href="stats/bayes.html">ベイズ法とマルコフ連鎖</a>(共役事前分布・定常分布・MCMCの考え方)</li>
+      <li><a href="stats/multivariate.html">多変量解析</a>(主成分・判別・クラスター)🎛</li>
+      <li><a href="stats/time-series.html">時系列解析</a>(定常性・ACF・AR/MA・単位根)🎛</li>
       </ul>
     </li>
-    <li class="t-cat soon">実験計画法・ノンパラメトリック法 — 準備中</li>
-    <li class="t-cat soon">統計的因果推論 — 準備中(2027年の範囲改訂で大項目化予定)</li>
+    <li><span class="t-cat">ベイズ・確率過程・計算統計</span>
+      <ul>
+      <li><a href="stats/bayes.html">ベイズ法とマルコフ連鎖</a>(共役事前分布・定常分布)🎛</li>
+      <li><a href="stats/stochastic-processes.html">確率過程</a>(ポアソン過程・ブラウン運動)</li>
+      <li><a href="stats/simulation.html">シミュレーション</a>(乱数生成・モンテカルロ・ブートストラップ)</li>
+      </ul>
+    </li>
+    <li><span class="t-cat">データの取得と前処理</span>
+      <ul>
+      <li><a href="stats/sampling.html">標本調査法</a>(層化・集落・ネイマン配分)</li>
+      <li><a href="stats/missing-data.html">欠測値の統計処理</a>(MCAR/MAR/MNAR・多重代入)</li>
+      </ul>
+    </li>
+    <li><span class="t-cat">因果推論</span>
+      <ul>
+      <li><a href="stats/causal-inference.html">統計的因果推論</a>(潜在結果・交絡・傾向スコア・DAG)— 2027年改訂の新大項目</li>
+      </ul>
+    </li>
     </ul>
   </li>
   <li class="t-root">英語(語彙)

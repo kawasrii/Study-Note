@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>確率と確率変数:条件付き確率・母関数・極限定理 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 確率と確率変数</span>
+  </div>
+</header>
+
+<main>
+<h1>確率と確率変数:条件付き確率・母関数・極限定理</h1>
+<p class="lead">タグ: 条件付き確率 / 独立 / 全確率の公式 / 期待値・分散の性質 / 確率母関数 / モーメント母関数 / 変数変換 / 大数の法則 / 中心極限定理 / デルタ法</p>
+<p class="lead">※導入版(フェーズ1): 全体像と主要概念・例題を押さえるページ。ラボと深い導出はフェーズ2で追加予定。</p>
+
+<h2>全体マップ — この分野の体系</h2>
+<p>準1級の全分野の土台。「確率の計算規則」→「確率変数の要約」→「分布を丸ごと扱う道具(母関数)」→「変換」→「nを大きくしたときの普遍法則」という積み上げ構造になっている。</p>
+
+<div class="tree"><ul>
+<li class="t-root">確率と確率変数
+  <ul>
+  <li><span class="t-cat">事象と確率</span>
+    <ul>
+    <li><span class="here">条件付き確率・独立・全確率の公式・ベイズの定理</span></li>
+    </ul>
+  </li>
+  <li><span class="t-cat">確率変数の特性値</span>
+    <ul>
+    <li><span class="here">期待値・分散の演算規則、共分散</span></li>
+    <li class="soon">歪度・尖度・分位点 — 触りのみ</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">母関数</span> — 分布を1つの関数に袋詰めする
+    <ul>
+    <li><span class="here">確率母関数(PGF)・モーメント母関数(MGF)</span></li>
+    <li class="soon">特性関数 — 未収載</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">変数変換</span>
+    <ul>
+    <li><span class="here">1変数の変換公式</span></li>
+    <li class="soon">2変数の変換(ヤコビアン)— 触りのみ</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">極限定理・漸近理論</span>
+    <ul>
+    <li><span class="here">大数の法則・中心極限定理・デルタ法</span></li>
+    </ul>
+  </li>
+  </ul>
+</li>
+</ul></div>
+
+<div class="tbl-wrap"><table>
+<tr><th>母関数</th><th>定義</th><th>得意技</th><th>存在</th></tr>
+<tr><td>確率母関数 PGF</td><td>G(s)=E[s^X](離散)</td><td>G'(1)=E[X]、和の分布(積になる)</td><td>|s|≤1で常に</td></tr>
+<tr><td>モーメント母関数 MGF</td><td>M(t)=E[e^tX]</td><td>M⁽ᵏ⁾(0)=E[Xᵏ]、分布の同定</td><td>存在しない分布もある</td></tr>
+<tr><td>特性関数</td><td>φ(t)=E[e^itX]</td><td>常に存在。CLTの証明の道具</td><td>常に</td></tr>
+</table></div>
+
+<h2>条件付き確率と独立 — 「情報が入ると確率が変わる」</h2>
+<div class="formula">P(A|B) = P(A∩B)/P(B),  独立 ⇔ P(A∩B)=P(A)P(B) ⇔ P(A|B)=P(A)</div>
+<p>全確率の公式 <span class="f">P(A)=ΣP(A|Bᵢ)P(Bᵢ)</span>(排反な原因Bᵢで場合分け)と、その逆向きの<a href="bayes.html">ベイズの定理</a>はセットで使う。「排反」(同時に起きない)と「独立」(情報にならない)の混同は定番の引っかけ — <b>排反な2事象は(確率が正なら)必ず従属</b>。</p>
+
+<h2>期待値・分散の演算規則 — 全分野で使う筋力</h2>
+<div class="formula">E[aX+bY]=aE[X]+bE[Y](常に成立) / V[aX+b]=a²V[X] / V[X±Y]=V[X]+V[Y]±2Cov(X,Y)</div>
+<p>期待値の線形性は<b>独立でなくても成立</b>する(これが強力)。分散は独立(無相関)のときだけ足し算になる。V[X]=E[X²]−(E[X])² は計算の主力。共分散は Cov(X,Y)=E[XY]−E[X]E[Y]。</p>
+<div class="warn-box">「独立 ⇒ 無相関」は成り立つが<b>逆は不成立</b>(例: X~N(0,1), Y=X² は無相関だが従属)。また V[X−Y] の符号ミス(−2Covを忘れて引き算)が最頻出の計算事故。</div>
+
+<h2>母関数 — 分布を関数1つに圧縮する</h2>
+<div class="formula">MGF: M(t)=E[e^{tX}],  E[Xᵏ]=M⁽ᵏ⁾(0)。独立和: M_{X+Y}(t)=M_X(t)M_Y(t)</div>
+<p>べき級数展開 e^{tX}=Σ(tX)ᵏ/k! の係数にモーメントが並ぶので、<b>微分して0を代入するとモーメントが取り出せる</b>。独立な和のMGFが積になる性質は、再生性(二項+二項、正規+正規、ポアソン+ポアソン)の統一的な証明手段。準1級では「MGFからE[X], V[X]を求めよ」「MGFの形から分布を同定せよ」が頻出。</p>
+<div class="note-box">代表的なMGF: 正規 N(μ,σ²) → exp(μt+σ²t²/2) / ポアソン Po(λ) → exp(λ(eᵗ−1)) / 二項 B(n,p) → (1−p+peᵗ)ⁿ / 指数 Exp(λ) → λ/(λ−t) (t&lt;λ)。この4つは形を見て即答できるように。</div>
+
+<h2>変数変換 — 分布の「座標変換」</h2>
+<div class="formula">Y=g(X)(単調)のとき f_Y(y) = f_X(g⁻¹(y)) · |d g⁻¹(y)/dy|</div>
+<p>「逆関数を代入して、伸び縮み率(微分の絶対値)を掛ける」。2変数では伸び縮み率がヤコビアン(偏微分の行列式)になる。単調でない変換(Y=X²など)は区間を分けて足す。累積分布関数を経由する方法(P(Y≤y)を直接計算して微分)はどんな場合でも使える万能ルート。</p>
+
+<h2>極限定理 — nが大きいときの普遍法則</h2>
+<div class="formula">大数の法則: X̄ₙ → μ  /  中心極限定理: √n(X̄ₙ−μ)/σ → N(0,1)</div>
+<p>大数の法則は「標本平均が真の値に<b>収束する</b>」(一致性の根拠)、中心極限定理は「その<b>ゆらぎ方が正規分布</b>になる」(検定・区間推定の根拠)。役割の違いを言い分けられることが大切。さらに準1級では、推定量の関数の漸近分布を出す<b>デルタ法</b>まで問われる:</p>
+<div class="formula">デルタ法: √n(g(X̄ₙ)−g(μ)) → N(0, [g′(μ)]²σ²)</div>
+<p>「g で変換すると、分散は微分係数の2乗倍になる」— テイラー展開の1次近似 g(X̄)≈g(μ)+g′(μ)(X̄−μ) がそのまま結論になっている。</p>
+
+<div class="ex-box">
+指数分布 Exp(λ) のMGFは M(t)=λ/(λ−t) (t&lt;λ)。これを使って E[X] と V[X] を求めよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>M′(t)=λ/(λ−t)² より E[X]=M′(0)=<b>1/λ</b>。<br>
+M″(t)=2λ/(λ−t)³ より E[X²]=M″(0)=2/λ²。<br>
+V[X]=2/λ²−(1/λ)²=<b>1/λ²</b>。</p>
+</details>
+</div>
+
+<div class="ex-box">
+X̄ₙ が平均 μ=2、分散 σ²=4 の分布からの標本平均のとき、g(x)=x² としたときの √n(X̄ₙ²−4) の漸近分布をデルタ法で求めよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>g′(x)=2x, g′(μ)=4。デルタ法より √n(X̄ₙ²−μ²) → N(0, g′(μ)²σ²) = <b>N(0, 16×4=64)</b>。</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="../index.html">← ホーム</a>
+  <a href="multidim-dist.html">多次元確率分布 →</a>
+</div>
+</main>
+</body>
+</html>

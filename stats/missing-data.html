@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>欠測値の統計処理 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 欠測値</span>
+  </div>
+</header>
+
+<main>
+<h1>欠測値の統計処理:メカニズムの分類と対処</h1>
+<p class="lead">タグ: 欠測 / MCAR / MAR / MNAR / リストワイズ削除 / 単一代入 / 多重代入 / EMアルゴリズム</p>
+<p class="lead">※導入版(フェーズ1): 全体像と主要概念・例題を押さえるページ。</p>
+
+<h2>全体マップ — この分野の体系</h2>
+<p>欠測処理の要点はただ1つ:「<b>なぜ欠けたのか(メカニズム)</b>で、許される対処が決まる」。手法の暗記より先に、MCAR/MAR/MNARの3分類を判定できるようになることがすべての出発点。</p>
+
+<div class="tree"><ul>
+<li class="t-root">欠測値の統計処理
+  <ul>
+  <li><span class="t-cat">欠測メカニズムの分類</span> — まずこれを判定する
+    <ul>
+    <li><span class="here">MCAR</span> — 完全にランダムな欠測</li>
+    <li><span class="here">MAR</span> — 観測データに依存する欠測</li>
+    <li><span class="here">MNAR</span> — 欠けた値そのものに依存する欠測(最難)</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">素朴な対処とその問題</span>
+    <ul>
+    <li><span class="here">リストワイズ削除・平均値代入の落とし穴</span></li>
+    </ul>
+  </li>
+  <li><span class="t-cat">適切な対処</span>
+    <ul>
+    <li><span class="here">多重代入(MI)の考え方</span></li>
+    <li><span class="here">EMアルゴリズム・最尤法ベースの触り</span></li>
+    <li class="soon">逆確率重み付け(IPW)— 未収載(<a href="causal-inference.html">因果推論</a>の傾向スコアと同系)</li>
+    </ul>
+  </li>
+  </ul>
+</li>
+</ul></div>
+
+<div class="tbl-wrap"><table>
+<tr><th>メカニズム</th><th>欠測確率が依存するもの</th><th>例(所得の欠測)</th><th>リストワイズ削除</th><th>MAR前提の手法(MI等)</th></tr>
+<tr><td>MCAR</td><td>何にも依存しない</td><td>回答用紙をランダムに紛失</td><td>不偏(nが減るだけ)</td><td>OK</td></tr>
+<tr><td>MAR</td><td><b>観測されている変数</b></td><td>高齢者ほど無回答(年齢は観測済み)</td><td><b>バイアス</b></td><td>OK(年齢で調整可能)</td></tr>
+<tr><td>MNAR</td><td><b>欠測した値そのもの</b></td><td>高所得者ほど所得を無回答</td><td>バイアス</td><td><b>不十分</b>(感度分析が必要)</td></tr>
+</table></div>
+
+<h2>素朴な対処がダメな理由</h2>
+<p><b>リストワイズ削除</b>(欠測のある行を捨てる)はMCARでない限り偏り、しかもnが減って検出力も落ちる。<b>平均値代入</b>はさらに悪質で、同じ値を埋めるため<b>分散が過小評価</b>され、相関も歪み、「自信過剰な(狭すぎる)信頼区間」を生む — 代入した値を実測値のように扱うことが不確実性の無視にあたる。</p>
+
+<h2>多重代入 — 「わからなさ」ごと持ち運ぶ</h2>
+<p>①観測データに基づく予測分布から欠測値を<b>乱数でm回</b>(例: m=20)代入し、m個の完成データを作る → ②それぞれ普通に解析 → ③結果を統合(ルービンの規則: 推定値は平均、分散は「代入内分散+代入間分散」)。<b>代入間のばらつきが「欠測による不確実性」を表現する</b>のが単一代入との決定的な違い。MARの下で妥当。</p>
+<div class="note-box">EMアルゴリズムは代入とは別ルートで、「欠測値の条件付き期待値で埋める(Eステップ)→母数を最尤推定(Mステップ)」を収束まで交互に繰り返し、<b>観測データの尤度を直接最大化</b>する。MARの下で一致推定量を与える。<a href="multivariate.html">k-means</a>の割当↔重心更新と同じ「交互最適化」の構造。</div>
+<div class="warn-box">MNARは観測データだけからはMARと<b>区別できない</b>(欠けた値は見えないから)。だから実務では「MARを仮定して解析+仮定が崩れた場合の感度分析」が標準作法。この限界の認識自体が出題される。</div>
+
+<div class="ex-box">
+次の欠測はMCAR/MAR/MNARのどれか:(a)健康調査で、体重が重い人ほど体重の回答を拒否 (b)若い回答者ほど収入項目が無回答(年齢は全員回答済み) (c)機器の故障でランダムな日の測定値が消失
+<details class="ans"><summary>解答を見る</summary>
+<p>(a) <b>MNAR</b>(欠けた値=体重そのものに依存) (b) <b>MAR</b>(観測済みの年齢に依存) (c) <b>MCAR</b>(データと無関係)。<br>
+(b)は年齢を使った多重代入等で対処可能、(a)は感度分析が必要。</p>
+</details>
+</div>
+
+<div class="ex-box">
+平均値代入(欠測をすべて標本平均で埋める)を行うと、分散と相関係数はどう歪むか。
+<details class="ans"><summary>解答を見る</summary>
+<p>分散: 平均ちょうどの値が増えるので<b>過小評価</b>。相関: 代入された点は回帰的な関係に寄与しない水平な点列になるため<b>0に向かって弱まる(希薄化)</b>。結果として標準誤差も過小 → 有意になりやすい危険な方向に歪む。</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="sampling.html">← 標本調査法</a>
+  <a href="causal-inference.html">統計的因果推論 →</a>
+</div>
+</main>
+</body>
+</html>

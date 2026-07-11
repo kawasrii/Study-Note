@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ノンパラメトリック検定 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › ノンパラメトリック法</span>
+  </div>
+</header>
+
+<main>
+<h1>ノンパラメトリック検定:順位で戦う</h1>
+<p class="lead">タグ: 符号検定 / ウィルコクソン符号付順位検定 / ウィルコクソン順位和検定 / マン・ホイットニーU / クラスカル・ウォリス / スピアマン順位相関 / 並べ替え検定</p>
+<p class="lead">※導入版(フェーズ1): 全体像と主要概念・例題を押さえるページ。順位統計量のラボはフェーズ2で追加予定。</p>
+
+<h2>全体マップ — この分野の体系</h2>
+<p>正規性が疑わしい・外れ値がある・順序しか意味がないデータで使う検定群。<b>元の値を順位(または符号)に置き換える</b>ことで分布の仮定から自由になる、という一貫した発想。「どのパラメトリック検定の代替か」で覚えると体系が一気に整う。</p>
+
+<div class="tree"><ul>
+<li class="t-root">ノンパラメトリック法(分布の形を仮定しない)
+  <ul>
+  <li><span class="t-cat">1標本・対応あり</span>
+    <ul>
+    <li><span class="here">符号検定</span> — 差の符号だけ使う(最も仮定が弱い)</li>
+    <li><span class="here">ウィルコクソン符号付順位検定</span> — 符号+大きさの順位</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">2標本(対応なし)</span>
+    <ul>
+    <li><span class="here">ウィルコクソン順位和検定(≡マン・ホイットニーU)</span></li>
+    </ul>
+  </li>
+  <li><span class="t-cat">3群以上</span>
+    <ul>
+    <li><span class="here">クラスカル・ウォリス検定</span></li>
+    <li class="soon">フリードマン検定(対応あり多群)— 未収載</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">相関・その他</span>
+    <ul>
+    <li><span class="here">スピアマン順位相関係数</span></li>
+    <li><span class="here">並べ替え(permutation)検定</span> — 帰無分布を並べ替えで作る</li>
+    <li>適合度・独立性のχ²検定 — <a href="contingency.html">分割表ページ</a></li>
+    </ul>
+  </li>
+  </ul>
+</li>
+</ul></div>
+
+<div class="tbl-wrap"><table>
+<tr><th>目的</th><th>パラメトリック</th><th>ノンパラ代替</th><th>使う情報</th></tr>
+<tr><td>対応のある差の位置</td><td>対応のあるt検定</td><td>符号検定 / 符号付順位検定</td><td>符号のみ / 符号+順位</td></tr>
+<tr><td>2群の位置の差</td><td>2標本t検定</td><td>順位和検定(U検定)</td><td>合併順位</td></tr>
+<tr><td>3群以上の位置</td><td>一元配置ANOVA</td><td>クラスカル・ウォリス</td><td>合併順位</td></tr>
+<tr><td>相関</td><td>ピアソン相関</td><td>スピアマン順位相関</td><td>順位の相関</td></tr>
+</table></div>
+
+<h2>符号検定 — 二項分布に帰着する最小の検定</h2>
+<p>対応のある差 dᵢ の<b>正の個数</b>を数えるだけ。H₀(中央値の差=0)の下で正の個数 ~ <b>B(n, 1/2)</b>(差が0のデータは除く)。仮定が最も弱い分、情報を捨てているので検出力は低い — 「頑健さと検出力のトレードオフ」の端点。</p>
+
+<h2>ウィルコクソン順位和検定 — 2群ノンパラの主役</h2>
+<p>両群を合併して順位を付け、一方の群の<b>順位の合計 W</b> を統計量にする。もし2群が同じ分布なら、順位はランダムに混ざるはずで、Wの帰無分布は組合せ論だけから決まる(分布の形の仮定が不要な理由)。</p>
+<div class="formula">H₀の下で E[W] = n₁(n₁+n₂+1)/2,  V[W] = n₁n₂(n₁+n₂+1)/12(n大で正規近似)</div>
+<div class="note-box">マン・ホイットニーのU統計量(相手群より小さいペアの数)とは U = W − n₁(n₁+1)/2 の関係で<b>実質同じ検定</b>。同順位(タイ)があるときは平均順位を与え、分散を補正する。</div>
+
+<h2>スピアマン順位相関 — 単調関係を測る</h2>
+<div class="formula">r_s = 1 − 6Σdᵢ² / (n(n²−1))  (dᵢ: 順位の差)</div>
+<p>両変数を順位に変えてからピアソン相関を取ったもの。直線でなくても<b>単調</b>な関係なら±1に近づく(例: y=x³ で r_s=1)。外れ値にも頑健。</p>
+
+<h2>並べ替え検定 — 帰無分布を自前で作る</h2>
+<p>「H₀の下ではラベルの割り当ては交換可能」という事実を使い、<b>ラベルを全通り(または多数回ランダムに)並べ替えて統計量を再計算し、帰無分布そのものを構成する</b>。分布の仮定ゼロ・原理的に正確で、計算機時代の標準装備。<a href="simulation.html">シミュレーションページ</a>のブートストラップと発想が対をなす(並べ替え=H₀を課して混ぜる、ブートストラップ=分布ごと再標本化)。</p>
+
+<div class="ex-box">
+処理前後の差が +3, +1, −2, +5, +4, −1, +2 の7人。符号検定でH₀「中央値の差=0」を両側5%で検定せよ(参考: B(7,1/2)で P(X≧6)=8/128)。
+<details class="ans"><summary>解答を見る</summary>
+<p>正の個数は5。p値 = 2×P(X≧5) = 2×(21+7+1)/128 = 58/128 ≈ 0.453 &gt; 0.05 → <b>棄却できない</b>。<br>
+(符号だけだと n=7 では大きな差でも有意になりにくい — 検出力の低さを体感する例)</p>
+</details>
+</div>
+
+<div class="ex-box">
+群A(n₁=3)の値が {12, 15, 20}、群B(n₂=4)が {8, 9, 11, 14} のとき、群Aの順位和 W を求め、期待値 E[W] と比較せよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>合併して順位: 8(1), 9(2), 11(3), 12(4), 14(5), 15(6), 20(7)。<br>
+W = 4+6+7 = <b>17</b>。E[W] = 3×8/2 = <b>12</b>。V[W]=3×4×8/12=8, SD≈2.83。<br>
+z=(17−12)/2.83≈1.77(小標本なので本来は正確分布表を使うが、Aが高めに位置する傾向が見える)。</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="hypothesis-testing.html">← 仮説検定と検出力</a>
+  <a href="contingency.html">分割表の解析 →</a>
+</div>
+</main>
+</body>
+</html>

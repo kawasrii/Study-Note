@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>推定:最尤法・推定量の性質・区間推定 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 推定</span>
+  </div>
+</header>
+
+<main>
+<h1>推定:最尤法・推定量の性質・区間推定</h1>
+<p class="lead">タグ: 最尤法 / モーメント法 / 不偏性 / 一致性 / 有効性 / フィッシャー情報量 / クラメール・ラオの不等式 / 十分統計量 / 漸近正規性 / 区間推定</p>
+<p class="lead">※導入版(フェーズ1): 全体像と主要概念・例題を押さえるページ。尤度関数の可視化ラボはフェーズ2で追加予定。</p>
+
+<h2>全体マップ — この分野の体系</h2>
+<p>推定の問いは2つ:「<b>どう作るか</b>(推定量の構成法)」と「<b>どれが良いか</b>(推定量の評価基準)」。準1級最頻出の最尤法は構成法の王様で、その良さ(漸近有効性)は評価理論(クラメール・ラオ)で保証される — 両者が噛み合う構造を掴むこと。</p>
+
+<div class="tree"><ul>
+<li class="t-root">推定(データから母数を当てる)
+  <ul>
+  <li><span class="t-cat">点推定の構成法</span>
+    <ul>
+    <li><span class="here">最尤法</span> — 尤度(データの出やすさ)を最大化。準1級最頻出</li>
+    <li><span class="here">モーメント法</span> — 標本モーメント=理論モーメントを解く</li>
+    <li>ベイズ推定(事後平均・MAP)— <a href="bayes.html">ベイズ法ページ</a></li>
+    <li class="soon">最小二乗法 — <a href="regression.html">回帰分析ページ</a>に収載</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">推定量の評価基準</span>
+    <ul>
+    <li><span class="here">不偏性・一致性・有効性(クラメール・ラオの下限)</span></li>
+    <li><span class="here">十分統計量</span> — 情報を失わない要約</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">漸近理論</span>
+    <ul>
+    <li><span class="here">最尤推定量の漸近正規性・漸近有効性</span></li>
+    </ul>
+  </li>
+  <li><span class="t-cat">区間推定</span>
+    <ul>
+    <li><span class="here">枢軸量の方法、母平均・母分散・母比率の信頼区間</span></li>
+    </ul>
+  </li>
+  </ul>
+</li>
+</ul></div>
+
+<div class="tbl-wrap"><table>
+<tr><th>評価基準</th><th>定義</th><th>直感</th></tr>
+<tr><td>不偏性</td><td>E[θ̂]=θ</td><td>狙いの中心がずれていない</td></tr>
+<tr><td>一致性</td><td>n→∞ で θ̂→θ</td><td>データを増やせば当たる(大数の法則が根拠)</td></tr>
+<tr><td>有効性</td><td>不偏の中で分散最小(CR下限達成)</td><td>同じ狙いなら散らばりが小さい方が良い</td></tr>
+<tr><td>十分性</td><td>θ̂ を知れば元データに θ の追加情報なし</td><td>圧縮しても情報を失わない要約</td></tr>
+</table></div>
+
+<h2>最尤法 — 「このデータが最も出やすい母数」を選ぶ</h2>
+<div class="formula">L(θ)=∏f(xᵢ;θ) を最大化。実際は対数尤度 ℓ(θ)=Σln f(xᵢ;θ) を微分して0(尤度方程式)</div>
+<p>手順は機械的:①尤度を書く → ②対数を取る(積が和になり微分が楽) → ③θで微分して0 → ④解く。代表例は暗記推奨:<b>正規の μ̂=x̄・σ̂²=(1/n)Σ(xᵢ−x̄)²、ポアソンの λ̂=x̄、二項の p̂=x/n、指数の λ̂=1/x̄</b>。</p>
+<div class="note-box">最尤推定量の便利な性質:<b>不変性</b> — θ̂ がMLEなら g(θ̂) も g(θ) のMLE(例: σ̂²のMLEから σ̂=√σ̂² が即座に出る)。</div>
+
+<h2>フィッシャー情報量とクラメール・ラオの不等式 — 精度の理論限界</h2>
+<div class="formula">I(θ)=E[(∂ℓ/∂θ)²]=−E[∂²ℓ/∂θ²],  不偏推定量の分散 ≥ 1/(nI(θ))(CR下限)</div>
+<p>フィッシャー情報量は「データ1個が母数について持つ情報の量」。CR不等式は<b>どんな不偏推定量もこれ以上は精度を上げられない</b>という理論限界で、下限を達成する推定量が「有効推定量」。例: ポアソンの I(λ)=1/λ、CR下限=λ/n — x̄ の分散はちょうど λ/n なので x̄ は有効。</p>
+
+<h2>最尤推定量の漸近正規性 — 大標本での万能保証</h2>
+<div class="formula">√n(θ̂_MLE − θ) → N(0, 1/I(θ))  (n→∞)</div>
+<p>正則条件の下で、MLEは<b>一致性をもち、漸近的に正規分布し、しかも漸近分散がCR下限に一致する(漸近有効)</b>。「MLEを使っておけば大標本では最良」の理論的根拠であり、この漸近分散から近似信頼区間 θ̂ ± z·1/√(nI(θ̂)) が作れる。<a href="probability-foundations.html">デルタ法</a>と組み合わせれば g(θ̂) の区間も出る。</p>
+<div class="warn-box">頻出の引っかけ:①正規分布の分散のMLE (1/n)Σ(xᵢ−x̄)² は<b>不偏でない</b>(不偏分散は n−1 で割る。MLE≠不偏の代表例)。ただし一致性はある。②「不偏で一致」「不偏でないが一致」「不偏だが一致でない」の組み合わせを判定させる問題。③CR下限は「不偏」推定量への限界 — バイアスを許せば下回れる(リッジ回帰などの発想)。</div>
+
+<h2>区間推定 — 枢軸量で「幅」を付ける</h2>
+<div class="formula">枢軸量: 分布が母数によらない量。例: (x̄−μ)/(s/√n) ~ t(n−1)</div>
+<p>枢軸量の分布の95%範囲を母数について解き直すと信頼区間になる。基本形は<b>推定値 ± 分位点 × 標準誤差</b>。母平均(σ未知)は t 分布、母分散は (n−1)s²/σ² ~ χ²(n−1)、母比率は正規近似 p̂±z√(p̂(1−p̂)/n)。「95%」は<b>手順の当たり率</b>(θは定数)であり、<a href="bayes.html">ベイズの信用区間</a>との解釈の違いが問われる。</p>
+
+<div class="ex-box">
+ポアソン分布 Po(λ) からの標本 x₁,…,xₙ について、λ の最尤推定量を導出せよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>ℓ(λ) = Σ(−λ + xᵢ ln λ − ln xᵢ!) = −nλ + (Σxᵢ)ln λ + C<br>
+dℓ/dλ = −n + Σxᵢ/λ = 0 → <b>λ̂ = x̄</b><br>
+(二階微分 −Σxᵢ/λ² &lt; 0 で最大値であることも確認)</p>
+</details>
+</div>
+
+<div class="ex-box">
+正規母集団からの n=16 の標本で x̄=25.0, 不偏分散 s²=16 のとき、母平均 μ の95%信頼区間を求めよ(t₀.₀₂₅(15)=2.131)。
+<details class="ans"><summary>解答を見る</summary>
+<p>x̄ ± t·s/√n = 25.0 ± 2.131×4/4 = 25.0 ± 2.131 → <b>[22.87, 27.13]</b></p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="distributions.html">← 確率分布ラボ</a>
+  <a href="hypothesis-testing.html">仮説検定と検出力 →</a>
+</div>
+</main>
+</body>
+</html>
