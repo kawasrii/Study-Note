@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>記述統計の基礎:平均・中央値・分散・箱ひげ図 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 基礎 › 記述統計</span>
+  </div>
+</header>
+
+<main>
+<h1>記述統計の基礎:平均・中央値・分散・箱ひげ図</h1>
+<p class="lead">タグ: 平均 / 中央値 / 最頻値 / 分散 / 標準偏差 / 四分位数 / 箱ひげ図 / 不偏分散 / 基礎</p>
+<p class="lead">このサイトの最初の一歩。<b>手元のデータを数個の数字に要約する</b>技術(記述統計)を定義から積み上げます。ここが全ページの前提知識です。</p>
+
+<h2>全体マップ — データ要約の体系</h2>
+<p>要約の観点は2つだけ:「<b>どのあたりにあるか(代表値)</b>」と「<b>どれくらい散らばっているか(散布度)</b>」。それぞれに複数の指標があり、<b>外れ値への強さ</b>で使い分ける。</p>
+
+<div class="tree"><ul>
+<li class="t-root">記述統計(データの要約)
+  <ul>
+  <li><span class="t-cat">代表値 — 位置の要約</span>
+    <ul>
+    <li><span class="here">平均(算術平均)</span> — 合計÷個数。データの「重心」</li>
+    <li><span class="here">中央値</span> — 並べて真ん中。外れ値に頑健</li>
+    <li><span class="here">最頻値</span> — 最も多い値。カテゴリデータでも使える</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">散布度 — ばらつきの要約</span>
+    <ul>
+    <li><span class="here">分散・標準偏差</span> — 平均からの離れ具合の2乗平均(とその平方根)</li>
+    <li><span class="here">四分位数・四分位範囲(IQR)・箱ひげ図</span> — 頑健な散布度と可視化</li>
+    <li class="soon">範囲・変動係数 — 触りのみ</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">標本と母集団の区別</span>
+    <ul>
+    <li><span class="here">標本平均 x̄ と母平均 μ / 標本分散と不偏分散(n−1で割る理由)</span></li>
+    </ul>
+  </li>
+  </ul>
+</li>
+</ul></div>
+
+<div class="tbl-wrap"><table>
+<tr><th>指標</th><th>定義</th><th>外れ値への頑健性</th><th>向いている場面</th></tr>
+<tr><td>平均 x̄</td><td>(1/n)Σxᵢ</td><td><b>弱い</b>(1点で大きく動く)</td><td>対称な分布。計算・理論と相性◎</td></tr>
+<tr><td>中央値</td><td>大きさ順で中央の値</td><td><b>強い</b></td><td>歪んだ分布(所得など)・外れ値あり</td></tr>
+<tr><td>最頻値</td><td>最も頻度の高い値</td><td>強い</td><td>カテゴリデータ</td></tr>
+<tr><td>標準偏差 s</td><td>√分散</td><td>弱い</td><td>平均とセットで。単位が元データと同じ</td></tr>
+<tr><td>IQR</td><td>Q3−Q1(中央50%の幅)</td><td>強い</td><td>中央値とセットで。箱ひげ図の箱</td></tr>
+</table></div>
+
+<h2>平均・中央値・最頻値 — 「真ん中」は1つではない</h2>
+<div class="formula">平均 x̄ = (x₁+x₂+…+xₙ)/n = (1/n)Σxᵢ</div>
+<p>平均は<b>データの重心</b> — 数直線上に同じ重さのおもりを置いたときの釣り合い点で、Σ(xᵢ−x̄)=0(偏差の合計は必ず0)が成り立つ。中央値はデータを並べたときの真ん中(nが偶数なら中央2つの平均)。<b>右に歪んだ分布(所得・住宅価格)では 平均 &gt; 中央値</b> になる — 少数の大きな値が重心を引っ張るから。この3つの位置関係から分布の形を読むのが定番問題。</p>
+
+<div class="widget">
+  <div class="w-title">平均・中央値・標準偏差ラボ — 数直線をクリック/タップして点を置く(もう一度で削除)</div>
+  <div class="controls">
+    <button id="clearD">全消去</button>
+    <button id="sampleD">サンプル(対称)</button>
+    <button id="sampleSkew">サンプル(右に歪み)</button>
+    <button id="outlierD">外れ値(9.5)を追加</button>
+  </div>
+  <canvas class="plot" id="plotDesc" style="touch-action: manipulation;"></canvas>
+  <div class="readout" id="readoutDesc">点を置くと 平均▲・中央値▼・±1標準偏差の帯 が表示されます。</div>
+</div>
+<p class="lead">試してほしい操作:点を左右対称に置く → <b>平均▲と中央値▼が重なる</b>。「外れ値(9.5)を追加」→ <b>平均は右へ引きずられるが中央値はほぼ動かない</b> — 頑健性の違いが一目でわかる。同じ平均でも点を広げて置くと±1σの帯が広がる — 「位置」と「ばらつき」が独立な情報であることを体感。「右に歪み」サンプルで 平均&gt;中央値 を確認。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このラボが実際に計算していること)</summary>
+<ul>
+<li><b>平均</b> = Σxᵢ/n。<b>中央値</b>はソート後、nが奇数なら中央値、偶数なら中央2値の平均</li>
+<li><b>標準偏差の帯</b>は<b>標本標準偏差(nで割る√分散)</b>で描画。readoutには標本分散(n割り)と不偏分散(n−1割り)を併記して違いを見せる</li>
+<li>点は1次元データ(x座標のみ意味を持つ)。同じ位置付近の点は縦に積んで表示(ドットプロット)。x軸は0–10固定</li>
+<li>最頻値は連続データでは定義が曖昧なため表示していない(0.5刻みのビンで数えた粗い最頻ビンのみ参考表示)</li>
+</ul>
+</details>
+
+<h2>分散と標準偏差 — ばらつきの標準単位</h2>
+<div class="formula">標本分散 s² = (1/n)Σ(xᵢ−x̄)²,  標準偏差 s = √s²</div>
+<p>各点の「平均からのずれ(偏差)」を2乗して平均したもの。2乗するのは、偏差をそのまま足すと必ず0になるから(そして2乗は理論計算と相性が良いから)。<b>分散の単位は元データの2乗(cm²など)なので、元の単位に戻した標準偏差で解釈する</b>。多くのデータは「平均±2σにおよそ95%」(正規分布に近い場合)という物差しに使える。</p>
+
+<h2>n−1 で割る不偏分散 — なぜ1つ減らすのか</h2>
+<div class="formula">不偏分散 s² = 1/(n−1) · Σ(xᵢ−x̄)²</div>
+<p>母集団のばらつき(母分散 σ²)を標本から推定したいとき、n で割ると<b>系統的に小さめ</b>に出る。理由の直感: 偏差は本来「母平均 μ からのずれ」で測るべきだが、μ は未知なので<b>データ自身に一番フィットする x̄</b> から測っている。x̄ は必ず「そのデータの真ん中」に来るため、ずれの2乗和は μ から測るより小さくなる(x̄ はΣ(xᵢ−c)²を最小にするcである)。その縮み分をちょうど補正するのが n−1(自由度: 偏差の合計=0 という制約1本分、自由な情報が1つ減っている)。<b>データの記述なら n 割り、母集団の推定なら n−1 割り</b>と使い分ける。</p>
+<div class="warn-box">記号の約束(このサイト共通): 母集団の値はギリシャ文字(母平均 μ、母分散 σ²)、標本からの値はローマ字(標本平均 x̄、不偏分散 s²)。「x̄ は μ の推定量」「s² は σ² の推定量」という<b>役割の対応</b>を常に意識する — <a href="estimation.html">推定</a>で主役になる区別。</div>
+
+<h2>四分位数と箱ひげ図 — 頑健な5数要約</h2>
+<p>データを4等分する点が四分位数(Q1: 下から25%、Q2=中央値、Q3: 75%)。<b>IQR=Q3−Q1</b> は中央50%の幅で、外れ値に強い散布度。箱ひげ図は「最小値・Q1・中央値・Q3・最大値」の5数要約の可視化で、複数グループの分布を並べて比べるのに強い。慣例として Q1−1.5×IQR / Q3+1.5×IQR を超える点を外れ値の目安として個別に打つ。</p>
+
+<div class="ex-box">
+データ 2, 4, 4, 6, 9 について、平均・中央値・標本分散(n割り)・不偏分散(n−1割り)を求めよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>平均 = 25/5 = <b>5</b>。中央値 = 並べて3番目 = <b>4</b>。<br>
+偏差2乗和 = (−3)²+(−1)²+(−1)²+1²+4² = 9+1+1+1+16 = 28<br>
+標本分散 = 28/5 = <b>5.6</b> / 不偏分散 = 28/4 = <b>7</b>(推定用は少し大きくなる)</p>
+</details>
+</div>
+
+<div class="ex-box">
+ある会社の年収データでは平均600万円、中央値450万円だった。分布の形について何が言えるか。代表値としてどちらを報告すべきか。
+<details class="ans"><summary>解答を見る</summary>
+<p>平均 ≫ 中央値 なので<b>右に歪んだ分布</b>(少数の高年収者が平均を引き上げている)。「典型的な社員の年収」を伝えるなら外れ値に頑健な<b>中央値</b>が適切。上のラボで「右に歪み」サンプル+外れ値追加を試すと再現できる。</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="../index.html">← ホーム</a>
+  <a href="random-variables.html">確率変数と期待値・分散の定義 →</a>
+</div>
+</main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+const XMIN = 0, XMAX = 10;
+let pts = []; // 1次元データ(x座標の配列)
+let geom = null;
+const canvas = $("#plotDesc");
+
+function stats1d(a) {
+  const n = a.length;
+  const mean = a.reduce((s, v) => s + v, 0) / n;
+  const sorted = a.slice().sort((x, y) => x - y);
+  const median = n % 2 ? sorted[(n - 1) / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
+  const ss = a.reduce((s, v) => s + (v - mean) ** 2, 0);
+  return { n, mean, median, varN: ss / n, varN1: n > 1 ? ss / (n - 1) : NaN, sd: Math.sqrt(ss / n) };
+}
+
+function draw() {
+  const { ctx, W, H } = setupCanvas(canvas, 220);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 20, padR = 14, base = H - 40;
+  const pw = W - padL - padR;
+  const X = x => padL + (x - XMIN) / (XMAX - XMIN) * pw;
+  geom = { X, base, invX: px => XMIN + (px - padL) / pw * (XMAX - XMIN) };
+
+  // 数直線
+  ctx.strokeStyle = col.line; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(padL, base); ctx.lineTo(padL + pw, base); ctx.stroke();
+  ctx.fillStyle = col.soft; ctx.font = "11px sans-serif"; ctx.textAlign = "center";
+  for (let g = 0; g <= 10; g++) {
+    ctx.beginPath(); ctx.moveTo(X(g), base - 4); ctx.lineTo(X(g), base + 4); ctx.stroke();
+    ctx.fillText(g, X(g), base + 18);
+  }
+  if (pts.length === 0) return;
+
+  const st = stats1d(pts);
+
+  // ±1σ帯
+  if (pts.length >= 2) {
+    ctx.fillStyle = "rgba(43,108,176,.14)";
+    const x1 = X(Math.max(XMIN, st.mean - st.sd)), x2 = X(Math.min(XMAX, st.mean + st.sd));
+    ctx.fillRect(x1, base - 130, x2 - x1, 130);
+  }
+
+  // ドットプロット(0.25刻みのビンで縦積み)
+  const stackCount = {};
+  ctx.fillStyle = col.ink;
+  pts.forEach(x => {
+    const bin = Math.round(x * 4) / 4;
+    const level = stackCount[bin] || 0;
+    stackCount[bin] = level + 1;
+    ctx.beginPath();
+    ctx.arc(X(x), base - 12 - level * 13, 5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // 平均▲(重心)と中央値▼
+  ctx.fillStyle = col.ng;
+  ctx.beginPath();
+  ctx.moveTo(X(st.mean), base + 2);
+  ctx.lineTo(X(st.mean) - 7, base + 14);
+  ctx.lineTo(X(st.mean) + 7, base + 14);
+  ctx.closePath(); ctx.fill();
+  ctx.textAlign = "center"; ctx.font = "11px sans-serif";
+  ctx.fillText("平均", X(st.mean), base + 28);
+
+  ctx.fillStyle = col.ok;
+  ctx.beginPath();
+  ctx.moveTo(X(st.median), base - 140);
+  ctx.lineTo(X(st.median) - 7, base - 152);
+  ctx.lineTo(X(st.median) + 7, base - 152);
+  ctx.closePath(); ctx.fill();
+  ctx.fillText("中央値", X(st.median), base - 158);
+}
+
+function report() {
+  const r = $("#readoutDesc");
+  if (pts.length === 0) { r.textContent = "点を置くと 平均▲・中央値▼・±1標準偏差の帯 が表示されます。"; return; }
+  const st = stats1d(pts);
+  r.replaceChildren();
+  const b1 = document.createElement("b");
+  b1.textContent = "平均 " + st.mean.toFixed(2);
+  const b2 = document.createElement("b");
+  b2.textContent = "中央値 " + st.median.toFixed(2);
+  r.append("n=" + st.n + " ・ ", b1, " ・ ", b2,
+    " ・ 標本分散(n割り) " + st.varN.toFixed(2) +
+    " ・ 不偏分散(n−1割り) " + (isFinite(st.varN1) ? st.varN1.toFixed(2) : "—") +
+    " ・ 標準偏差 " + st.sd.toFixed(2));
+}
+function redraw() { draw(); report(); }
+
+canvas.addEventListener("click", e => {
+  const rect = canvas.getBoundingClientRect();
+  const px = e.clientX - rect.left, py = e.clientY - rect.top;
+  const x = geom.invX(px);
+  if (x < XMIN || x > XMAX) return;
+  // 近い既存点があれば削除(x距離0.25以内)
+  const hit = pts.findIndex(v => Math.abs(v - x) < 0.25);
+  if (hit >= 0) pts.splice(hit, 1); else pts.push(Math.round(x * 4) / 4);
+  redraw();
+});
+$("#clearD").addEventListener("click", () => { pts = []; redraw(); });
+$("#sampleD").addEventListener("click", () => {
+  pts = [3, 3.75, 4.25, 4.5, 5, 5, 5.5, 5.75, 6.25, 7];
+  redraw();
+});
+$("#sampleSkew").addEventListener("click", () => {
+  pts = [1.5, 2, 2.25, 2.5, 2.75, 3, 3.5, 4.5, 6.5, 9];
+  redraw();
+});
+$("#outlierD").addEventListener("click", () => { pts.push(9.5); redraw(); });
+window.addEventListener("resize", redraw);
+redraw();
+</script>
+</body>
+</html>

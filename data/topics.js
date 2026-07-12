@@ -3,6 +3,22 @@
 const TOPICS = [
   // ===== 統計検定 準1級(学習順) =====
   {
+    title: "記述統計の基礎",
+    path: "stats/descriptive-stats.html",
+    cat: "stats",
+    desc: "平均・中央値・最頻値、分散・標準偏差の定義と計算、箱ひげ図、n−1で割る理由。全ページの前提となる入口。",
+    tags: ["基礎", "平均", "中央値", "最頻値", "分散", "標準偏差", "四分位数", "箱ひげ図", "不偏分散", "記述統計"],
+    ready: true,
+  },
+  {
+    title: "確率変数と期待値・分散の定義",
+    path: "stats/random-variables.html",
+    cat: "stats",
+    desc: "確率の公理から E[X]=Σxp(x)・V[X]=E[X²]−(E[X])² まで定義と導出。期待値=重心を体感するラボつき。",
+    tags: ["基礎", "確率の公理", "条件付き確率", "確率変数", "確率密度関数", "期待値", "期待値の線形性", "分散", "共分散", "相関係数"],
+    ready: true,
+  },
+  {
     title: "確率と確率変数",
     path: "stats/probability-foundations.html",
     cat: "stats",

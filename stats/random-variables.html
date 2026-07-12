@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>確率変数と期待値・分散の定義 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 基礎 › 確率変数と期待値</span>
+  </div>
+</header>
+
+<main>
+<h1>確率変数と期待値・分散の定義</h1>
+<p class="lead">タグ: 確率の公理 / 条件付き確率 / 独立 / 確率変数 / 確率質量関数 / 確率密度関数 / 期待値の定義 / 期待値の線形性 / 分散の定義 / 共分散 / 相関係数 / 基礎</p>
+<p class="lead">前提: <a href="descriptive-stats.html">記述統計の基礎</a>(平均・分散の「データ版」)。このページでは同じ概念を<b>確率分布の側で定義し直す</b> — サイト内の全ページで使う E[X], V[X] の正式な定義はここにあります。</p>
+
+<h2>全体マップ — この分野の体系</h2>
+<p>「データの平均」から「分布の期待値」への橋渡しがこのページの役割。<b>記述統計の各概念には、確率の世界の対応物がある</b> — この対応表を頭に入れると、以降の全分野が「データ側と分布側の往復」として読めるようになる。</p>
+
+<div class="tree"><ul>
+<li class="t-root">確率変数と期待値・分散
+  <ul>
+  <li><span class="t-cat">確率の規則</span>
+    <ul>
+    <li><span class="here">確率の公理・加法定理</span></li>
+    <li><span class="here">条件付き確率・独立(基礎)</span> — 発展は<a href="probability-foundations.html">確率と確率変数</a></li>
+    </ul>
+  </li>
+  <li><span class="t-cat">確率変数</span>
+    <ul>
+    <li><span class="here">離散型と確率質量関数 p(x) / 連続型と確率密度関数 f(x)</span></li>
+    <li><span class="here">累積分布関数 F(x)</span></li>
+    </ul>
+  </li>
+  <li><span class="t-cat">期待値と分散(このサイトの中核定義)</span>
+    <ul>
+    <li><span class="here">期待値の定義(離散: Σxp(x) / 連続: ∫xf(x)dx)</span></li>
+    <li><span class="here">期待値の線形性(証明スケッチつき)</span></li>
+    <li><span class="here">分散の定義と公式 V[X]=E[(X−μ)²]=E[X²]−(E[X])²(導出つき)</span></li>
+    <li><span class="here">共分散・相関係数の定義</span></li>
+    </ul>
+  </li>
+  </ul>
+</li>
+</ul></div>
+
+<div class="tbl-wrap"><table>
+<tr><th>データの世界(記述統計)</th><th>確率の世界(このページ)</th><th>つながり</th></tr>
+<tr><td>標本平均 x̄ = (1/n)Σxᵢ</td><td>期待値(母平均) μ = E[X]</td><td rowspan="3">標本の値は母集団の対応物の<b>推定量</b>。n→∞ で近づく(大数の法則)</td></tr>
+<tr><td>標本分散・不偏分散 s²</td><td>分散(母分散) σ² = V[X]</td></tr>
+<tr><td>度数分布・ヒストグラム</td><td>確率分布 p(x), f(x)</td></tr>
+</table></div>
+
+<h2>確率の公理 — すべてのルールの出発点</h2>
+<div class="formula">① P(A) ≥ 0  ② P(全体) = 1  ③ 互いに排反なら P(A∪B) = P(A)+P(B)</div>
+<p>この3つ(コルモゴロフの公理)から確率の性質はすべて導かれる。例: P(Aᶜ)=1−P(A)、一般の加法定理 P(A∪B)=P(A)+P(B)−P(A∩B)(重複の引き戻し)。<b>条件付き確率</b> P(A|B)=P(A∩B)/P(B) は「Bが起きた世界に縮めて測り直した確率」、<b>独立</b>はP(A∩B)=P(A)P(B)(Bを知ってもAの確率が変わらない)。</p>
+
+<h2>確率変数 — 結果に数を割り当てる</h2>
+<p>確率変数 X とは「偶然の結果を数値に対応させたもの」(サイコロの目、身長、来客数)。取りうる値が数えられる<b>離散型</b>は確率質量関数 p(x)=P(X=x) で、連続的な<b>連続型</b>は確率密度関数 f(x) で分布を表す。連続型では「1点の確率」は0で、<b>面積が確率</b>: P(a≤X≤b)=∫f(x)dx。どちらも全部足す(積分する)と1になる(公理②)。累積分布関数 F(x)=P(X≤x) は両型共通の表現。</p>
+
+<h2>期待値の定義 — 分布の重心</h2>
+<div class="formula">離散型: E[X] = Σ x·p(x)  /  連続型: E[X] = ∫ x·f(x) dx</div>
+<p>「値 × その値の出やすさ」の総和。<a href="descriptive-stats.html">記述統計の平均</a>が「データの重心」だったのと同様に、<b>期待値は確率分布の重心</b> — 確率を重さと見たときの釣り合い点。μ(ミュー)と書き、母平均とも呼ぶ。関数の期待値も同じ形: E[g(X)]=Σg(x)p(x)(値をg(x)に差し替えるだけ)。</p>
+<div class="note-box"><b>期待値の線形性</b> E[aX+bY]=aE[X]+bE[Y] は<b>XとYが独立でなくても常に成立</b>する。証明スケッチ(離散): E[aX+bY]=ΣΣ(ax+by)p(x,y)=aΣΣx·p(x,y)+bΣΣy·p(x,y)=aE[X]+bE[Y] — 和を分けて周辺化するだけで、独立性をどこにも使っていないことがポイント。</div>
+
+<h2>分散の定義 — 重心からの散らばり</h2>
+<div class="formula">V[X] = E[(X−μ)²]  (μ=E[X])</div>
+<p>「重心からのずれの2乗」の期待値。単位を戻した √V[X] が標準偏差 σ。定義から実用公式を導出する:</p>
+<div class="formula">V[X] = E[X²−2μX+μ²] = E[X²]−2μE[X]+μ² = <b>E[X²]−(E[X])²</b></div>
+<p>展開して線形性を使うだけの2行だが、この「<b>2乗の期待値 − 期待値の2乗</b>」が分散計算の主力。V[aX+b]=a²V[X](位置ずらしbはばらつきに無関係、スケールaは2乗で効く)も定義から同様に出る。</p>
+
+<h2>共分散と相関係数 — 2変数の連動</h2>
+<div class="formula">Cov(X,Y) = E[(X−μ_X)(Y−μ_Y)] = E[XY]−E[X]E[Y],  ρ = Cov(X,Y)/(σ_X σ_Y)</div>
+<p>「両方とも平均より上(下)に出やすい」なら正、「逆に動く」なら負。相関係数 ρ は単位の影響を消した規格化版で <b>−1 ≤ ρ ≤ 1</b>。ρ が測るのは<b>直線的な</b>連動だけ(U字関係は ρ≈0 になりうる)。V[X±Y]=V[X]+V[Y]±2Cov(X,Y) への登場が実用上の主戦場 — 発展は<a href="multidim-dist.html">多次元確率分布</a>へ。</p>
+
+<div class="widget">
+  <div class="w-title">期待値=重心ラボ — 3つの値の「重み」を変えて、重心と分散の動きを見る</div>
+  <div class="controls">
+    <label>x=2 の重み <input type="range" id="w1" min="0" max="10" step="1" value="4"> <span class="val" id="w1v">4</span></label>
+    <label>x=5 の重み <input type="range" id="w2" min="0" max="10" step="1" value="4"> <span class="val" id="w2v">4</span></label>
+    <label>x=8 の重み <input type="range" id="w3" min="0" max="10" step="1" value="4"> <span class="val" id="w3v">4</span></label>
+  </div>
+  <canvas class="plot" id="plotEV"></canvas>
+  <div class="readout" id="readoutEV"></div>
+</div>
+<p class="lead">試してほしい操作:x=2の重みだけ大きく → <b>▲(期待値)が左へ滑る</b> — 確率の重い方へ重心が寄る。真ん中(x=5)に全部寄せる → 分散がほぼ0。<b>両端(x=2とx=8)に半々</b>にする → 期待値は5のままなのに<b>分散が最大</b> — 「同じ期待値でもばらつきは全く別の情報」を体感。E[X²]−(E[X])² の各項がどう動くかも readout で追える。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このラボが実際に計算していること)</summary>
+<ul>
+<li>3点分布 x∈{2,5,8}。スライダーの重み wᵢ を正規化して確率 pᵢ = wᵢ/Σw とする(重み全0のときは計算しない)</li>
+<li><b>期待値</b> E[X]=Σxᵢpᵢ、<b>E[X²]</b>=Σxᵢ²pᵢ、<b>分散</b> V=E[X²]−(E[X])² — このページの定義式をそのまま実装(数値誤差対策で max(0,·))</li>
+<li>棒の高さ=確率 pᵢ(y軸は0–1固定)。▲が期待値の位置、横棒が ±1σ の範囲</li>
+<li>連続型の重心(密度の釣り合い)の可視化は未実装 — <a href="distributions.html">確率分布ラボ</a>のE[X]緑点線で代用可</li>
+</ul>
+</details>
+
+<div class="ex-box">
+公正なサイコロの出目 X について、定義から E[X] と V[X] を求めよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>E[X] = (1+2+3+4+5+6)/6 = 21/6 = <b>3.5</b><br>
+E[X²] = (1+4+9+16+25+36)/6 = 91/6<br>
+V[X] = 91/6 − 3.5² = 91/6 − 49/4 = (182−147)/12 = <b>35/12 ≈ 2.92</b></p>
+</details>
+</div>
+
+<div class="ex-box">
+区間 [0,1] の連続一様分布(f(x)=1)について、定義から E[X] と V[X] を求めよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>E[X] = ∫₀¹ x dx = <b>1/2</b><br>
+E[X²] = ∫₀¹ x² dx = 1/3<br>
+V[X] = 1/3 − (1/2)² = <b>1/12</b>(一様分布の1/12は暗記級の頻出値)</p>
+</details>
+</div>
+
+<div class="page-nav">
+  <a href="descriptive-stats.html">← 記述統計の基礎</a>
+  <a href="probability-foundations.html">確率と確率変数(発展) →</a>
+</div>
+</main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+const XS = [2, 5, 8];
+
+function drawEV() {
+  const w = [+$("#w1").value, +$("#w2").value, +$("#w3").value];
+  $("#w1v").textContent = w[0]; $("#w2v").textContent = w[1]; $("#w3v").textContent = w[2];
+  const total = w[0] + w[1] + w[2];
+
+  const canvas = $("#plotEV");
+  const { ctx, W, H } = setupCanvas(canvas, 240);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 36, padR = 14, padT = 12, padB = 40;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const X = x => padL + x / 10 * pw;
+  const Y = p => padT + ph - p * ph; // y: 0..1 固定
+
+  // 軸
+  ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ph); ctx.lineTo(padL + pw, padT + ph); ctx.stroke();
+  ctx.fillStyle = col.soft; ctx.font = "11px sans-serif"; ctx.textAlign = "right";
+  [0, 0.5, 1].forEach(v => ctx.fillText(v, padL - 5, Y(v) + 4));
+  ctx.textAlign = "center";
+  for (let g = 0; g <= 10; g += 2) ctx.fillText(g, X(g), padT + ph + 16);
+
+  const r = $("#readoutEV");
+  if (total === 0) { r.textContent = "重みを1つ以上正にしてください。"; return; }
+  const p = w.map(v => v / total);
+  const ex = XS.reduce((s, x, i) => s + x * p[i], 0);
+  const ex2 = XS.reduce((s, x, i) => s + x * x * p[i], 0);
+  const v = Math.max(0, ex2 - ex * ex);
+  const sd = Math.sqrt(v);
+
+  // ±1σ 横棒
+  ctx.strokeStyle = "rgba(43,108,176,.45)"; ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.moveTo(X(Math.max(0, ex - sd)), padT + ph - 4);
+  ctx.lineTo(X(Math.min(10, ex + sd)), padT + ph - 4);
+  ctx.stroke();
+
+  // 確率の棒
+  const bw = 26;
+  ctx.fillStyle = col.accent;
+  XS.forEach((x, i) => {
+    ctx.fillRect(X(x) - bw / 2, Y(p[i]), bw, padT + ph - Y(p[i]));
+  });
+  ctx.fillStyle = col.soft; ctx.textAlign = "center";
+  XS.forEach((x, i) => ctx.fillText("p=" + p[i].toFixed(2), X(x), Y(p[i]) - 6));
+
+  // 期待値マーカー▲(重心)
+  ctx.fillStyle = col.ng;
+  ctx.beginPath();
+  ctx.moveTo(X(ex), padT + ph + 2);
+  ctx.lineTo(X(ex) - 8, padT + ph + 15);
+  ctx.lineTo(X(ex) + 8, padT + ph + 15);
+  ctx.closePath(); ctx.fill();
+  ctx.fillText("E[X]", X(ex), padT + ph + 28);
+
+  r.replaceChildren();
+  const b1 = document.createElement("b");
+  b1.textContent = "E[X] = " + ex.toFixed(2);
+  const b2 = document.createElement("b");
+  b2.textContent = "V[X] = " + v.toFixed(2);
+  r.append(b1, " ・ E[X²] = " + ex2.toFixed(2) + " ・ ", b2,
+    " (= " + ex2.toFixed(2) + " − " + (ex * ex).toFixed(2) + ") ・ σ = " + sd.toFixed(2));
+}
+["w1", "w2", "w3"].forEach(id => $("#" + id).addEventListener("input", drawEV));
+window.addEventListener("resize", drawEV);
+drawEV();
+</script>
+</body>
+</html>
