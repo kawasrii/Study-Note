@@ -70,6 +70,27 @@
 <p><a href="multidim-dist.html">全分散の公式</a>で見た「全分散=層内+層間」のうち、層化は<b>層間分散を推定誤差から消す</b>。だから層内が均質(層間の差が大きい)ほど得をする。標本の層への配り方が設計の腕の見せ所:</p>
 <div class="formula">$$\text{比例配分: } n_h \propto N_h \qquad \text{ネイマン(最適)配分: } n_h \propto N_h S_h$$</div>
 <p>ネイマン配分は「大きい層・<b>ばらつきの大きい層</b>に多めに配る」— 分散最小の理論解。層内標準偏差 S_h が全部等しければ比例配分と一致する。</p>
+
+<div class="widget">
+  <div class="w-title">層化 vs 単純無作為シミュレータ — 「層間の差」が層化の得を決める</div>
+  <div class="controls">
+    <label>層間の差 δ(層1平均5−δ/2, 層2平均5+δ/2)<input type="range" id="delta" min="0" max="6" step="0.5" value="3"> <span class="val" id="deltaVal">3.0</span></label>
+    <button id="regenSamp">↻ 再シミュレーション</button>
+  </div>
+  <canvas class="plot" id="plotSamp"></canvas>
+  <div class="readout" id="readoutSamp"></div>
+</div>
+<p class="lead">試してほしい操作:δ=3 で2つのヒストグラムを比較 → <b>層化(橙)の推定値分布が単純無作為(青)より明らかに細い</b>=同じn=40でも精度が高い。δ を 0 へ → 2つがほぼ重なる(<b>層間差がなければ層化しても得しない</b>)。δ を 6 へ → 差が劇的に。層化が消しているのはまさに「層間分散」だと分かる。青の分布に2つ山の気配が見えるのは、単純無作為だと層の取り込み数が run ごとに揺れるから。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このシミュレータが実際に計算していること)</summary>
+<ul>
+<li><b>母集団</b>: 2層(各層サイズ無限とみなす近似=FPC省略)。層1〜N(5−δ/2, 1²)、層2〜N(5+δ/2, 1²)、層の構成比は50:50。母平均は常に5</li>
+<li><b>比較する2方式</b>(各n=40): 単純無作為=毎回コイン投げで層を選んで40人 / 層化(比例配分)=各層きっちり20人ずつ</li>
+<li>各方式で標本平均(層化は (x̄₁+x̄₂)/2)を<b>5,000回</b>シミュレーションし、推定値のヒストグラムを重ねて描画(幅0.05、x∈[4,6]固定、y自動…ではなく密度上限8で固定クリップ)</li>
+<li><b>理論値</b>: SRSの分散=(1+δ²/4)/40(全分散の公式: 層内1+層間δ²/4)、層化の分散=1/40。readoutに実測SDと理論SDを併記</li>
+<li>ネイマン配分・FPC・集落抽出のシミュレーションは未実装(層内SDが等しい設定なので比例=ネイマン)</li>
+</ul>
+</details>
 <div class="warn-box">集落抽出が層化と逆に精度を落とすのは、<b>同じ集落の個体は似ている</b>(級内相関が正)ため、実質的な情報量が見かけの n より少ないから。「層化は層<b>内</b>を均質に、集落は集落<b>間</b>を均質にすると得」という対比が頻出。</div>
 
 <div class="ex-box">
@@ -93,5 +114,90 @@ N=2000 の母集団から n=400 を非復元で単純無作為抽出した。S²
   <a href="missing-data.html">欠測値 →</a>
 </div>
 </main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+function randn() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+const REPS = 5000, NSAMP = 40, BIN = 0.05, XMINS = 4, XMAXS = 6, YMAXD = 8;
+
+function drawSamp() {
+  const delta = +$("#delta").value;
+  $("#deltaVal").textContent = delta.toFixed(1);
+  const mu = [5 - delta / 2, 5 + delta / 2];
+
+  const nbins = Math.round((XMAXS - XMINS) / BIN);
+  const hSrs = new Array(nbins).fill(0), hStr = new Array(nbins).fill(0);
+  let mSrs = 0, vSrs = 0, mStr = 0, vStr = 0;
+  for (let r = 0; r < REPS; r++) {
+    // SRS: 層をコイン投げで選ぶ
+    let s = 0;
+    for (let i = 0; i < NSAMP; i++) s += mu[Math.random() < 0.5 ? 0 : 1] + randn();
+    const est1 = s / NSAMP;
+    // 層化(比例配分): 各層20
+    let s1 = 0, s2 = 0;
+    for (let i = 0; i < NSAMP / 2; i++) { s1 += mu[0] + randn(); s2 += mu[1] + randn(); }
+    const est2 = (s1 / (NSAMP / 2) + s2 / (NSAMP / 2)) / 2;
+    mSrs += est1; vSrs += est1 * est1;
+    mStr += est2; vStr += est2 * est2;
+    const b1 = Math.floor((est1 - XMINS) / BIN);
+    if (b1 >= 0 && b1 < nbins) hSrs[b1]++;
+    const b2 = Math.floor((est2 - XMINS) / BIN);
+    if (b2 >= 0 && b2 < nbins) hStr[b2]++;
+  }
+  mSrs /= REPS; mStr /= REPS;
+  const sdSrs = Math.sqrt(vSrs / REPS - mSrs * mSrs);
+  const sdStr = Math.sqrt(vStr / REPS - mStr * mStr);
+
+  const canvas = $("#plotSamp");
+  const { ctx, W, H } = setupCanvas(canvas, 240);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 40, padB = 26, padT = 10, padR = 10;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const X = x => padL + (x - XMINS) / (XMAXS - XMINS) * pw;
+  const Y = d => padT + (1 - Math.min(d, YMAXD) / YMAXD) * ph;
+
+  ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ph); ctx.lineTo(padL + pw, padT + ph); ctx.stroke();
+  ctx.fillStyle = col.soft; ctx.font = "11px sans-serif"; ctx.textAlign = "center";
+  [4, 4.5, 5, 5.5, 6].forEach(v => ctx.fillText(v, X(v), padT + ph + 16));
+
+  const bwv = pw / nbins;
+  function bars(hist, color) {
+    ctx.fillStyle = color;
+    hist.forEach((cnt, i) => {
+      const d = cnt / (REPS * BIN);
+      if (d > 0) ctx.fillRect(padL + i * bwv, Y(d), bwv * 0.9, padT + ph - Y(d));
+    });
+  }
+  bars(hSrs, "rgba(43,108,176,.55)");
+  bars(hStr, "rgba(221,136,68,.55)");
+  // 母平均
+  ctx.strokeStyle = col.ok; ctx.lineWidth = 1.5; ctx.setLineDash([3, 4]);
+  ctx.beginPath(); ctx.moveTo(X(5), padT); ctx.lineTo(X(5), padT + ph); ctx.stroke();
+  ctx.setLineDash([]);
+
+  const thSrs = Math.sqrt((1 + delta * delta / 4) / NSAMP);
+  const thStr = Math.sqrt(1 / NSAMP);
+  const r = $("#readoutSamp");
+  r.replaceChildren();
+  const b1 = document.createElement("b");
+  b1.textContent = "SRSのSD: " + sdSrs.toFixed(3) + "(理論 " + thSrs.toFixed(3) + ")";
+  const b2 = document.createElement("b");
+  b2.textContent = "層化のSD: " + sdStr.toFixed(3) + "(理論 " + thStr.toFixed(3) + ")";
+  r.append("青=単純無作為 ・ 橙=層化(比例配分) ・ ", b1, " ・ ", b2,
+    " ・ 精度比 " + (sdSrs / sdStr).toFixed(2) + "倍");
+}
+$("#delta").addEventListener("input", drawSamp);
+$("#regenSamp").addEventListener("click", drawSamp);
+window.addEventListener("resize", drawSamp);
+drawSamp();
+</script>
 </body>
 </html>
