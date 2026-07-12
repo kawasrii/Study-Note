@@ -21,7 +21,7 @@
 <main>
 <h1>分散分析と実験計画法</h1>
 <p class="lead">タグ: 分散分析 ANOVA / 平方和の分解 / F検定 / 交互作用 / フィッシャーの3原則 / 乱塊法 / 直交表</p>
-<p class="lead">※導入版(フェーズ1): 全体像と主要概念・例題を押さえるページ。平方和分解の可視化ラボはフェーズ2で追加予定。</p>
+<p class="lead">フェーズ2対応済み: 平方和分解が動くラボ・多重比較の節つき。</p>
 <p class="lead">前提知識: F分布(χ²の比)は<a href="distributions.html">確率分布ラボ</a>、検定の共通骨格(棄却域・p値)は<a href="hypothesis-testing.html">仮説検定</a>、平方和分解の親玉「全分散の公式」は<a href="multidim-dist.html">多次元確率分布</a>にあります。</p>
 
 <h2>全体マップ — この分野の体系</h2>
@@ -39,7 +39,7 @@
     <ul>
     <li><span class="here">一元配置</span> — 1因子・3群以上の平均差の検定</li>
     <li><span class="here">二元配置と交互作用</span> — 2因子の主効果+組み合わせ効果</li>
-    <li class="soon">多重比較(Tukey・Bonferroni)— 触りのみ</li>
+    <li><span class="here">多重比較(Bonferroni・Tukeyの考え方)</span></li>
     </ul>
   </li>
   <li><span class="t-cat">計画のデザイン</span>
@@ -66,10 +66,45 @@
 <div class="formula">$$\mathrm{SST}\;(\text{全変動}) = \mathrm{SSB}\;(\text{群間変動}) + \mathrm{SSW}\;(\text{群内変動})$$</div>
 <p>「群平均が互いに離れているか」を「群内の自然なばらつき」と比べるのが本質。H₀: μ₁=…=μ_a のもとで F=MSB/MSW ~ F(a−1, n−a) となり、Fが大きければ棄却。<b>t検定を繰り返さない理由</b>(検定の多重性: 5%の検定を繰り返すと全体の第一種過誤率が膨らむ)もセットで頻出。この分解は<a href="multidim-dist.html">全分散の公式</a>(群内平均+群間)の標本版。</p>
 
+<div class="widget">
+  <div class="w-title">平方和分解ラボ — 3群(A・B・C)の帯にクリック/タップで点を置く(もう一度で削除)</div>
+  <div class="controls">
+    <button id="clearA">全消去</button>
+    <button id="sampleNull">サンプル(群平均に差なし)</button>
+    <button id="sampleDiff">サンプル(差あり)</button>
+  </div>
+  <canvas class="plot" id="plotAov" style="touch-action: manipulation;"></canvas>
+  <div class="readout" id="readoutAov">各群に2点以上置くと分散分析表が動きます。</div>
+</div>
+<p class="lead">試してほしい操作:「差あり」サンプル → <b>F が大きく p&lt;0.05</b>。「差なし」→ F は小さい。差ありの状態から<b>各群の点を上下に大きく散らす</b> → 群平均の差(色つき横線の開き)は同じなのに <b>F が下がって有意でなくなる</b> — 検定は「信号(群間) ÷ 雑音(群内)」の比だという本質。1つの群を丸ごと上に動かすと SSB だけが伸びるのも確認。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このラボが実際に計算していること)</summary>
+<ul>
+<li>群は横位置で固定(A: x∈[0.7,3.3] / B: [3.7,6.3] / C: [6.7,9.3])。縦位置 y∈[0,10] が測定値。クリックした帯の群に点が入る</li>
+<li>SSB=Σ n_h(ȳ_h−ȳ)²、SSW=ΣΣ(y−ȳ_h)²、F=(SSB/(a−1))/(SSW/(n−a))。a=3固定(点のない群は除いて自由度を調整)</li>
+<li><b>p値はF分布pdf(共通エンジンのfPdf、Lanczos近似ベース)の数値積分</b>: 台形則で[0,F]を2000分割してCDFを作り p=1−CDF。積分上限誤差を抑えるためF&gt;50はp≈0と表示</li>
+<li>横線: 各群平均(群色)と全体平均(灰)。灰線と群線の距離がSSBの素、点と群線の距離がSSWの素</li>
+<li>等分散・正規性の診断、二元配置、多重比較の実装はなし(解説のみ)</li>
+</ul>
+</details>
+
 <h2>二元配置と交互作用 — 「組み合わせの妙」を検出する</h2>
 <div class="formula">$$\mathrm{SST} = \mathrm{SS}_A + \mathrm{SS}_B + \mathrm{SS}_{A\times B} + \mathrm{SSE}$$</div>
 <p>因子が2つ(例: 肥料×品種)のとき、各因子の<b>主効果</b>に加えて<b>交互作用</b>(片方の効果がもう片方の水準によって変わる)を分離できる。交互作用図で線が平行 → 交互作用なし、交差・非平行 → あり。<b>交互作用が有意なら主効果の単独解釈は危険</b>、が最重要の読み方。交互作用を推定するには各セルに反復が必要。</p>
 <div class="warn-box">前提は「各群の母集団が正規で<b>等分散</b>」。分散分析は名前に反して「<b>平均の差</b>」の検定であることも引っかけの定番。乱塊法はブロック(局所管理)を要因として取り込んだ設計で、ブロック間変動を誤差から除くため検出力が上がる。</div>
+
+<h2>多重比較 — 「どの群とどの群が違うか」を正しく調べる</h2>
+<p><b>なぜ必要か</b>: ANOVAのFが有意でも、分かるのは「どこかに差がある」だけ。ではどのペアか?と全ペアにt検定を繰り返すと、<b>1回5%の誤検出が積み重なって全体の第一種過誤率が膨張する</b>(検定の多重性)。m回の独立な検定なら全体の過誤率は最大 1−(1−α)^m — 6回で約26%にもなる。</p>
+<div class="formula">$$\text{Bonferroni補正: 各検定を } \alpha' = \frac{\alpha}{m} \text{ で行えば、全体の過誤率} \le \alpha$$</div>
+<p>Bonferroniは単純で常に使えるが保守的(検出力が落ちる)。全ペア比較専用にはTukeyのHSD(スチューデント化された範囲分布を使う)がより効率的、というのが定番の使い分け。</p>
+
+<div class="ex-box">
+4群の全ペア(m=6)に有意水準5%のt検定を繰り返すとき、(a) 全体でどこかのペアが誤検出される確率の上限(独立と仮定)を求めよ。(b) Bonferroni補正後の各検定の有意水準は?
+<details class="ans"><summary>解答を見る</summary>
+<p>(a) 1−0.95⁶ ≈ <b>0.265(約26.5%)</b> — 「5%のつもりが4分の1」。<br>
+(b) α′ = 0.05/6 ≈ <b>0.0083</b>。</p>
+</details>
+</div>
 
 <div class="ex-box">
 3群(各群5個、n=15)の一元配置で SST=100、SSB=40 だった。分散分析表を完成させ、F値を求めよ(F₀.₀₅(2,12)=3.89)。
@@ -91,5 +126,142 @@ MSB=40/2=20, MSW=60/12=5 → <b>F=20/5=4.0 &gt; 3.89 → 有意水準5%で棄却
   <a href="multivariate.html">多変量解析 →</a>
 </div>
 </main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+const BANDS = [[0.7, 3.3], [3.7, 6.3], [6.7, 9.3]]; // 群A/B/Cの帯
+const COLS3 = ["#2b6cb0", "#dd8844", "#2f855a"];
+let pts = []; // [group, y]
+let geom = null;
+const canvas = $("#plotAov");
+
+function fCdfUpper(F, d1, d2) { // p = 1 - ∫0^F fPdf(台形則)
+  if (F <= 0) return 1;
+  if (F > 50) return 0;
+  const N = 2000;
+  let acc = 0;
+  for (let i = 1; i <= N; i++) {
+    const a = F * (i - 1) / N, b = F * i / N;
+    acc += (fPdf(a, d1, d2) + fPdf(b, d1, d2)) / 2 * (F / N);
+  }
+  return Math.max(0, 1 - acc);
+}
+
+function anova() {
+  const groups = [[], [], []];
+  pts.forEach(([g, y]) => groups[g].push(y));
+  const act = groups.filter(g => g.length >= 2);
+  if (act.length < 2) return null;
+  const used = groups.filter(g => g.length > 0);
+  const n = used.reduce((s, g) => s + g.length, 0);
+  const a = used.length;
+  const grand = used.reduce((s, g) => s + g.reduce((t, v) => t + v, 0), 0) / n;
+  let ssb = 0, ssw = 0;
+  const means = groups.map(g => g.length ? g.reduce((s, v) => s + v, 0) / g.length : null);
+  groups.forEach(g => {
+    if (!g.length) return;
+    const m = g.reduce((s, v) => s + v, 0) / g.length;
+    ssb += g.length * (m - grand) ** 2;
+    g.forEach(v => ssw += (v - m) ** 2);
+  });
+  const d1 = a - 1, d2 = n - a;
+  if (d2 <= 0) return null;
+  const F = (ssb / d1) / (ssw / d2 || 1e-12);
+  return { ssb, ssw, F, d1, d2, grand, means, p: fCdfUpper(F, d1, d2) };
+}
+
+function draw() {
+  const { ctx, W, H } = setupCanvas(canvas, 300);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 30, padB = 26, padT = 10, padR = 10;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const X = x => padL + x / 10 * pw;
+  const Y = y => padT + (10 - y) / 10 * ph;
+  geom = { X, Y, invX: px => (px - padL) / pw * 10, invY: py => 10 - (py - padT) / ph * 10 };
+
+  // 帯の背景とラベル
+  BANDS.forEach(([a, b], i) => {
+    ctx.fillStyle = "rgba(128,128,128,.07)";
+    ctx.fillRect(X(a), padT, X(b) - X(a), ph);
+    ctx.fillStyle = COLS3[i]; ctx.font = "12px sans-serif"; ctx.textAlign = "center";
+    ctx.fillText("群" + "ABC"[i], X((a + b) / 2), padT + ph + 17);
+  });
+  ctx.strokeStyle = col.line;
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ph); ctx.stroke();
+  ctx.fillStyle = col.soft; ctx.font = "11px sans-serif"; ctx.textAlign = "right";
+  [0, 5, 10].forEach(v => ctx.fillText(v, padL - 4, Y(v) + 4));
+
+  const r = anova();
+  // 全体平均・群平均の横線
+  if (r) {
+    ctx.strokeStyle = col.soft; ctx.lineWidth = 1.6; ctx.setLineDash([6, 4]);
+    ctx.beginPath(); ctx.moveTo(padL, Y(r.grand)); ctx.lineTo(padL + pw, Y(r.grand)); ctx.stroke();
+    ctx.setLineDash([]);
+    r.means.forEach((m, i) => {
+      if (m === null) return;
+      ctx.strokeStyle = COLS3[i]; ctx.lineWidth = 2.6;
+      ctx.beginPath(); ctx.moveTo(X(BANDS[i][0]), Y(m)); ctx.lineTo(X(BANDS[i][1]), Y(m)); ctx.stroke();
+    });
+  }
+  // 点
+  pts.forEach(([g, y], idx) => {
+    ctx.fillStyle = COLS3[g];
+    ctx.beginPath();
+    ctx.arc(X((BANDS[g][0] + BANDS[g][1]) / 2 + (idx % 5 - 2) * 0.22), Y(y), 5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  report(r);
+}
+
+function report(r) {
+  const el = $("#readoutAov");
+  if (!r) { el.textContent = "2群以上に、各群2点以上置くと分散分析表が動きます。"; return; }
+  el.replaceChildren();
+  const b1 = document.createElement("b");
+  b1.textContent = "F = " + r.F.toFixed(2);
+  const b2 = document.createElement("b");
+  b2.textContent = "p " + (r.p < 0.001 ? "< 0.001" : "= " + r.p.toFixed(3));
+  el.append("SSB = " + r.ssb.toFixed(1) + " ・ SSW = " + r.ssw.toFixed(1) +
+    " ・ 自由度(" + r.d1 + ", " + r.d2 + ") ・ ", b1, " ・ ", b2,
+    r.p < 0.05 ? " → 5%で有意(どこかの群平均に差)" : " → 有意でない");
+}
+
+canvas.addEventListener("click", e => {
+  const rect = canvas.getBoundingClientRect();
+  const px = e.clientX - rect.left, py = e.clientY - rect.top;
+  const x = geom.invX(px), y = geom.invY(py);
+  if (y < 0 || y > 10) return;
+  const g = BANDS.findIndex(([a, b]) => x >= a && x <= b);
+  if (g < 0) return;
+  const hit = pts.findIndex(([gg, yy]) => gg === g && Math.abs(yy - y) < 0.4);
+  if (hit >= 0) pts.splice(hit, 1); else pts.push([g, Math.round(y * 4) / 4]);
+  draw();
+});
+function randn() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+$("#clearA").addEventListener("click", () => { pts = []; draw(); });
+$("#sampleNull").addEventListener("click", () => {
+  pts = [];
+  for (let g = 0; g < 3; g++) for (let i = 0; i < 6; i++)
+    pts.push([g, Math.min(10, Math.max(0, 5 + randn() * 1.2))]);
+  draw();
+});
+$("#sampleDiff").addEventListener("click", () => {
+  pts = [];
+  [4, 5.5, 7].forEach((mu, g) => {
+    for (let i = 0; i < 6; i++)
+      pts.push([g, Math.min(10, Math.max(0, mu + randn() * 0.9))]);
+  });
+  draw();
+});
+window.addEventListener("resize", draw);
+draw();
+</script>
 </body>
 </html>
