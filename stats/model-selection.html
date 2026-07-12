@@ -66,6 +66,27 @@
 
 <h2>交差検証 — 「見せていないデータ」で採点する</h2>
 <p>データをk個(標準は5か10)に分割し、k−1個で学習して残り1個で予測誤差を測る、をk回転して平均する。<b>訓練誤差(見せたデータでの成績)は常に楽観的</b>なので、未知データでの成績を推定するのが目的。k=n の特別な場合がLOOCV(1個抜き)。<a href="regression.html">回帰分析ページ</a>のバンド幅・次数などのチューニングパラメータ選択の標準手段。</p>
+<div class="widget">
+  <div class="w-title">次数選択ラボ — AICと交差検証が「ちょうど良い複雑さ」を指す様子を見る</div>
+  <div class="controls">
+    <button id="regenMS">↻ データを再生成(真の関数: 5+3sin(0.75x)+ノイズ, n=30)</button>
+  </div>
+  <canvas class="plot" id="plotMS"></canvas>
+  <div class="readout" id="readoutMS"></div>
+</div>
+<p class="lead">試してほしい操作:多項式の次数 1〜8 に対する <b>AIC(青)と5-fold CV誤差(橙)</b>の曲線。どちらも<b>途中に谷</b>があり(だいたい3〜5次)、次数を上げ続けると再び悪化する — 訓練データへの当てはまり(単調に改善)とは違う動き。「再生成」を何度も押す → データが変わると最適次数も±1〜2揺れる(<b>モデル選択自体にも不確実性がある</b>)。ただし次数8がベストになることはまず無い。AICとCVは原理が違うのにほぼ同じ谷を指すことも確認。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このラボが実際に計算していること)</summary>
+<ul>
+<li><b>データ</b>: xᵢ〜一様[0.3, 9.7]、yᵢ=5+3sin(0.75xᵢ)+εᵢ、ε〜N(0,1)、n=30(Box–Muller)。「真のモデルが候補(多項式)に含まれない」現実的な設定</li>
+<li><b>フィット</b>: 次数d=1…8の多項式最小二乗(回帰ページと同じ: xを[−1,1]に正規化+部分ピボット付きガウス消去)</li>
+<li><b>AIC</b>: 正規誤差の下で AIC = n·ln(SSE/n) + 2(d+1) の簡約形(定数項省略。kは係数d+1個。σ²の+1は全モデル共通なので省略)</li>
+<li><b>CV</b>: 5-fold。データ生成時に無作為にfold割当を固定し、4/5で学習→1/5で二乗誤差、を一巡して平均(MSE)</li>
+<li><b>描画</b>: 2曲線とも min-max 正規化して[0,1]で表示(スケールが違うため形の比較に特化)。最小点に●。x軸=次数1〜8固定、y軸[0,1]固定</li>
+<li>正則化パス(リッジ/Lassoのλ選択)・BIC曲線は未実装</li>
+</ul>
+</details>
+
 <div class="warn-box">CVの頻出注意:①前処理(標準化・変数選択)も<b>各foldの学習側だけで</b>行うこと — 全データでやってから分割すると情報漏れ(リーケージ)で楽観バイアス。②時系列データでは未来を訓練に使わないよう時間順の分割を使う。</div>
 
 <h2>正則化 — 係数に「重り」を付けて暴れを防ぐ</h2>
@@ -95,5 +116,141 @@ BIC(ln 100≈4.605): BIC_A=100+13.8=<b>113.8</b>, BIC_B=94+27.6=<b>121.6</b> →
   <a href="anova-doe.html">分散分析と実験計画法 →</a>
 </div>
 </main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+function randn() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+function solveLin(A, b) {
+  const n = b.length, M = A.map((row, i) => row.concat([b[i]]));
+  for (let c = 0; c < n; c++) {
+    let piv = c;
+    for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[piv][c])) piv = r;
+    if (Math.abs(M[piv][c]) < 1e-12) return null;
+    [M[c], M[piv]] = [M[piv], M[c]];
+    for (let r = c + 1; r < n; r++) {
+      const f = M[r][c] / M[c][c];
+      for (let k = c; k <= n; k++) M[r][k] -= f * M[c][k];
+    }
+  }
+  const x = new Array(n).fill(0);
+  for (let r = n - 1; r >= 0; r--) {
+    let s = M[r][n];
+    for (let k = r + 1; k < n; k++) s -= M[r][k] * x[k];
+    x[r] = s / M[r][r];
+  }
+  return x;
+}
+function fitPoly(data, d) { // data: [[x,y]] → 予測関数
+  const u = x => (x - 5) / 5;
+  const A = [], b = [];
+  for (let r = 0; r <= d; r++) {
+    A.push(new Array(d + 1).fill(0)); b.push(0);
+    for (const [x, y] of data) {
+      const ux = u(x);
+      b[r] += y * Math.pow(ux, r);
+      for (let c = 0; c <= d; c++) A[r][c] += Math.pow(ux, r + c);
+    }
+  }
+  const beta = solveLin(A, b);
+  if (!beta) return null;
+  return x => beta.reduce((s, bk, k) => s + bk * Math.pow(u(x), k), 0);
+}
+
+const NPTS = 30, DMAX = 8, KFOLD = 5;
+let data = [], folds = [];
+
+function regen() {
+  data = []; folds = [];
+  for (let i = 0; i < NPTS; i++) {
+    const x = 0.3 + Math.random() * 9.4;
+    data.push([x, 5 + 3 * Math.sin(0.75 * x) + randn()]);
+    folds.push(i % KFOLD);
+  }
+  // fold割当をシャッフル
+  for (let i = folds.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [folds[i], folds[j]] = [folds[j], folds[i]];
+  }
+  draw();
+}
+
+function scores() {
+  const aic = [], cv = [];
+  for (let d = 1; d <= DMAX; d++) {
+    const fn = fitPoly(data, d);
+    let sse = 0;
+    data.forEach(([x, y]) => sse += (y - fn(x)) ** 2);
+    aic.push(NPTS * Math.log(sse / NPTS) + 2 * (d + 1));
+    let cvErr = 0;
+    for (let f = 0; f < KFOLD; f++) {
+      const train = data.filter((_, i) => folds[i] !== f);
+      const test = data.filter((_, i) => folds[i] === f);
+      const g = fitPoly(train, d);
+      if (!g) { cvErr = NaN; break; }
+      test.forEach(([x, y]) => cvErr += (y - g(x)) ** 2);
+    }
+    cv.push(cvErr / NPTS);
+  }
+  return { aic, cv };
+}
+
+function draw() {
+  const { aic, cv } = scores();
+  const norm = arr => {
+    const lo = Math.min(...arr), hi = Math.max(...arr);
+    return arr.map(v => hi > lo ? (v - lo) / (hi - lo) : 0.5);
+  };
+  const aicN = norm(aic), cvN = norm(cv);
+  const bestA = aic.indexOf(Math.min(...aic)) + 1;
+  const bestC = cv.indexOf(Math.min(...cv)) + 1;
+
+  const canvas = $("#plotMS");
+  const { ctx, W, H } = setupCanvas(canvas, 260);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 40, padB = 26, padT = 12, padR = 10;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const X = d => padL + (d - 1) / (DMAX - 1) * pw;
+  const Y = v => padT + v * ph;
+
+  ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ph); ctx.lineTo(padL + pw, padT + ph); ctx.stroke();
+  ctx.fillStyle = col.soft; ctx.font = "11px sans-serif"; ctx.textAlign = "center";
+  for (let d = 1; d <= DMAX; d++) ctx.fillText("d=" + d, X(d), padT + ph + 16);
+  ctx.textAlign = "right";
+  ctx.fillText("良", padL - 6, Y(0) + 4);
+  ctx.fillText("悪", padL - 6, Y(1) + 4);
+
+  function curve(arr, color) {
+    ctx.strokeStyle = color; ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    arr.forEach((v, i) => i ? ctx.lineTo(X(i + 1), Y(v)) : ctx.moveTo(X(i + 1), Y(v)));
+    ctx.stroke();
+    const mi = arr.indexOf(Math.min(...arr));
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(X(mi + 1), Y(arr[mi]), 5, 0, Math.PI * 2); ctx.fill();
+  }
+  curve(aicN, col.accent);
+  curve(cvN, "#dd8844");
+
+  const r = $("#readoutMS");
+  r.replaceChildren();
+  const b1 = document.createElement("b");
+  b1.textContent = "AIC最小: d=" + bestA;
+  const b2 = document.createElement("b");
+  b2.textContent = "CV最小: d=" + bestC;
+  r.append("青=AIC ・ 橙=5-fold CV(各々min-max正規化) ・ ", b1, " ・ ", b2,
+    " ・ 真の関数はsin(多項式でいえば3〜5次相当)");
+}
+$("#regenMS").addEventListener("click", regen);
+window.addEventListener("resize", draw);
+regen();
+</script>
 </body>
 </html>
