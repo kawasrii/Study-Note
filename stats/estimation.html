@@ -21,7 +21,7 @@
 <main>
 <h1>推定:最尤法・推定量の性質・区間推定</h1>
 <p class="lead">タグ: 最尤法 / モーメント法 / 不偏性 / 一致性 / 有効性 / フィッシャー情報量 / クラメール・ラオの不等式 / 十分統計量 / 漸近正規性 / 区間推定</p>
-<p class="lead">※導入版(フェーズ1): 全体像と主要概念・例題を押さえるページ。尤度関数の可視化ラボはフェーズ2で追加予定。</p>
+<p class="lead">フェーズ2対応済み: 対数尤度カーブのラボ・正規MLEの導出・バイアスの証明つき。</p>
 <p class="lead">前提知識: 標本平均と母平均、不偏分散(n−1)の区別は<a href="descriptive-stats.html">記述統計の基礎</a>、期待値・分散の定義は<a href="random-variables.html">確率変数と期待値・分散の定義</a>にあります。</p>
 
 <h2>全体マップ — この分野の体系</h2>
@@ -73,6 +73,36 @@
 <p>手順は機械的:①尤度を書く → ②対数を取る(積が和になり微分が楽) → ③θで微分して0 → ④解く。代表例は暗記推奨:<b>正規の μ̂=x̄・σ̂²=(1/n)Σ(xᵢ−x̄)²、ポアソンの λ̂=x̄、二項の p̂=x/n、指数の λ̂=1/x̄</b>。</p>
 <div class="note-box">最尤推定量の便利な性質:<b>不変性</b> — θ̂ がMLEなら g(θ̂) も g(θ) のMLE(例: σ̂²のMLEから σ̂=√σ̂² が即座に出る)。</div>
 
+<div class="widget">
+  <div class="w-title">対数尤度カーブ・ラボ(ポアソン分布)— 「データが増えると尤度が尖る」を見る</div>
+  <div class="controls">
+    <label>標本平均 x̄ <input type="range" id="xbar" min="0.5" max="8" step="0.1" value="3"> <span class="val" id="xbarVal">3.0</span></label>
+    <label>標本サイズ n <input type="range" id="nn" min="5" max="100" step="1" value="20"> <span class="val" id="nnVal">20</span></label>
+  </div>
+  <canvas class="plot" id="plotLik"></canvas>
+  <div class="readout" id="readoutLik"></div>
+</div>
+<p class="lead">試してほしい操作:n を 5 → 100 へ → <b>カーブが鋭く尖り、赤線(95%基準)と交わる幅=尤度比信頼区間がぐっと狭まる</b>(n を4倍にすると幅は約半分 — √n の法則)。x̄ を動かす → 山の頂上(MLE λ̂=x̄)が追従。n が小さいとき → <b>区間が左右非対称</b>(尤度カーブ自体が歪んでいる)なのに、n を上げると対称に近づく — Wald区間(±1.96SE)が「大標本でだけ正当化される近似」であることが見える。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このラボが実際に計算していること)</summary>
+<ul>
+<li><b>モデル</b>: ポアソン分布のiid標本。対数尤度は ℓ(λ)=n(x̄ ln λ − λ)+C(定数Cは形に無関係なので省略)。<b>データは x̄ と n だけで尤度が決まる</b>(Σxᵢ が十分統計量である、の実演)</li>
+<li><b>描画</b>: ℓ(λ)−ℓ(λ̂) を λ∈[0.2, 10](600点グリッド)で計算。y軸は[−8, 0.3]固定、はみ出しクリップ</li>
+<li><b>尤度比95%区間</b>: ℓ(λ̂)−ℓ(λ) ≤ 1.92(χ²(1)の95%点 3.84 の半分)を満たす範囲をグリッド走査で近似(精度は格子幅≈0.016)</li>
+<li><b>Wald区間</b> = λ̂ ± 1.96√(λ̂/n)(観測情報量 n/λ̂ の逆数が漸近分散)。比較のためreadoutに併記</li>
+<li>乱数は使っていない(x̄を直接動かす決定的な可視化)。正規・二項など他分布の尤度カーブは未実装</li>
+</ul>
+</details>
+
+<h2>導出を1回だけ手で追う — 正規分布のMLEとバイアス</h2>
+<p>最尤法の計算は型が決まっているので、代表例を1回だけ丁寧に追えば全部に応用が利く。正規分布 N(μ, σ²) の対数尤度は:</p>
+<div class="formula">$$\ell(\mu,\sigma^2) = -\frac{n}{2}\ln(2\pi\sigma^2) - \frac{\sum_i (x_i-\mu)^2}{2\sigma^2}$$</div>
+<p>μで微分して0: Σ(xᵢ−μ)=0 → <b>μ̂ = x̄</b>。σ²で微分して0(σ²を1つの変数と見るのがコツ):</p>
+<div class="formula">$$-\frac{n}{2\sigma^2} + \frac{\sum_i (x_i-\bar{x})^2}{2\sigma^4} = 0 \quad\Longrightarrow\quad \hat\sigma^2_{\mathrm{MLE}} = \frac{1}{n}\sum_i (x_i-\bar{x})^2$$</div>
+<p>そして<b>このMLEは不偏でない</b>ことも1行で示せる。恒等式 Σ(xᵢ−μ)² = Σ(xᵢ−x̄)² + n(x̄−μ)² の期待値を取ると、左辺は nσ²、右辺第2項は n·V[x̄]=σ² なので:</p>
+<div class="formula">$$E\Big[\sum_i (x_i-\bar{x})^2\Big] = n\sigma^2 - \sigma^2 = (n-1)\,\sigma^2 \quad\Longrightarrow\quad E[\hat\sigma^2_{\mathrm{MLE}}] = \frac{n-1}{n}\,\sigma^2 < \sigma^2$$</div>
+<p>x̄ に「σ²の1個分」の情報を使ってしまった分だけ系統的に小さい — <a href="descriptive-stats.html">記述統計の基礎</a>で直感として述べた「n−1で割る理由」の、これが厳密な姿。n−1 で割り直したものが不偏分散になる。</p>
+
 <h2>フィッシャー情報量とクラメール・ラオの不等式 — 精度の理論限界</h2>
 <div class="formula">$$I(\theta)=E\!\left[\left(\frac{\partial \ell_1}{\partial\theta}\right)^{\!2}\right]=-E\!\left[\frac{\partial^2 \ell_1}{\partial\theta^2}\right], \qquad V[\hat\theta] \;\ge\; \frac{1}{n\,I(\theta)} \;\;(\text{CR下限})$$</div>
 <p>フィッシャー情報量は「データ1個が母数について持つ情報の量」。CR不等式は<b>どんな不偏推定量もこれ以上は精度を上げられない</b>という理論限界で、下限を達成する推定量が「有効推定量」。例: ポアソンの I(λ)=1/λ、CR下限=λ/n — x̄ の分散はちょうど λ/n なので x̄ は有効。</p>
@@ -102,10 +132,100 @@ dℓ/dλ = −n + Σxᵢ/λ = 0 → <b>λ̂ = x̄</b><br>
 </details>
 </div>
 
+<div class="ex-box">
+指数分布 f(x;λ)=λe^{−λx} からの標本 x₁,…,xₙ について、(a) λ のMLEを導出せよ。(b) フィッシャー情報量 I(λ)=1/λ² を用いて λ̂ の漸近分散を答えよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>(a) ℓ(λ)=n ln λ − λΣxᵢ。微分して0: n/λ − Σxᵢ = 0 → <b>λ̂ = 1/x̄</b><br>
+(b) 漸近分散 = 1/(nI(λ)) = <b>λ²/n</b>。つまり √n(λ̂−λ) → N(0, λ²)。区間は λ̂ ± 1.96 λ̂/√n で近似できる。</p>
+</details>
+</div>
+
+<div class="ex-box">
+上のラボで x̄=3, n=20 のときのWald 95%信頼区間を手計算し、ラボの表示と照合せよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>λ̂=3, SE=√(λ̂/n)=√0.15≈0.387。区間 = 3 ± 1.96×0.387 = <b>[2.24, 3.76]</b>。<br>
+ラボの尤度比区間はこれよりわずかに右に寄る(尤度カーブの非対称性)。n=80 にすると両者はほぼ一致する。</p>
+</details>
+</div>
+
 <div class="page-nav">
   <a href="multidim-dist.html">← 多次元確率分布</a>
   <a href="hypothesis-testing.html">仮説検定と検出力 →</a>
 </div>
 </main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+function drawLik() {
+  const xbar = +$("#xbar").value, n = +$("#nn").value;
+  $("#xbarVal").textContent = xbar.toFixed(1);
+  $("#nnVal").textContent = n;
+
+  const ll = lam => n * (xbar * Math.log(lam) - lam); // 定数項省略
+  const lhat = xbar;
+  const lmax = ll(lhat);
+
+  const canvas = $("#plotLik");
+  const { ctx, W, H } = setupCanvas(canvas, 260);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 40, padB = 26, padT = 10, padR = 10;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const LMIN = 0.2, LMAX = 10, YMIN = -8, YMAX = 0.3;
+  const X = l => padL + (l - LMIN) / (LMAX - LMIN) * pw;
+  const Y = y => padT + (YMAX - y) / (YMAX - YMIN) * ph;
+
+  // 軸
+  ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ph); ctx.lineTo(padL + pw, padT + ph); ctx.stroke();
+  ctx.fillStyle = col.soft; ctx.font = "11px sans-serif"; ctx.textAlign = "center";
+  [1, 3, 5, 7, 9].forEach(v => ctx.fillText("λ=" + v, X(v), padT + ph + 16));
+  ctx.textAlign = "right";
+  [0, -2, -4, -6, -8].forEach(v => ctx.fillText(v, padL - 5, Y(v) + 4));
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(padL, padT, pw, ph); ctx.clip();
+
+  // 尤度比95%基準線(−1.92)
+  ctx.strokeStyle = col.ng; ctx.lineWidth = 1.4; ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(padL, Y(-1.92)); ctx.lineTo(padL + pw, Y(-1.92)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // カーブと区間走査
+  const N = 600;
+  let lo = null, hi = null;
+  ctx.strokeStyle = col.accent; ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  for (let i = 0; i <= N; i++) {
+    const l = LMIN + (LMAX - LMIN) * i / N;
+    const y = ll(l) - lmax;
+    if (y >= -1.92) { if (lo === null) lo = l; hi = l; }
+    i ? ctx.lineTo(X(l), Y(y)) : ctx.moveTo(X(l), Y(y));
+  }
+  ctx.stroke();
+
+  // MLE線
+  ctx.strokeStyle = col.ok; ctx.lineWidth = 1.6; ctx.setLineDash([3, 4]);
+  ctx.beginPath(); ctx.moveTo(X(lhat), padT); ctx.lineTo(X(lhat), padT + ph); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = col.ok; ctx.textAlign = "center";
+  ctx.fillText("λ̂=" + lhat.toFixed(1), X(lhat), padT + 12);
+  ctx.restore();
+
+  const se = Math.sqrt(lhat / n);
+  const r = $("#readoutLik");
+  r.replaceChildren();
+  const b1 = document.createElement("b");
+  b1.textContent = "MLE λ̂ = x̄ = " + lhat.toFixed(2);
+  const b2 = document.createElement("b");
+  b2.textContent = "尤度比95%区間 [" + (lo !== null ? lo.toFixed(2) : "—") + ", " + (hi !== null ? hi.toFixed(2) : "—") + "]";
+  r.append(b1, " ・ ", b2,
+    " ・ Wald区間 [" + (lhat - 1.96 * se).toFixed(2) + ", " + (lhat + 1.96 * se).toFixed(2) + "]");
+}
+["xbar", "nn"].forEach(id => $("#" + id).addEventListener("input", drawLik));
+window.addEventListener("resize", drawLik);
+drawLik();
+</script>
 </body>
 </html>
