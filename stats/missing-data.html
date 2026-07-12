@@ -60,6 +60,33 @@
 <tr><td>MNAR</td><td><b>欠測した値そのもの</b></td><td>高所得者ほど所得を無回答</td><td>バイアス</td><td><b>不十分</b>(感度分析が必要)</td></tr>
 </table></div>
 
+<div class="widget">
+  <div class="w-title">欠測バイアス・シミュレータ — 「どの欠測なら救えるか」を数字で見る</div>
+  <div class="controls">
+    <label>欠測メカニズム:
+      <select id="mech">
+        <option value="mcar">MCAR(完全ランダム)</option>
+        <option value="mar" selected>MAR(観測済みのxに依存)</option>
+        <option value="mnar">MNAR(欠けたyそのものに依存)</option>
+      </select>
+    </label>
+    <button id="mdRegen">↻ 再生成(n=300)</button>
+  </div>
+  <canvas class="plot" id="plotMd"></canvas>
+  <div class="readout" id="readoutMd"></div>
+</div>
+<p class="lead">試してほしい操作:MCAR → 灰(完全データ)と青(観測できた分)のヒストグラムがほぼ同じ形で、<b>削除後の平均(赤線)も真の平均(緑線)とほぼ一致</b>。MAR → 高いxの人ほど欠測し、xはyと相関があるので<b>青の分布は左に偏り、赤線がズレる(バイアス)。しかしxを使った回帰代入(紫線)で緑線までほぼ回復する</b> — MARは「観測情報で救える」。MNAR → 同じ補正をしても<b>紫線が緑線に届かない</b> — 欠けた値そのものに依存する欠測は、観測データだけでは原理的に救えない。この3段階が欠測理論の核心。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このシミュレータが実際に計算していること)</summary>
+<ul>
+<li><b>データ生成</b>: (x, y) は2変量正規、y=5+1.5z₁、x=5+1.5(0.8z₁+0.6z₂)(相関ρ=0.8)、n=300。x は常に観測、y のみ欠測しうる</li>
+<li><b>欠測確率</b>: MCAR: 一律35% / MAR: 1/(1+e^{−1.5(x−5.5)})(観測xのみに依存) / MNAR: 1/(1+e^{−1.5(y−5.5)})(欠けるyそのものに依存)</li>
+<li><b>3つの推定値</b>: 真の平均(全n=300の平均、緑) / リストワイズ平均(観測できたyのみ、赤) / <b>回帰代入平均</b>(観測ペアで y=a+bx を最小二乗フィットし、欠測分を ŷ で埋めた平均、紫)</li>
+<li>ヒストグラム: 灰枠=完全データ、青塗り=観測分。x軸[0,10]・ビン幅0.25固定、y軸は密度0.45上限で固定</li>
+<li>多重代入(乱数を足してm回)ではなく単一の回帰代入 — <b>平均の回復</b>を見る目的では十分だが、分散・区間の評価には多重代入が必要(本文参照)</li>
+</ul>
+</details>
+
 <h2>素朴な対処がダメな理由</h2>
 <p><b>リストワイズ削除</b>(欠測のある行を捨てる)はMCARでない限り偏り、しかもnが減って検出力も落ちる。<b>平均値代入</b>はさらに悪質で、同じ値を埋めるため<b>分散が過小評価</b>され、相関も歪み、「自信過剰な(狭すぎる)信頼区間」を生む — 代入した値を実測値のように扱うことが不確実性の無視にあたる。</p>
 
@@ -88,5 +115,108 @@
   <a href="causal-inference.html">統計的因果推論 →</a>
 </div>
 </main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+function randn() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+const NMD = 300;
+
+function drawMd() {
+  const mech = $("#mech").value;
+  // データ生成
+  const xs = [], ys = [], miss = [];
+  for (let i = 0; i < NMD; i++) {
+    const z1 = randn(), z2 = randn();
+    const y = 5 + 1.5 * z1;
+    const x = 5 + 1.5 * (0.8 * z1 + 0.6 * z2);
+    let pMiss;
+    if (mech === "mcar") pMiss = 0.35;
+    else if (mech === "mar") pMiss = 1 / (1 + Math.exp(-1.5 * (x - 5.5)));
+    else pMiss = 1 / (1 + Math.exp(-1.5 * (y - 5.5)));
+    xs.push(x); ys.push(y); miss.push(Math.random() < pMiss);
+  }
+  const trueMean = ys.reduce((s, v) => s + v, 0) / NMD;
+  const obs = ys.filter((_, i) => !miss[i]);
+  const obsMean = obs.reduce((s, v) => s + v, 0) / obs.length;
+  // 回帰代入: 観測ペアで y = a + bx
+  let sx = 0, sy = 0, sxx = 0, sxy = 0, m = 0;
+  for (let i = 0; i < NMD; i++) {
+    if (miss[i]) continue;
+    m++; sx += xs[i]; sy += ys[i]; sxx += xs[i] * xs[i]; sxy += xs[i] * ys[i];
+  }
+  const bHat = (m * sxy - sx * sy) / (m * sxx - sx * sx);
+  const aHat = (sy - bHat * sx) / m;
+  let impSum = 0;
+  for (let i = 0; i < NMD; i++) impSum += miss[i] ? aHat + bHat * xs[i] : ys[i];
+  const impMean = impSum / NMD;
+
+  // 描画
+  const canvas = $("#plotMd");
+  const { ctx, W, H } = setupCanvas(canvas, 260);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 40, padB = 26, padT = 10, padR = 10;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const BINW = 0.25, YMAXD = 0.45;
+  const X = v => padL + v / 10 * pw;
+  const Y = d => padT + (1 - Math.min(d, YMAXD) / YMAXD) * ph;
+
+  ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ph); ctx.lineTo(padL + pw, padT + ph); ctx.stroke();
+  ctx.fillStyle = col.soft; ctx.font = "11px sans-serif"; ctx.textAlign = "center";
+  [0, 2.5, 5, 7.5, 10].forEach(v => ctx.fillText(v, X(v), padT + ph + 16));
+
+  const nbins = Math.round(10 / BINW);
+  const hAll = new Array(nbins).fill(0), hObs = new Array(nbins).fill(0);
+  ys.forEach((y, i) => {
+    const b = Math.floor(y / BINW);
+    if (b >= 0 && b < nbins) { hAll[b]++; if (!miss[i]) hObs[b]++; }
+  });
+  const bwv = pw / nbins;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(padL, padT, pw, ph); ctx.clip();
+  // 完全データ(灰枠)
+  ctx.strokeStyle = "rgba(128,128,128,.8)"; ctx.lineWidth = 1.2;
+  hAll.forEach((c, i) => {
+    const d = c / (NMD * BINW);
+    if (d > 0) ctx.strokeRect(padL + i * bwv, Y(d), bwv * 0.9, padT + ph - Y(d));
+  });
+  // 観測分(青塗り)
+  ctx.fillStyle = "rgba(43,108,176,.5)";
+  hObs.forEach((c, i) => {
+    const d = c / (NMD * BINW);
+    if (d > 0) ctx.fillRect(padL + i * bwv, Y(d), bwv * 0.9, padT + ph - Y(d));
+  });
+  // 平均線
+  function vline(v, color) {
+    ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(X(v), padT); ctx.lineTo(X(v), padT + ph); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  vline(trueMean, col.ok);
+  vline(obsMean, col.ng);
+  vline(impMean, "#9664c8");
+  ctx.restore();
+
+  const r = $("#readoutMd");
+  r.replaceChildren();
+  const b1 = document.createElement("b");
+  b1.textContent = "削除後 " + obsMean.toFixed(2) + "(バイアス " + (obsMean - trueMean >= 0 ? "+" : "") + (obsMean - trueMean).toFixed(2) + ")";
+  const b2 = document.createElement("b");
+  b2.textContent = "回帰代入後 " + impMean.toFixed(2) + "(残差 " + (impMean - trueMean >= 0 ? "+" : "") + (impMean - trueMean).toFixed(2) + ")";
+  r.append("真の平均(緑) " + trueMean.toFixed(2) + " ・ 赤: ", b1, " ・ 紫: ", b2,
+    " ・ 欠測 " + miss.filter(v => v).length + "/" + NMD);
+}
+$("#mech").addEventListener("input", drawMd);
+$("#mdRegen").addEventListener("click", drawMd);
+window.addEventListener("resize", drawMd);
+drawMd();
+</script>
 </body>
 </html>

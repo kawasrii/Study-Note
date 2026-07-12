@@ -21,7 +21,7 @@
 <main>
 <h1>統計的因果推論:相関から因果へ</h1>
 <p class="lead">タグ: 潜在結果 / 反実仮想 / 平均処置効果 ATE / 交絡 / 無作為化比較試験 RCT / 傾向スコア / DAG / バックドア基準</p>
-<p class="lead">※導入版(フェーズ1): 2027年の範囲改訂で大項目化される分野。全体像と主要概念・例題を押さえるページ。</p>
+<p class="lead">2027年の範囲改訂で大項目化される分野。フェーズ2対応済み: シンプソンのパラドックスが起こる瞬間を見るラボつき。</p>
 <p class="lead">前提知識: 期待値の記法は<a href="random-variables.html">基礎</a>、交絡の実例「シンプソンのパラドックス」は<a href="contingency.html">分割表</a>、無作為化の原点は<a href="anova-doe.html">実験計画法</a>にあります。</p>
 
 <h2>全体マップ — この分野の体系</h2>
@@ -69,6 +69,26 @@
 
 <h2>交絡 — 単純比較が壊れる理由</h2>
 <p>処置群と対照群の単純な差は ATE + <b>選択バイアス</b>(もともと両群が違う分)。処置にも結果にも影響する第3の変数(交絡因子)があると後者が消えない。例:「薬を飲んだ群の方が悪化した」— 重症者ほど薬を飲むから(重症度が交絡)。<a href="contingency.html">シンプソンのパラドックス</a>はこれが極端に出た姿。</p>
+
+<div class="widget">
+  <div class="w-title">シンプソンのパラドックス発生装置 — 割付の偏りが結論を逆転させる瞬間</div>
+  <div class="controls">
+    <label>治療Aに割り当てられる重症患者の割合 q <input type="range" id="qSlider" min="0" max="1" step="0.05" value="0.5"> <span class="val" id="qVal">0.50</span></label>
+  </div>
+  <canvas class="plot" id="plotSimp"></canvas>
+  <div class="readout" id="readoutSimp"></div>
+</div>
+<p class="lead">試してほしい操作:設定は固定で「<b>治療Aはどの層でも回復率が10%高い</b>」(軽症: A 90% vs B 80%、重症: A 50% vs B 40%)。q=0.5(偏りなし)では合計でもAが勝つ。<b>q を上げていく(重症患者ほどAに割り当てる)と、ある点で合計の棒が逆転し「Aの方が悪い」ように見える</b> — 各層では常にAが勝っているのに。readoutの逆転判定と、灰色の各層の棒(動かない)を見比べれば、合計表だけ見ることの危険が一目で分かる。観察研究で「重症な人ほど積極的な治療を受ける」ときに現実に起こる現象。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このラボが実際に計算していること)</summary>
+<ul>
+<li><b>固定設定</b>: 患者は軽症100人・重症100人。回復率は 軽症(A: 0.9, B: 0.8)/重症(A: 0.5, B: 0.4)— <b>常にAが+0.10 優位</b></li>
+<li><b>スライダー q</b>: 重症患者のうちAに行く割合。軽症は逆に(1−q)がAへ(A・Bの総数がほぼ揃うように)</li>
+<li><b>合計回復率</b>: A = (0.9·軽症A人数+0.5·重症A人数)/A総数(Bも同様)— 乱数なしの厳密計算</li>
+<li>棒グラフ: 左4本(灰)=層別の回復率(qによらず不変)、右2本(色)=合計の回復率(qで動く)。y∈[0,1]固定</li>
+<li>逆転が起こる q はこの設定では約0.65以上(厳密には rateA&lt;rateB となる境界)。層別化(=正しい解析)は左4本を読むことに相当する</li>
+</ul>
+</details>
 <div class="formula">$$\text{RCT: 割付を無作為にすると}\quad T \perp \big(Y(0),Y(1)\big) \;\Rightarrow\; \text{単純な群間差} = \mathrm{ATE}$$</div>
 <p>無作為化は<b>測っていない交絡まで含めて</b>両群を(期待値の意味で)均す。これが「エビデンスの最上位=RCT」の理由であり、<a href="anova-doe.html">フィッシャーの無作為化</a>の現代的な意義。</p>
 
@@ -100,5 +120,66 @@ DAG: 喫煙→肺がん、喫煙←社会経済状況→肺がん、喫煙→黄
   <a href="../index.html">ホーム →</a>
 </div>
 </main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+const RATES = { mildA: 0.9, mildB: 0.8, sevA: 0.5, sevB: 0.4 };
+const NL = 100; // 各層の人数
+
+function drawSimp() {
+  const q = +$("#qSlider").value;
+  $("#qVal").textContent = q.toFixed(2);
+
+  const sevA = NL * q, sevB = NL * (1 - q);
+  const mildA = NL * (1 - q), mildB = NL * q;
+  const recA = RATES.mildA * mildA + RATES.sevA * sevA;
+  const recB = RATES.mildB * mildB + RATES.sevB * sevB;
+  const totA = mildA + sevA, totB = mildB + sevB;
+  const rateA = totA > 0 ? recA / totA : 0;
+  const rateB = totB > 0 ? recB / totB : 0;
+
+  const canvas = $("#plotSimp");
+  const { ctx, W, H } = setupCanvas(canvas, 260);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 40, padB = 40, padT = 12, padR = 10;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const Y = v => padT + (1 - v) * ph;
+
+  ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ph); ctx.lineTo(padL + pw, padT + ph); ctx.stroke();
+  ctx.fillStyle = col.soft; ctx.font = "11px sans-serif"; ctx.textAlign = "right";
+  [0, 0.5, 1].forEach(v => ctx.fillText(v, padL - 5, Y(v) + 4));
+
+  const bars = [
+    { v: RATES.mildA, label: "軽症A", color: "rgba(128,128,128,.55)" },
+    { v: RATES.mildB, label: "軽症B", color: "rgba(128,128,128,.35)" },
+    { v: RATES.sevA, label: "重症A", color: "rgba(128,128,128,.55)" },
+    { v: RATES.sevB, label: "重症B", color: "rgba(128,128,128,.35)" },
+    { v: rateA, label: "合計A", color: col.accent },
+    { v: rateB, label: "合計B", color: "#dd8844" },
+  ];
+  const bw = pw / (bars.length * 1.6);
+  bars.forEach((b, i) => {
+    const x = padL + pw * (i + 0.5) / bars.length - bw / 2;
+    ctx.fillStyle = b.color;
+    ctx.fillRect(x, Y(b.v), bw, padT + ph - Y(b.v));
+    ctx.fillStyle = col.soft; ctx.textAlign = "center";
+    ctx.fillText(b.label, x + bw / 2, padT + ph + 16);
+    ctx.fillText((100 * b.v).toFixed(0) + "%", x + bw / 2, Y(b.v) - 5);
+  });
+
+  const r = $("#readoutSimp");
+  r.replaceChildren();
+  const b1 = document.createElement("b");
+  b1.textContent = "合計: A " + (100 * rateA).toFixed(1) + "% vs B " + (100 * rateB).toFixed(1) + "%";
+  r.append("各層では常にAが+10%優位 ・ ", b1, " ・ ",
+    rateA >= rateB ? "整合(Aが優位に見える)" : "⚠ 逆転発生! 合計ではBが優位に見える(シンプソンのパラドックス)");
+}
+$("#qSlider").addEventListener("input", drawSimp);
+window.addEventListener("resize", drawSimp);
+drawSimp();
+</script>
 </body>
 </html>
