@@ -64,6 +64,32 @@
 <h2>ブラウン運動 — ランダムウォークの連続極限</h2>
 <div class="formula">$$W(0)=0, \qquad W(t+s)-W(s) \sim N(0,\,t)\ \text{が過去と独立}, \qquad \text{見本路は連続}$$</div>
 <p><a href="time-series.html">ランダムウォーク</a>の歩幅を小さく・歩数を多くした極限(中心極限定理が効いて増分が正規になる)。<b>分散が時間に比例</b>(標準偏差は√t — 拡散のスケーリング則)、見本路は連続だが至る所で微分不可能、という性質が問われる。金融(株価の対数)や物理(拡散)の基礎モデルで、ドリフト付き μt+σW(t) や幾何ブラウン運動へ拡張される。</p>
+
+<div class="widget">
+  <div class="w-title">見本路シミュレータ — 「確率過程の実現値」を3本ずつ眺める</div>
+  <div class="controls">
+    <label>過程:
+      <select id="spModel">
+        <option value="pois">ポアソン過程 N(t)</option>
+        <option value="bm">ブラウン運動 W(t)</option>
+      </select>
+    </label>
+    <label id="lamWrap">強度 λ <input type="range" id="spLam" min="0.5" max="5" step="0.5" value="2"> <span class="val" id="spLamVal">2.0</span></label>
+    <button id="spRegen">↻ 再生成</button>
+  </div>
+  <canvas class="plot" id="plotSp"></canvas>
+  <div class="readout" id="readoutSp"></div>
+</div>
+<p class="lead">試してほしい操作:ポアソン過程で「再生成」を連打 → <b>階段の段差の間隔がバラバラ(指数分布)</b>だが、どの経路も期待直線 λt(緑点線)の周りを歩く。λ を上げる → 階段が密に。ブラウン運動に切替 → 3本の経路が<b>±2√t の包絡線(緑点線)の内側におおむね収まりながら、√t のゆっくりしたペースでしか広がらない</b>。経路がどこまでもギザギザ(微分不可能)なことも拡大して見てほしい。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このシミュレータが実際に計算していること)</summary>
+<ul>
+<li><b>ポアソン過程</b>: 到着間隔を指数分布 −ln(U)/λ(逆関数法)で生成し、t∈[0,10] の階段関数を描画。緑点線は E[N(t)]=λt。y軸は[0,30]固定(λ=5でもE[N(10)]=50…は超えるためクリップ — はみ出し自体がλの大きさの実感)</li>
+<li><b>ブラウン運動</b>: W(t+Δt)=W(t)+√Δt·Z(Z〜N(0,1)、Box–Muller)、Δt=0.02、t∈[0,10]。緑点線は ±2√t(各時点の95%範囲)。y軸は[−10,10]固定</li>
+<li>いずれも<b>3本の独立な見本路</b>を色分け描画(「過程」は1本の曲線ではなく分布であることを見せるため)</li>
+<li>複合ポアソン過程・ドリフト付きブラウン運動・幾何ブラウン運動は未実装</li>
+</ul>
+</details>
 <div class="warn-box">「W(1)とW(2)は独立」は<b>誤り</b> — 独立なのは<b>増分</b>(W(2)−W(1)とW(1))であって値そのものではない。Cov(W(s), W(t)) = min(s,t) はこの区別を試す定番(導出: W(t)=W(s)+増分 と分解して展開)。</div>
 
 <div class="ex-box">
@@ -87,5 +113,107 @@ Cov(W(2),W(5)) = Cov(W(2),W(2)) + 0 = V[W(2)] = <b>2</b>(一般に min(s,t))。<
   <a href="simulation.html">シミュレーション →</a>
 </div>
 </main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+function randn() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+const TMAXS = 10, PATH_COLORS = ["#2b6cb0", "#dd8844", "#9664c8"];
+
+function drawSp() {
+  const model = $("#spModel").value;
+  const lam = +$("#spLam").value;
+  $("#spLamVal").textContent = lam.toFixed(1);
+  $("#lamWrap").style.display = model === "pois" ? "" : "none";
+
+  const canvas = $("#plotSp");
+  const { ctx, W, H } = setupCanvas(canvas, 280);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 40, padB = 26, padT = 10, padR = 10;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const YMINS = model === "pois" ? 0 : -10;
+  const YMAXS = model === "pois" ? 30 : 10;
+  const X = t => padL + t / TMAXS * pw;
+  const Y = y => padT + (YMAXS - y) / (YMAXS - YMINS) * ph;
+
+  ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ph); ctx.lineTo(padL + pw, padT + ph); ctx.stroke();
+  if (model === "bm") { ctx.beginPath(); ctx.moveTo(padL, Y(0)); ctx.lineTo(padL + pw, Y(0)); ctx.stroke(); }
+  ctx.fillStyle = col.soft; ctx.font = "11px sans-serif"; ctx.textAlign = "center";
+  [0, 2.5, 5, 7.5, 10].forEach(t => ctx.fillText("t=" + t, X(t), padT + ph + 16));
+  ctx.textAlign = "right";
+  (model === "pois" ? [0, 15, 30] : [-10, 0, 10]).forEach(v => ctx.fillText(v, padL - 5, Y(v) + 4));
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(padL, padT, pw, ph); ctx.clip();
+
+  // 理論の目安線(緑点線)
+  ctx.strokeStyle = col.ok; ctx.lineWidth = 1.6; ctx.setLineDash([4, 4]);
+  if (model === "pois") {
+    ctx.beginPath(); ctx.moveTo(X(0), Y(0)); ctx.lineTo(X(TMAXS), Y(lam * TMAXS)); ctx.stroke();
+  } else {
+    [1, -1].forEach(sgn => {
+      ctx.beginPath();
+      for (let i = 0; i <= 200; i++) {
+        const t = TMAXS * i / 200, y = sgn * 2 * Math.sqrt(t);
+        i ? ctx.lineTo(X(t), Y(y)) : ctx.moveTo(X(t), Y(y));
+      }
+      ctx.stroke();
+    });
+  }
+  ctx.setLineDash([]);
+
+  // 見本路3本
+  for (let pth = 0; pth < 3; pth++) {
+    ctx.strokeStyle = PATH_COLORS[pth]; ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    if (model === "pois") {
+      let t = 0, nCount = 0;
+      ctx.moveTo(X(0), Y(0));
+      while (t < TMAXS) {
+        const gap = -Math.log(1 - Math.random()) / lam;
+        const t2 = Math.min(TMAXS, t + gap);
+        ctx.lineTo(X(t2), Y(nCount)); // 水平
+        if (t + gap >= TMAXS) break;
+        nCount++;
+        ctx.lineTo(X(t2), Y(nCount)); // 垂直(ジャンプ)
+        t = t2;
+      }
+    } else {
+      const dt = 0.02;
+      let w = 0;
+      ctx.moveTo(X(0), Y(0));
+      for (let t = dt; t <= TMAXS + 1e-9; t += dt) {
+        w += Math.sqrt(dt) * randn();
+        ctx.lineTo(X(t), Y(w));
+      }
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  const r = $("#readoutSp");
+  r.replaceChildren();
+  const b1 = document.createElement("b");
+  if (model === "pois") {
+    b1.textContent = "E[N(10)] = λt = " + (lam * TMAXS).toFixed(0) + " ・ V[N(10)] も同じ(=λt)";
+    r.append("緑点線 = 期待値直線 λt ・ ", b1);
+  } else {
+    b1.textContent = "W(10) ~ N(0, 10): SD = √10 ≈ 3.16";
+    r.append("緑点線 = ±2√t(各時点の約95%範囲) ・ ", b1);
+  }
+}
+$("#spModel").addEventListener("input", drawSp);
+$("#spLam").addEventListener("input", drawSp);
+$("#spRegen").addEventListener("click", drawSp);
+window.addEventListener("resize", drawSp);
+drawSp();
+</script>
 </body>
 </html>
