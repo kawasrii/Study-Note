@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>仮説検定と検出力 | StudyAcceleration</title>
 <link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="../assets/math.js"></script>
 </head>
 <body>
 <header class="site-header">
@@ -17,6 +21,7 @@
 <main>
 <h1>仮説検定と検出力</h1>
 <p class="lead">タグ: 仮説検定 / p値 / 有意水準 / 第一種・第二種の過誤 / 検出力 / サンプルサイズ設計</p>
+<p class="lead">前提知識: 正規分布と「標本平均の分布(中心極限定理)」は<a href="distributions.html">確率分布ラボ</a>、推定量と標準誤差の考え方は<a href="estimation.html">推定</a>で先に押さえると、このページの図がすべて読めます。</p>
 
 <h2>全体マップ — 検定は「何を・どんな条件で」で選ぶ</h2>
 <p>まず、検定が統計的推測の体系のどこにあるかから。<b>推測統計は「推定」と「検定」の2本柱</b>で、このページは検定を扱う:</p>
@@ -106,7 +111,7 @@
 <div class="warn-box">n が巨大だと無意味に小さい差でも p&lt;0.05 になる(有意 ≠ 重要)。逆に n が小さいと大きな差でも有意にならない。準1級では「検出力 80% を確保するのに必要な n を求めよ」というサンプルサイズ設計の問題が頻出。</div>
 
 <h2>サンプルサイズ設計の公式(片側Z検定)</h2>
-<div class="formula">n = ( (z_α + z_β) · σ / δ )²</div>
+<div class="formula">$$n \;=\; \left(\frac{(z_\alpha+z_\beta)\,\sigma}{\delta}\right)^{\!2}$$</div>
 <p>z_α, z_β は標準正規分布の上側分位点。α=0.05(z=1.645)、検出力 80%(β=0.2, z=0.842)、効果 δ=0.5σ なら n = ((1.645+0.842)/0.5)² ≈ 24.7 → <b>25人</b>。効果が半分になると必要な n は4倍になる(δ² に反比例)点に注意。</p>
 
 <div class="ex-box">

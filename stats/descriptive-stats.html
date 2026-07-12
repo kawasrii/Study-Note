@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>記述統計の基礎:平均・中央値・分散・箱ひげ図 | StudyAcceleration</title>
 <link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="../assets/math.js"></script>
 </head>
 <body>
 <header class="site-header">
@@ -58,7 +62,7 @@
 </table></div>
 
 <h2>平均・中央値・最頻値 — 「真ん中」は1つではない</h2>
-<div class="formula">平均 x̄ = (x₁+x₂+…+xₙ)/n = (1/n)Σxᵢ</div>
+<div class="formula">$$\bar{x} \;=\; \frac{x_1+x_2+\cdots+x_n}{n} \;=\; \frac{1}{n}\sum_{i=1}^{n} x_i$$</div>
 <p>平均は<b>データの重心</b> — 数直線上に同じ重さのおもりを置いたときの釣り合い点で、Σ(xᵢ−x̄)=0(偏差の合計は必ず0)が成り立つ。中央値はデータを並べたときの真ん中(nが偶数なら中央2つの平均)。<b>右に歪んだ分布(所得・住宅価格)では 平均 &gt; 中央値</b> になる — 少数の大きな値が重心を引っ張るから。この3つの位置関係から分布の形を読むのが定番問題。</p>
 
 <div class="widget">
@@ -84,11 +88,11 @@
 </details>
 
 <h2>分散と標準偏差 — ばらつきの標準単位</h2>
-<div class="formula">標本分散 s² = (1/n)Σ(xᵢ−x̄)²,  標準偏差 s = √s²</div>
+<div class="formula">$$s^2 \;=\; \frac{1}{n}\sum_{i=1}^{n}(x_i-\bar{x})^2, \qquad s \;=\; \sqrt{s^2}$$</div>
 <p>各点の「平均からのずれ(偏差)」を2乗して平均したもの。2乗するのは、偏差をそのまま足すと必ず0になるから(そして2乗は理論計算と相性が良いから)。<b>分散の単位は元データの2乗(cm²など)なので、元の単位に戻した標準偏差で解釈する</b>。多くのデータは「平均±2σにおよそ95%」(正規分布に近い場合)という物差しに使える。</p>
 
 <h2>n−1 で割る不偏分散 — なぜ1つ減らすのか</h2>
-<div class="formula">不偏分散 s² = 1/(n−1) · Σ(xᵢ−x̄)²</div>
+<div class="formula">$$s^2 \;=\; \frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar{x})^2$$</div>
 <p>母集団のばらつき(母分散 σ²)を標本から推定したいとき、n で割ると<b>系統的に小さめ</b>に出る。理由の直感: 偏差は本来「母平均 μ からのずれ」で測るべきだが、μ は未知なので<b>データ自身に一番フィットする x̄</b> から測っている。x̄ は必ず「そのデータの真ん中」に来るため、ずれの2乗和は μ から測るより小さくなる(x̄ はΣ(xᵢ−c)²を最小にするcである)。その縮み分をちょうど補正するのが n−1(自由度: 偏差の合計=0 という制約1本分、自由な情報が1つ減っている)。<b>データの記述なら n 割り、母集団の推定なら n−1 割り</b>と使い分ける。</p>
 <div class="warn-box">記号の約束(このサイト共通): 母集団の値はギリシャ文字(母平均 μ、母分散 σ²)、標本からの値はローマ字(標本平均 x̄、不偏分散 s²)。「x̄ は μ の推定量」「s² は σ² の推定量」という<b>役割の対応</b>を常に意識する — <a href="estimation.html">推定</a>で主役になる区別。</div>
 

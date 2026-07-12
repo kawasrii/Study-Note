@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>推定:最尤法・推定量の性質・区間推定 | StudyAcceleration</title>
 <link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="../assets/math.js"></script>
 </head>
 <body>
 <header class="site-header">
@@ -63,21 +67,21 @@
 </table></div>
 
 <h2>最尤法 — 「このデータが最も出やすい母数」を選ぶ</h2>
-<div class="formula">L(θ)=∏f(xᵢ;θ) を最大化。実際は対数尤度 ℓ(θ)=Σln f(xᵢ;θ) を微分して0(尤度方程式)</div>
+<div class="formula">$$L(\theta)=\prod_{i=1}^{n} f(x_i;\theta)\;\text{を最大化。実際は対数尤度}\;\; \ell(\theta)=\sum_{i=1}^{n}\ln f(x_i;\theta)\;\text{を微分して0}$$</div>
 <p>手順は機械的:①尤度を書く → ②対数を取る(積が和になり微分が楽) → ③θで微分して0 → ④解く。代表例は暗記推奨:<b>正規の μ̂=x̄・σ̂²=(1/n)Σ(xᵢ−x̄)²、ポアソンの λ̂=x̄、二項の p̂=x/n、指数の λ̂=1/x̄</b>。</p>
 <div class="note-box">最尤推定量の便利な性質:<b>不変性</b> — θ̂ がMLEなら g(θ̂) も g(θ) のMLE(例: σ̂²のMLEから σ̂=√σ̂² が即座に出る)。</div>
 
 <h2>フィッシャー情報量とクラメール・ラオの不等式 — 精度の理論限界</h2>
-<div class="formula">I(θ)=E[(∂ℓ/∂θ)²]=−E[∂²ℓ/∂θ²],  不偏推定量の分散 ≥ 1/(nI(θ))(CR下限)</div>
+<div class="formula">$$I(\theta)=E\!\left[\left(\frac{\partial \ell_1}{\partial\theta}\right)^{\!2}\right]=-E\!\left[\frac{\partial^2 \ell_1}{\partial\theta^2}\right], \qquad V[\hat\theta] \;\ge\; \frac{1}{n\,I(\theta)} \;\;(\text{CR下限})$$</div>
 <p>フィッシャー情報量は「データ1個が母数について持つ情報の量」。CR不等式は<b>どんな不偏推定量もこれ以上は精度を上げられない</b>という理論限界で、下限を達成する推定量が「有効推定量」。例: ポアソンの I(λ)=1/λ、CR下限=λ/n — x̄ の分散はちょうど λ/n なので x̄ は有効。</p>
 
 <h2>最尤推定量の漸近正規性 — 大標本での万能保証</h2>
-<div class="formula">√n(θ̂_MLE − θ) → N(0, 1/I(θ))  (n→∞)</div>
+<div class="formula">$$\sqrt{n}\,\big(\hat\theta_{\mathrm{MLE}}-\theta\big) \xrightarrow{\;d\;} N\!\left(0,\;\frac{1}{I(\theta)}\right) \qquad (n\to\infty)$$</div>
 <p>正則条件の下で、MLEは<b>一致性をもち、漸近的に正規分布し、しかも漸近分散がCR下限に一致する(漸近有効)</b>。「MLEを使っておけば大標本では最良」の理論的根拠であり、この漸近分散から近似信頼区間 θ̂ ± z·1/√(nI(θ̂)) が作れる。<a href="probability-foundations.html">デルタ法</a>と組み合わせれば g(θ̂) の区間も出る。</p>
 <div class="warn-box">頻出の引っかけ:①正規分布の分散のMLE (1/n)Σ(xᵢ−x̄)² は<b>不偏でない</b>(不偏分散は n−1 で割る。MLE≠不偏の代表例)。ただし一致性はある。②「不偏で一致」「不偏でないが一致」「不偏だが一致でない」の組み合わせを判定させる問題。③CR下限は「不偏」推定量への限界 — バイアスを許せば下回れる(リッジ回帰などの発想)。</div>
 
 <h2>区間推定 — 枢軸量で「幅」を付ける</h2>
-<div class="formula">枢軸量: 分布が母数によらない量。例: (x̄−μ)/(s/√n) ~ t(n−1)</div>
+<div class="formula">$$\text{枢軸量の例: } \frac{\bar{x}-\mu}{s/\sqrt{n}} \;\sim\; t(n-1) \quad (\text{分布が母数によらない})$$</div>
 <p>枢軸量の分布の95%範囲を母数について解き直すと信頼区間になる。基本形は<b>推定値 ± 分位点 × 標準誤差</b>。母平均(σ未知)は t 分布、母分散は (n−1)s²/σ² ~ χ²(n−1)、母比率は正規近似 p̂±z√(p̂(1−p̂)/n)。「95%」は<b>手順の当たり率</b>(θは定数)であり、<a href="bayes.html">ベイズの信用区間</a>との解釈の違いが問われる。</p>
 
 <div class="ex-box">
@@ -97,7 +101,7 @@ dℓ/dλ = −n + Σxᵢ/λ = 0 → <b>λ̂ = x̄</b><br>
 </div>
 
 <div class="page-nav">
-  <a href="distributions.html">← 確率分布ラボ</a>
+  <a href="multidim-dist.html">← 多次元確率分布</a>
   <a href="hypothesis-testing.html">仮説検定と検出力 →</a>
 </div>
 </main>

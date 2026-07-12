@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>確率分布ラボ | StudyAcceleration</title>
 <link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="../assets/math.js"></script>
 </head>
 <body>
 <header class="site-header">
@@ -109,16 +113,16 @@
 </details>
 
 <h2>正規分布 N(μ, σ²)</h2>
-<div class="formula">f(x) = 1/√(2πσ²) · exp( −(x−μ)² / 2σ² ),  E[X]=μ, V[X]=σ²</div>
+<div class="formula">$$f(x)=\frac{1}{\sqrt{2\pi\sigma^2}}\exp\!\left(-\frac{(x-\mu)^2}{2\sigma^2}\right), \qquad E[X]=\mu,\;\; V[X]=\sigma^2$$</div>
 <p>統計学の中心にある分布。μ が位置、σ が広がりを決める。<b>μ±σ に約68%、μ±2σ に約95%、μ±3σ に約99.7%</b> が入る(68-95-99.7則)。標準化 <span class="f">Z=(X−μ)/σ</span> で N(0,1) に変換して確率計算するのが基本動作。</p>
 <div class="note-box">再生性をもつ:独立な X₁~N(μ₁,σ₁²), X₂~N(μ₂,σ₂²) に対して X₁+X₂ ~ N(μ₁+μ₂, σ₁²+σ₂²)。<b>分散は引き算でも足される</b>(X₁−X₂ の分散は σ₁²+σ₂²)点が頻出の引っかけ。</div>
 
 <h2>二項分布 B(n, p)</h2>
-<div class="formula">P(X=k) = ₙCₖ pᵏ(1−p)ⁿ⁻ᵏ,  E[X]=np, V[X]=np(1−p)</div>
+<div class="formula">$$P(X=k)=\binom{n}{k}p^k(1-p)^{n-k}, \qquad E[X]=np,\;\; V[X]=np(1-p)$$</div>
 <p>成功確率 p の試行を独立に n 回行った成功回数。上のラボで n を大きくすると釣鐘型に近づく — これが<b>正規近似</b>(目安 np≧5 かつ n(1−p)≧5)。p を小さく λ=np を一定に保つと<b>ポアソン分布に収束</b>する(少数の法則)。</p>
 
 <h2>ポアソン分布 Po(λ)</h2>
-<div class="formula">P(X=k) = e^(−λ) λᵏ / k!,  E[X]=V[X]=λ</div>
+<div class="formula">$$P(X=k)=\frac{e^{-\lambda}\lambda^k}{k!}, \qquad E[X]=V[X]=\lambda$$</div>
 <p>単位時間あたりの稀な事象の回数(事故件数、来客数)。<b>期待値と分散が等しい</b>のが特徴で、これが成り立たないデータ(過分散)には負の二項分布などを使う。再生性あり:Po(λ₁)+Po(λ₂)~Po(λ₁+λ₂)。</p>
 
 <h2>χ²・t・F — 正規分布から派生する3兄弟</h2>
@@ -131,7 +135,7 @@
 <div class="warn-box">t分布は自由度 ν→∞ で標準正規分布に収束する(ラボで ν を上げて確認)。また <b>t(ν) の二乗は F(1, ν) に従う</b>。E[χ²(k)]=k, V[χ²(k)]=2k は暗記必須。</div>
 
 <h2>中心極限定理 (CLT)</h2>
-<div class="formula">X̄ₙ の分布 → N(μ, σ²/n)  (n→∞, 元の分布が何であっても)</div>
+<div class="formula">$$\bar{X}_n \;\text{の分布} \;\longrightarrow\; N\!\left(\mu,\;\frac{\sigma^2}{n}\right) \qquad (n\to\infty,\ \text{元の分布が何であっても})$$</div>
 <p>「どんな分布から取ったサンプルでも、<b>平均を取れば正規分布に近づく</b>」。これが正規分布が至る所に現れる理由であり、標本平均に基づく検定・推定の理論的支柱。標準誤差 σ/√n が n の平方根でしか縮まない点(精度を10倍にするにはデータ100倍)も重要。</p>
 
 <div class="ex-box">
@@ -144,8 +148,8 @@ Z = (220−200)/10 = 2.0 より P(X≧220) ≈ P(Z≧2.0) ≈ <b>0.0228</b>。<b
 </div>
 
 <div class="page-nav">
-  <a href="multidim-dist.html">← 多次元確率分布</a>
-  <a href="estimation.html">推定 →</a>
+  <a href="probability-foundations.html">← 確率と確率変数</a>
+  <a href="multidim-dist.html">多次元確率分布 →</a>
 </div>
 </main>
 

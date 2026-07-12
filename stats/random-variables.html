@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>確率変数と期待値・分散の定義 | StudyAcceleration</title>
 <link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="../assets/math.js"></script>
 </head>
 <body>
 <header class="site-header">
@@ -57,25 +61,25 @@
 </table></div>
 
 <h2>確率の公理 — すべてのルールの出発点</h2>
-<div class="formula">① P(A) ≥ 0  ② P(全体) = 1  ③ 互いに排反なら P(A∪B) = P(A)+P(B)</div>
+<div class="formula">$$\text{① } P(A)\ge 0 \qquad \text{② } P(\Omega)=1 \qquad \text{③ 排反なら } P(A\cup B)=P(A)+P(B)$$</div>
 <p>この3つ(コルモゴロフの公理)から確率の性質はすべて導かれる。例: P(Aᶜ)=1−P(A)、一般の加法定理 P(A∪B)=P(A)+P(B)−P(A∩B)(重複の引き戻し)。<b>条件付き確率</b> P(A|B)=P(A∩B)/P(B) は「Bが起きた世界に縮めて測り直した確率」、<b>独立</b>はP(A∩B)=P(A)P(B)(Bを知ってもAの確率が変わらない)。</p>
 
 <h2>確率変数 — 結果に数を割り当てる</h2>
 <p>確率変数 X とは「偶然の結果を数値に対応させたもの」(サイコロの目、身長、来客数)。取りうる値が数えられる<b>離散型</b>は確率質量関数 p(x)=P(X=x) で、連続的な<b>連続型</b>は確率密度関数 f(x) で分布を表す。連続型では「1点の確率」は0で、<b>面積が確率</b>: P(a≤X≤b)=∫f(x)dx。どちらも全部足す(積分する)と1になる(公理②)。累積分布関数 F(x)=P(X≤x) は両型共通の表現。</p>
 
 <h2>期待値の定義 — 分布の重心</h2>
-<div class="formula">離散型: E[X] = Σ x·p(x)  /  連続型: E[X] = ∫ x·f(x) dx</div>
+<div class="formula">$$E[X]=\sum_x x\,p(x) \;\;(\text{離散型}) \qquad E[X]=\int_{-\infty}^{\infty} x\,f(x)\,dx \;\;(\text{連続型})$$</div>
 <p>「値 × その値の出やすさ」の総和。<a href="descriptive-stats.html">記述統計の平均</a>が「データの重心」だったのと同様に、<b>期待値は確率分布の重心</b> — 確率を重さと見たときの釣り合い点。μ(ミュー)と書き、母平均とも呼ぶ。関数の期待値も同じ形: E[g(X)]=Σg(x)p(x)(値をg(x)に差し替えるだけ)。</p>
 <div class="note-box"><b>期待値の線形性</b> E[aX+bY]=aE[X]+bE[Y] は<b>XとYが独立でなくても常に成立</b>する。証明スケッチ(離散): E[aX+bY]=ΣΣ(ax+by)p(x,y)=aΣΣx·p(x,y)+bΣΣy·p(x,y)=aE[X]+bE[Y] — 和を分けて周辺化するだけで、独立性をどこにも使っていないことがポイント。</div>
 
 <h2>分散の定義 — 重心からの散らばり</h2>
-<div class="formula">V[X] = E[(X−μ)²]  (μ=E[X])</div>
+<div class="formula">$$V[X] = E\big[(X-\mu)^2\big] \qquad (\mu = E[X])$$</div>
 <p>「重心からのずれの2乗」の期待値。単位を戻した √V[X] が標準偏差 σ。定義から実用公式を導出する:</p>
-<div class="formula">V[X] = E[X²−2μX+μ²] = E[X²]−2μE[X]+μ² = <b>E[X²]−(E[X])²</b></div>
+<div class="formula">$$V[X] = E[X^2-2\mu X+\mu^2] = E[X^2]-2\mu E[X]+\mu^2 = \boxed{E[X^2]-(E[X])^2}$$</div>
 <p>展開して線形性を使うだけの2行だが、この「<b>2乗の期待値 − 期待値の2乗</b>」が分散計算の主力。V[aX+b]=a²V[X](位置ずらしbはばらつきに無関係、スケールaは2乗で効く)も定義から同様に出る。</p>
 
 <h2>共分散と相関係数 — 2変数の連動</h2>
-<div class="formula">Cov(X,Y) = E[(X−μ_X)(Y−μ_Y)] = E[XY]−E[X]E[Y],  ρ = Cov(X,Y)/(σ_X σ_Y)</div>
+<div class="formula">$$\mathrm{Cov}(X,Y) = E\big[(X-\mu_X)(Y-\mu_Y)\big] = E[XY]-E[X]E[Y], \qquad \rho=\frac{\mathrm{Cov}(X,Y)}{\sigma_X\,\sigma_Y}$$</div>
 <p>「両方とも平均より上(下)に出やすい」なら正、「逆に動く」なら負。相関係数 ρ は単位の影響を消した規格化版で <b>−1 ≤ ρ ≤ 1</b>。ρ が測るのは<b>直線的な</b>連動だけ(U字関係は ρ≈0 になりうる)。V[X±Y]=V[X]+V[Y]±2Cov(X,Y) への登場が実用上の主戦場 — 発展は<a href="multidim-dist.html">多次元確率分布</a>へ。</p>
 
 <div class="widget">

@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>回帰分析:最小二乗法から多項式・ノンパラメトリックまで | StudyAcceleration</title>
 <link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="../assets/math.js"></script>
 </head>
 <body>
 <header class="site-header">
@@ -17,6 +21,7 @@
 <main>
 <h1>回帰分析:最小二乗法から多項式・ノンパラメトリックまで</h1>
 <p class="lead">タグ: 最小二乗法 / 決定係数 / 多項式回帰 / 過学習 / 重回帰 / 多重共線性 / カーネル回帰 / k-NN / LOESS / スプライン / ガウス過程回帰</p>
+<p class="lead">前提知識: 分散・共分散・相関係数の定義は<a href="random-variables.html">確率変数と期待値・分散の定義</a>、係数のt検定・分散分析のF検定の枠組みは<a href="hypothesis-testing.html">仮説検定</a>を参照。ガウス過程の節は<a href="bayes.html">ベイズ法</a>(事前分布・事後分布)を先に読むと理解が速いです。</p>
 
 <h2>全体マップ — 回帰手法はこう分類する</h2>
 <p>回帰手法は無数にあるが、分類軸は実質2つしかない。<b>①関数の形をどこまで仮定するか</b>(パラメトリック ⇄ ノンパラメトリック)と、<b>②答えを点で出すか分布で出すか</b>(頻度論的な点推定 ⇄ ベイズ)。まず階層で俯瞰し、次の比較表で性質を見る。</p>
@@ -77,7 +82,7 @@
 
 <h2>最小二乗法 — 残差の二乗和を最小にする</h2>
 <p>単回帰モデル <span class="f">y = β₀ + β₁x + ε</span> では、予測とデータのずれ(残差)の二乗和を最小にするように係数を決める。解は closed form で書ける:</p>
-<div class="formula">β̂₁ = S_xy / S_xx = Σ(xᵢ−x̄)(yᵢ−ȳ) / Σ(xᵢ−x̄)²,  β̂₀ = ȳ − β̂₁x̄</div>
+<div class="formula">$$\hat\beta_1 = \frac{S_{xy}}{S_{xx}} = \frac{\sum(x_i-\bar{x})(y_i-\bar{y})}{\sum(x_i-\bar{x})^2}, \qquad \hat\beta_0 = \bar{y}-\hat\beta_1\bar{x}$$</div>
 <p>つまり<b>傾きは「x と y の共分散 ÷ x の分散」</b>。相関係数 r との関係 <span class="f">β̂₁ = r·(s_y/s_x)</span> も頻出。回帰直線は必ず重心 (x̄, ȳ) を通る。</p>
 
 <div class="widget">
@@ -118,12 +123,12 @@
 <div class="note-box">「外れ値に弱い」のは残差を<b>二乗</b>するせいで、大きなずれほど過大にペナルティされるから。実務ではまず散布図を描け、と言われる理由。ロバスト回帰(Huber損失など)はこの弱点への対処。</div>
 
 <h2>決定係数 R² と調整済み R²</h2>
-<div class="formula">R² = 1 − SSE/SST  (単回帰では R² = r²)</div>
+<div class="formula">$$R^2 = 1-\frac{\mathrm{SSE}}{\mathrm{SST}} \qquad (\text{単回帰では } R^2=r^2)$$</div>
 <p>R²=0.7 なら「y のばらつきの70%がモデルで説明できる」。ただし R² は<b>説明変数(や次数)を増やすだけで必ず増える</b>。モデル比較には罰則付きの<b>調整済み R²</b> を使う:</p>
-<div class="formula">調整済みR² = 1 − (1−R²)·(n−1)/(n−p−1)  (p: 説明変数の数=多項式なら次数)</div>
+<div class="formula">$$\bar{R}^2 = 1-(1-R^2)\,\frac{n-1}{n-p-1} \qquad (p:\ \text{説明変数の数=多項式なら次数})$$</div>
 
 <h2>多項式回帰と過学習</h2>
-<div class="formula">y = β₀ + β₁x + β₂x² + … + β_d x^d + ε</div>
+<div class="formula">$$y = \beta_0+\beta_1 x+\beta_2 x^2+\cdots+\beta_d x^d+\varepsilon$$</div>
 <p>x の冪を説明変数に加えたモデル。x² や x³ は非線形でも、<b>係数 β について線形なので「線形モデル」の一種</b>であり、最小二乗法がそのまま使える(準1級の引っかけポイント)。</p>
 <p>次数 d はモデルの複雑さのダイヤルになっている。上のラボで見た通り:</p>
 <p>d が小さすぎる → データの構造を捉えられない(<b>バイアス大</b> = 過小適合)。d が大きすぎる → ノイズまで拾い、データが少し変わると推定が激変する(<b>バリアンス大</b> = 過学習)。この<b>バイアス・バリアンスのトレードオフ</b>が予測モデル全般を貫く原理で、次数選択には調整済みR²・AIC・交差検証(クロスバリデーション)を使う。</p>
@@ -146,7 +151,7 @@ n=10 のデータに、次数1のモデルで R²=0.88、次数3のモデルで 
 <p>ここまでのモデルは「直線」「d次多項式」という<b>関数の形を先に決めて</b>係数を推定した(パラメトリック)。ノンパラメトリック回帰は形を仮定せず、「<b>近くのデータ点は似た y をもつ</b>」という仮定だけで滑らかな曲線をデータに語らせる。</p>
 
 <h3>カーネル回帰(Nadaraya–Watson)</h3>
-<div class="formula">ŷ(x) = Σᵢ K((x−xᵢ)/h)·yᵢ / Σᵢ K((x−xᵢ)/h)</div>
+<div class="formula">$$\hat{y}(x) = \frac{\sum_i K\!\left(\frac{x-x_i}{h}\right) y_i}{\sum_i K\!\left(\frac{x-x_i}{h}\right)}$$</div>
 <p>各点 x での予測を、<b>近い点ほど大きい重みをつけた y の加重平均</b>で作る。K はカーネル(ガウス核など)、h は<b>バンド幅</b>で「どこまでを近所とみなすか」を決める。</p>
 
 <h3>k近傍(k-NN)回帰</h3>
@@ -157,7 +162,7 @@ n=10 のデータに、次数1のモデルで R²=0.88、次数3のモデルで 
 
 <h3>スプライン回帰</h3>
 <p>区間の境目(<b>節点、ノット</b>)で滑らかにつながる区分多項式(通常3次)を当てはめる。ノットを増やすほど柔軟になる。<b>平滑化スプライン</b>は全点をノットにした上で、曲がりくねりに罰則をかけて滑らかさを自動調整する:</p>
-<div class="formula">minimize  Σ(yᵢ − f(xᵢ))² + λ∫(f″(x))² dx</div>
+<div class="formula">$$\min_f\; \sum_i \big(y_i-f(x_i)\big)^2 + \lambda\!\int\!\big(f''(x)\big)^2\,dx$$</div>
 <p>λ→∞ で直線(最小二乗直線)に、λ→0 で全点を通る補間になる。λ がここでもバンド幅・次数と同じ「複雑さのダイヤル」であることに注目。</p>
 
 <div class="widget">
@@ -198,9 +203,9 @@ n=10 のデータに、次数1のモデルで R²=0.88、次数3のモデルで 
 <h2>ガウス過程回帰 — 「もっともらしい関数」の分布を推定する</h2>
 <p>ここまでの手法はどれも「1本の曲線」を答えとして返した。ガウス過程回帰(GPR)は発想が根本から違う。<b>「データに合いそうな関数すべての上の確率分布」</b>を答えとして返す — つまり各 x での予測が<b>点ではなく分布(平均と分散)</b>で出てくる。</p>
 <p>出発点は、関数 f そのものに事前分布を置くこと。「近い x では f の値も近い」という滑らかさの信念を、カーネル(共分散関数)で表す:</p>
-<div class="formula">k(x, x′) = σ_f² · exp( −(x−x′)² / 2ℓ² )  (RBFカーネル。ℓ: 長さスケール)</div>
+<div class="formula">$$k(x,x') = \sigma_f^2 \exp\!\left(-\frac{(x-x')^2}{2\ell^2}\right) \qquad (\text{RBFカーネル。}\ell:\ \text{長さスケール})$$</div>
 <p>データ (X, y) で条件付けると、新しい点 x* での予測分布が閉じた式で得られる:</p>
-<div class="formula">平均 μ* = k*ᵀ(K+σ_n²I)⁻¹y,  分散 σ*² = k(x*,x*) − k*ᵀ(K+σ_n²I)⁻¹k*</div>
+<div class="formula">$$\mu_* = \mathbf{k}_*^{\top}(K+\sigma_n^2 I)^{-1}\mathbf{y}, \qquad \sigma_*^2 = k(x_*,x_*) - \mathbf{k}_*^{\top}(K+\sigma_n^2 I)^{-1}\mathbf{k}_*$$</div>
 <p>ここが最大の特徴で、<b>データが密な場所では分散が小さく(自信あり)、データが無い場所では事前分布に戻って分散が大きくなる(正直に「わからない」と言う)</b>。下のラボの<b>青い帯(平均±2σ、95%信用区間)</b>がその「もっともらしさ」の可視化そのもの。</p>
 
 <div class="widget">

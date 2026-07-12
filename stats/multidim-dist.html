@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>多次元確率分布:同時・条件付き・2変量正規 | StudyAcceleration</title>
 <link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="../assets/math.js"></script>
 </head>
 <body>
 <header class="site-header">
@@ -18,7 +22,7 @@
 <h1>多次元確率分布:同時・条件付き・2変量正規</h1>
 <p class="lead">タグ: 同時分布 / 周辺分布 / 条件付き分布 / 共分散 / 相関係数 / 多項分布 / 2変量正規分布 / 条件付き期待値 / 全分散の公式</p>
 <p class="lead">※導入版(フェーズ1): 全体像と主要概念・例題を押さえるページ。ラボはフェーズ2で追加予定。</p>
-<p class="lead">前提知識: 期待値・分散・共分散・相関係数の定義は<a href="random-variables.html">確率変数と期待値・分散の定義</a>にあります。</p>
+<p class="lead">前提知識: 期待値・分散・共分散・相関係数の定義は<a href="random-variables.html">確率変数と期待値・分散の定義</a>、正規分布そのものは<a href="distributions.html">確率分布ラボ</a>で先に押さえてください(このページの2変量正規はその発展形です)。</p>
 
 <h2>全体マップ — この分野の体系</h2>
 <p>変数が2つ以上あるとき、確率の情報は「同時分布」に全部入っている。そこから<b>周辺化(片方を消す)</b>と<b>条件付け(片方を固定する)</b>という2つの操作で情報を取り出す — この2操作が体系の背骨。</p>
@@ -56,20 +60,20 @@
 </table></div>
 
 <h2>周辺化と条件付け — 2つの基本操作</h2>
-<div class="formula">周辺: f_X(x)=∫f(x,y)dy  /  条件付き: f(y|x)=f(x,y)/f_X(x)</div>
+<div class="formula">$$\text{周辺: } f_X(x)=\int f(x,y)\,dy \qquad \text{条件付き: } f(y\mid x)=\frac{f(x,y)}{f_X(x)}$$</div>
 <p>周辺化は「興味のない変数を潰して消す」、条件付けは「値を知った上で残りの分布を見る」。<b>独立 ⇔ f(x,y)=f_X(x)f_Y(y) ⇔ 条件付き分布が条件によらない</b>。離散なら積分が和になるだけで構造は同じ。</p>
 
 <h2>多項分布 — 二項分布のk色版</h2>
-<div class="formula">P(X₁=n₁,…,X_k=n_k) = n!/(n₁!…n_k!) · p₁^{n₁}…p_k^{n_k}</div>
+<div class="formula">$$P(X_1=n_1,\dots,X_k=n_k) = \frac{n!}{n_1!\cdots n_k!}\;p_1^{n_1}\cdots p_k^{n_k}$$</div>
 <p>E[Xᵢ]=npᵢ, V[Xᵢ]=npᵢ(1−pᵢ)(周辺が二項だから)。そして<b>Cov(Xᵢ,Xⱼ)=−npᵢpⱼ と必ず負</b>になる — 合計が n に固定されているので、あるカテゴリが多く出れば他は必然的に減るため。この「制約が負の相関を生む」直感は頻出。</p>
 
 <h2>2変量正規分布 — 条件付けると回帰直線が現れる</h2>
-<div class="formula">Y|X=x ~ N( μ_Y + ρ(σ_Y/σ_X)(x−μ_X),  σ_Y²(1−ρ²) )</div>
+<div class="formula">$$Y\mid X=x \;\sim\; N\!\left(\mu_Y+\rho\frac{\sigma_Y}{\sigma_X}(x-\mu_X),\;\; \sigma_Y^2(1-\rho^2)\right)$$</div>
 <p>2変量正規の条件付き分布は再び正規で、<b>条件付き期待値は x の1次式 — これが回帰直線 E[Y|x] の正体</b>(傾き ρσ_Y/σ_X は<a href="regression.html">回帰分析</a>の β̂₁=r·s_y/s_x と対応)。条件付き分散 σ_Y²(1−ρ²) は x によらず一定で、決定係数 R²=ρ² が「説明されて減った分散の割合」であることもここから読める。</p>
 <div class="warn-box">2変量正規では「無相関 ⇔ 独立」が<b>成立する</b>(一般の分布では不成立)。「周辺が両方正規でも同時分布が2変量正規とは限らない」という逆向きの引っかけもある。</div>
 
 <h2>条件付き期待値と全分散の公式 — 分散の分解</h2>
-<div class="formula">E[Y]=E[E[Y|X]](繰り返し期待値) / V[Y]=E[V[Y|X)]+V(E[Y|X])(全分散)</div>
+<div class="formula">$$E[Y]=E\big[E[Y\mid X]\big] \qquad V[Y]=E\big[V[Y\mid X]\big]+V\big(E[Y\mid X]\big)$$</div>
 <p>全分散の公式は「Yのばらつき = <b>グループ内のばらつきの平均 + グループ間のばらつき</b>」という分解。<a href="anova-doe.html">分散分析</a>の平方和分解、混合分布の分散計算、階層モデルなど至る所で再登場する、準1級屈指の重要公式。</p>
 
 <div class="ex-box">
@@ -90,8 +94,8 @@ V[Y|X] = 5²(1−0.64) = 9 → 条件付き標準偏差 = <b>3</b>。<br>
 </div>
 
 <div class="page-nav">
-  <a href="probability-foundations.html">← 確率と確率変数</a>
-  <a href="distributions.html">確率分布ラボ →</a>
+  <a href="distributions.html">← 確率分布ラボ</a>
+  <a href="estimation.html">推定 →</a>
 </div>
 </main>
 </body>
