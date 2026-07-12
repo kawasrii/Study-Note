@@ -21,6 +21,7 @@
 <main>
 <h1>時系列解析:定常性・自己相関・ARMAモデル</h1>
 <p class="lead">タグ: 時系列 / 定常性 / 自己相関 ACF / AR / MA / ARMA / ランダムウォーク / 単位根</p>
+<p class="lead">前提知識: 分散・共分散・相関係数の定義は<a href="random-variables.html">基礎</a>(自己相関はその「自分の過去との」版)、分散の演算規則は<a href="probability-foundations.html">確率と確率変数</a>にあります。</p>
 
 <h2>全体マップ — 時系列解析の体系</h2>
 <p>時系列データは「観測が独立」というこれまでの前提が崩れた世界。<b>過去との相関(自己相関)をどうモデル化するか</b>が主題で、体系は「定常か非定常か」で大きく分かれる。</p>
@@ -65,7 +66,7 @@
 <div class="note-box">AR(1) が定常になる条件 <b>|φ|&lt;1</b> は最頻出。定常時の性質: E[xₜ]=0、V[xₜ]=σ²/(1−φ²)、自己相関 ρₖ=φᵏ。φ→1 の極限がランダムウォークで、V[xₜ]=tσ² と時間に比例して発散する(=単位根、非定常)。</div>
 
 <h2>自己相関関数 ACF — 時系列の指紋</h2>
-<div class="formula">ρₖ = Cov(xₜ, xₜ₊ₖ) / V(xₜ),  標本ACF: rₖ = Σ(xₜ−x̄)(xₜ₊ₖ−x̄) / Σ(xₜ−x̄)²</div>
+<div class="formula">$$\rho_k = \frac{\mathrm{Cov}(x_t,\,x_{t+k})}{V(x_t)}, \qquad \text{標本ACF: } r_k = \frac{\sum_t (x_t-\bar{x})(x_{t+k}-\bar{x})}{\sum_t (x_t-\bar{x})^2}$$</div>
 <p>ラグ k 離れた観測同士の相関。モデルによって特徴的な形になるため、<b>ACFの形からモデルを同定する</b>のが古典的手順:AR(p)は指数的に減衰(切れない)、MA(q)は<b>ラグ q で切断</b>。ARを見分けるには偏自己相関 PACF(AR(p)は ラグ p で切断)を併用する。</p>
 
 <div class="widget">
@@ -102,7 +103,7 @@
 </details>
 
 <h2>ARモデルとMAモデル — 「粘り」と「残響」</h2>
-<div class="formula">AR(1): xₜ = φxₜ₋₁ + εₜ  /  MA(1): xₜ = εₜ + θεₜ₋₁  (εₜ ~ ホワイトノイズ)</div>
+<div class="formula">$$\mathrm{AR}(1):\ x_t = \varphi x_{t-1} + \varepsilon_t \qquad \mathrm{MA}(1):\ x_t = \varepsilon_t + \theta\varepsilon_{t-1} \qquad (\varepsilon_t:\ \text{ホワイトノイズ})$$</div>
 <p>ARは「今日は昨日の φ 倍+ノイズ」— 過去の<b>値</b>が残るので影響が無限に(指数的に減衰しながら)続く。MAは「今日は今日のノイズ+昨日のノイズの θ 倍」— 過去の<b>ノイズ</b>が q 期だけ残る残響であり、q+1 期先には完全に消える。この違いがそのまま ACF の「減衰 vs 切断」に対応する。両者を合成した ARMA(p,q)、差分してから当てはめる ARIMA(p,d,q) が実用の標準形。</p>
 <div class="warn-box">頻出の引っかけ:①「MA過程は常に定常」(パラメータによらない — ARとの対比で問われる)。②AR(1)の定常条件は |φ|&lt;1 であり、φ=1 は単位根=ランダムウォーク。③ランダムウォークは差分 Δxₜ=xₜ−xₜ₋₁ をとるとホワイトノイズ(定常)になる — 「単位根過程は差分で定常化」はARIMAの d の意味そのもの。</div>
 
