@@ -72,6 +72,27 @@
 <p>2変量正規の条件付き分布は再び正規で、<b>条件付き期待値は x の1次式 — これが回帰直線 E[Y|x] の正体</b>(傾き ρσ_Y/σ_X は<a href="regression.html">回帰分析</a>の β̂₁=r·s_y/s_x と対応)。条件付き分散 σ_Y²(1−ρ²) は x によらず一定で、決定係数 R²=ρ² が「説明されて減った分散の割合」であることもここから読める。</p>
 <div class="warn-box">2変量正規では「無相関 ⇔ 独立」が<b>成立する</b>(一般の分布では不成立)。「周辺が両方正規でも同時分布が2変量正規とは限らない」という逆向きの引っかけもある。</div>
 
+<div class="widget">
+  <div class="w-title">2変量正規ラボ — 相関 ρ が楕円・回帰直線・条件付き分布をどう動かすか(標準化版)</div>
+  <div class="controls">
+    <label>相関 ρ <input type="range" id="rho" min="-0.95" max="0.95" step="0.05" value="0.8"> <span class="val" id="rhoVal">0.80</span></label>
+    <label>条件 x₀ <input type="range" id="x0" min="-3" max="3" step="0.1" value="1.5"> <span class="val" id="x0Val">1.5</span></label>
+  </div>
+  <canvas class="plot" id="plotBvn"></canvas>
+  <div class="readout" id="readoutBvn"></div>
+</div>
+<p class="lead">試してほしい操作:ρ を 0 → 0.95 へ → <b>円が細い楕円に潰れ、x₀での条件付き帯(緑)がキュッと縮む</b> — 「相関が強いほど、xを知ったときのyの不確実性 σ√(1−ρ²) が減る」。ρ=0 → 回帰直線が水平になり帯は±2のまま(xは何も教えてくれない)。ρ を負に → 楕円と直線が逆向きに。そして最重要:<b>回帰直線(青、傾きρ)は楕円の長軸(傾き1)より必ず寝ている</b> — これが「平均への回帰」の幾何学的正体。x₀を端に動かすと、条件付き平均が x₀ ほど極端でないことが見える。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このラボが実際に計算していること)</summary>
+<ul>
+<li><b>標準化版</b>: μ_X=μ_Y=0, σ_X=σ_Y=1 に固定(一般の場合は平行移動と拡大縮小だけの違い)。共分散行列 [[1,ρ],[ρ,1]]</li>
+<li><b>楕円(等高線)</b>: マハラノビス距離 c=1, 2 の等高線。固有値 λ₁=1+ρ, λ₂=1−ρ、固有ベクトル (1,±1)/√2 の閉形式を使い、z(θ)=c(√λ₁cosθ·v₁+√λ₂sinθ·v₂) をパラメータ描画(数値の固有値計算なし)</li>
+<li><b>回帰直線</b>: E[Y|x]=ρx(青)。<b>条件付き分布</b>: x₀での N(ρx₀, 1−ρ²) を、点(条件付き平均)と±2σ帯(緑の縦棒)で表示</li>
+<li><b>長軸(灰点線)</b>: 傾き±1(ρの符号による)。回帰直線との開きが「平均への回帰」</li>
+<li><b>軸固定</b>: x, y ∈ [−3.5, 3.5]。散布点のサンプリング表示は未実装(等高線=母集団の姿に絞った)</li>
+</ul>
+</details>
+
 <h2>条件付き期待値と全分散の公式 — 分散の分解</h2>
 <div class="formula">$$E[Y]=E\big[E[Y\mid X]\big] \qquad V[Y]=E\big[V[Y\mid X]\big]+V\big(E[Y\mid X]\big)$$</div>
 <p>全分散の公式は「Yのばらつき = <b>グループ内のばらつきの平均 + グループ間のばらつき</b>」という分解。<a href="anova-doe.html">分散分析</a>の平方和分解、混合分布の分散計算、階層モデルなど至る所で再登場する、準1級屈指の重要公式。</p>
@@ -98,5 +119,89 @@ V[Y|X] = 5²(1−0.64) = 9 → 条件付き標準偏差 = <b>3</b>。<br>
   <a href="estimation.html">推定 →</a>
 </div>
 </main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+function drawBvn() {
+  const rho = +$("#rho").value, x0 = +$("#x0").value;
+  $("#rhoVal").textContent = rho.toFixed(2);
+  $("#x0Val").textContent = x0.toFixed(1);
+
+  const canvas = $("#plotBvn");
+  const { ctx, W, H } = setupCanvas(canvas, 320);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 36, padB = 26, padT = 10, padR = 10;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const R = 3.5;
+  const X = x => padL + (x + R) / (2 * R) * pw;
+  const Y = y => padT + (R - y) / (2 * R) * ph;
+
+  // 軸
+  ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(X(-R), Y(0)); ctx.lineTo(X(R), Y(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(X(0), Y(-R)); ctx.lineTo(X(0), Y(R)); ctx.stroke();
+  ctx.fillStyle = col.soft; ctx.font = "11px sans-serif"; ctx.textAlign = "center";
+  [-3, -1, 1, 3].forEach(v => ctx.fillText(v, X(v), Y(0) + 14));
+  ctx.textAlign = "right";
+  [-3, -1, 1, 3].forEach(v => ctx.fillText(v, X(0) - 5, Y(v) + 4));
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(padL, padT, pw, ph); ctx.clip();
+
+  // 等高線楕円(c=1,2): 固有値 1±ρ、固有ベクトル (1,±1)/√2
+  const l1 = 1 + rho, l2 = 1 - rho;
+  const s2 = Math.SQRT1_2;
+  function ellipse(c, width, alpha) {
+    ctx.strokeStyle = "rgba(43,108,176," + alpha + ")";
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    for (let i = 0; i <= 120; i++) {
+      const t = 2 * Math.PI * i / 120;
+      const a = c * Math.sqrt(l1) * Math.cos(t), b = c * Math.sqrt(l2) * Math.sin(t);
+      const x = s2 * (a - b), y = s2 * (a + b);
+      i ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y));
+    }
+    ctx.closePath(); ctx.stroke();
+  }
+  ellipse(1, 2, 0.85);
+  ellipse(2, 1.4, 0.45);
+
+  // 長軸(傾き±1)
+  ctx.strokeStyle = col.soft; ctx.lineWidth = 1.2; ctx.setLineDash([6, 5]);
+  ctx.beginPath();
+  if (rho >= 0) { ctx.moveTo(X(-R), Y(-R)); ctx.lineTo(X(R), Y(R)); }
+  else { ctx.moveTo(X(-R), Y(R)); ctx.lineTo(X(R), Y(-R)); }
+  ctx.stroke(); ctx.setLineDash([]);
+
+  // 回帰直線 E[Y|x]=ρx
+  ctx.strokeStyle = col.accent; ctx.lineWidth = 2.4;
+  ctx.beginPath(); ctx.moveTo(X(-R), Y(-R * rho)); ctx.lineTo(X(R), Y(R * rho)); ctx.stroke();
+
+  // 条件 x0: 縦線+条件付き平均±2σ
+  const cm = rho * x0, cs = Math.sqrt(1 - rho * rho);
+  ctx.strokeStyle = col.ok; ctx.lineWidth = 1.4; ctx.setLineDash([3, 4]);
+  ctx.beginPath(); ctx.moveTo(X(x0), Y(-R)); ctx.lineTo(X(x0), Y(R)); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.strokeStyle = col.ok; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(X(x0), Y(cm - 2 * cs)); ctx.lineTo(X(x0), Y(cm + 2 * cs)); ctx.stroke();
+  ctx.fillStyle = col.ok;
+  ctx.beginPath(); ctx.arc(X(x0), Y(cm), 5, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  const r = $("#readoutBvn");
+  r.replaceChildren();
+  const b1 = document.createElement("b");
+  b1.textContent = "E[Y|x₀] = ρx₀ = " + cm.toFixed(2);
+  const b2 = document.createElement("b");
+  b2.textContent = "条件付きSD = √(1−ρ²) = " + cs.toFixed(2);
+  r.append(b1, " ・ ", b2, " ・ 決定係数 ρ² = " + (rho * rho).toFixed(2) +
+    "(分散の" + Math.round(100 * rho * rho) + "%をxが説明)");
+}
+["rho", "x0"].forEach(id => $("#" + id).addEventListener("input", drawBvn));
+window.addEventListener("resize", drawBvn);
+drawBvn();
+</script>
 </body>
 </html>
