@@ -21,7 +21,7 @@
 <main>
 <h1>分割表の解析:オッズ比・独立性・シンプソンのパラドックス</h1>
 <p class="lead">タグ: 分割表 / リスク比 / オッズ比 / 独立性のχ²検定 / 適合度検定 / フィッシャーの正確検定 / 対数線形モデル / シンプソンのパラドックス</p>
-<p class="lead">※導入版(フェーズ1): 全体像と主要概念・例題を押さえるページ。ラボはフェーズ2で追加予定。</p>
+<p class="lead">フェーズ2対応済み: 2×2分割表の計算ラボ(OR・RR・χ²・p値が連動)つき。</p>
 <p class="lead">前提知識: χ²分布は<a href="distributions.html">確率分布ラボ</a>、検定の骨格は<a href="hypothesis-testing.html">仮説検定</a>。オッズ比は<a href="glm.html">ロジスティック回帰</a>の係数と直結します。</p>
 
 <h2>全体マップ — この分野の体系</h2>
@@ -71,6 +71,31 @@
 <div class="formula">$$\chi^2 = \sum_{i}\sum_{j} \frac{(O_{ij}-E_{ij})^2}{E_{ij}}, \qquad E_{ij}=\frac{\text{行計}\times\text{列計}}{\text{総計}}, \qquad \text{自由度}=(r-1)(c-1)$$</div>
 <p>H₀「行と列は独立」の下での期待度数からのズレを合算する。<b>期待度数が小さい(目安: 5未満のセルがある)と近似が崩れる</b>ので、2×2ならフィッシャーの正確検定(超幾何分布で正確なp値を計算)を使う。適合度検定(理論分布との一致)も同じχ²統計量で、自由度は カテゴリ数−1−推定した母数の数。</p>
 
+<div class="widget">
+  <div class="w-title">2×2分割表ラボ — セルの度数を動かすと指標と検定がどう連動するか</div>
+  <div class="controls">
+    <label>a(曝露・あり)<input type="range" id="ca" min="1" max="200" step="1" value="20"> <span class="val" id="caVal">20</span></label>
+    <label>b(曝露・なし)<input type="range" id="cb" min="1" max="200" step="1" value="80"> <span class="val" id="cbVal">80</span></label>
+  </div>
+  <div class="controls">
+    <label>c(非曝露・あり)<input type="range" id="cc" min="1" max="200" step="1" value="10"> <span class="val" id="ccVal">10</span></label>
+    <label>d(非曝露・なし)<input type="range" id="cd" min="1" max="200" step="1" value="190"> <span class="val" id="cdVal">190</span></label>
+  </div>
+  <canvas class="plot" id="plotCt"></canvas>
+  <div class="readout" id="readoutCt"></div>
+</div>
+<p class="lead">試してほしい操作:初期値は本文の例題と同じ(喫煙×疾患)— OR=4.75、CI[2.13, 10.6] が再現される。<b>全セルを半分にする</b>(a=10,b=40,c=5,d=95)→ <b>ORは4.75のまま、χ²はほぼ半分に</b> — 「関連の強さ」と「有意性(データ量)」は別物、の実演。d を大きく → 疾患が稀になり <b>OR≈RR</b>(稀な疾患近似)。セルを小さくして期待度数が5を切ると警告が出る(フィッシャー正確検定の出番)。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このラボが実際に計算していること)</summary>
+<ul>
+<li><b>指標</b>: リスク=a/(a+b), c/(c+d)。RR=リスク比。OR=ad/bc。lnORのSE=√(1/a+1/b+1/c+1/d)、95%CI=exp(lnOR±1.96SE)</li>
+<li><b>χ²検定</b>: 期待度数=行計×列計/総計、χ²=Σ(O−E)²/E(<b>イェーツの連続性補正なし</b>)。自由度1</li>
+<li><b>p値は厳密式</b>: 自由度1では P(χ²&gt;x)=2(1−Φ(√x)) が成り立つので、共通エンジンのnormCdf(A&S近似、誤差&lt;7.5×10⁻⁸)で計算(数値積分不使用)</li>
+<li><b>棒グラフ</b>: 曝露群・非曝露群の発症リスクを高さで表示(y∈[0,1]固定)</li>
+<li>期待度数の最小値が5未満なら警告表示。フィッシャー正確検定そのものの計算は未実装</li>
+</ul>
+</details>
+
 <h2>シンプソンのパラドックス — 合計の表はウソをつく</h2>
 <p>層(例: 重症度)ごとに見ると治療Aが常に優れているのに、<b>合計表ではBが優れて見える</b>ことが起こる。原因は層と治療選択の偏り(交絡)。「分割表の関連=因果」ではない最重要の反例で、正しく扱うには層別解析や<a href="causal-inference.html">因果推論</a>の枠組みが必要になる。</p>
 <div class="warn-box">頻出の整理:①χ²検定は「関連の有無」しか言えず<b>強さはオッズ比で別に測る</b>(nが大きいと微弱な関連でも有意になる)。②ケース・コントロール研究ではリスク比は直接推定できないがオッズ比はできる。③χ²統計量はセルの度数を半分にすると半分になる=<b>関連の強さが同じでも標本サイズで変わる</b>。</div>
@@ -96,5 +121,68 @@ ln OR = 1.558, SE = √(1/20+1/80+1/10+1/190) = √0.1678 ≈ 0.410。<br>
   <a href="regression.html">回帰分析 →</a>
 </div>
 </main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+function drawCt() {
+  const a = +$("#ca").value, b = +$("#cb").value, c = +$("#cc").value, d = +$("#cd").value;
+  $("#caVal").textContent = a; $("#cbVal").textContent = b;
+  $("#ccVal").textContent = c; $("#cdVal").textContent = d;
+
+  const r1 = a / (a + b), r2 = c / (c + d);
+  const rr = r1 / r2;
+  const or = (a * d) / (b * c);
+  const se = Math.sqrt(1 / a + 1 / b + 1 / c + 1 / d);
+  const lo = Math.exp(Math.log(or) - 1.96 * se), hi = Math.exp(Math.log(or) + 1.96 * se);
+  const n = a + b + c + d;
+  const e = [
+    (a + b) * (a + c) / n, (a + b) * (b + d) / n,
+    (c + d) * (a + c) / n, (c + d) * (b + d) / n,
+  ];
+  const o = [a, b, c, d];
+  let chi2 = 0;
+  o.forEach((v, i) => chi2 += (v - e[i]) ** 2 / e[i]);
+  const p = 2 * (1 - normCdf(Math.sqrt(chi2), 0, 1)); // df=1 の厳密式
+  const minE = Math.min(...e);
+
+  const canvas = $("#plotCt");
+  const { ctx, W, H } = setupCanvas(canvas, 220);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 40, padB = 30, padT = 12, padR = 10;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const Y = v => padT + (1 - v) * ph;
+
+  ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ph); ctx.lineTo(padL + pw, padT + ph); ctx.stroke();
+  ctx.fillStyle = col.soft; ctx.font = "11px sans-serif"; ctx.textAlign = "right";
+  [0, 0.5, 1].forEach(v => ctx.fillText(v, padL - 5, Y(v) + 4));
+
+  const bw = pw * 0.22;
+  const groups = [
+    { x: padL + pw * 0.25, risk: r1, label: "曝露群 " + (100 * r1).toFixed(1) + "%", color: col.accent },
+    { x: padL + pw * 0.65, risk: r2, label: "非曝露群 " + (100 * r2).toFixed(1) + "%", color: "#dd8844" },
+  ];
+  groups.forEach(g => {
+    ctx.fillStyle = g.color;
+    ctx.fillRect(g.x, Y(g.risk), bw, padT + ph - Y(g.risk));
+    ctx.fillStyle = col.soft; ctx.textAlign = "center";
+    ctx.fillText(g.label, g.x + bw / 2, padT + ph + 17);
+  });
+
+  const r = $("#readoutCt");
+  r.replaceChildren();
+  const b1 = document.createElement("b");
+  b1.textContent = "OR = " + or.toFixed(2) + " [" + lo.toFixed(2) + ", " + hi.toFixed(2) + "]";
+  const b2 = document.createElement("b");
+  b2.textContent = "χ² = " + chi2.toFixed(2) + ", p " + (p < 0.001 ? "< 0.001" : "= " + p.toFixed(3));
+  r.append("RR = " + rr.toFixed(2) + " ・ ", b1, " ・ ", b2,
+    minE < 5 ? " ・ ⚠ 最小期待度数 " + minE.toFixed(1) + " < 5: 正確検定を推奨" : "");
+}
+["ca", "cb", "cc", "cd"].forEach(id => $("#" + id).addEventListener("input", drawCt));
+window.addEventListener("resize", drawCt);
+drawCt();
+</script>
 </body>
 </html>
