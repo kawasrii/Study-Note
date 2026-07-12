@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>略語・用語集 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 略語・用語集</span>
+  </div>
+</header>
+
+<main>
+<h1>略語・用語集</h1>
+<p class="lead">サイト内に登場する略語をアルファベット順に一覧。正式名称(英)・日本語・一言説明・詳細ページへのリンクつき。ページ内検索(Ctrl+F / スマホはページ内検索機能)でも引けます。</p>
+
+<div class="controls">
+  <input id="gfilter" type="search" placeholder="🔍 略語・和訳で絞り込み" autocomplete="off"
+    style="flex:1; min-width:200px; font:inherit; padding:.4em .8em; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink);">
+</div>
+
+<div class="tbl-wrap"><table id="gtable">
+<thead><tr><th>略語</th><th>正式名称(英)</th><th>日本語</th><th>一言説明</th><th>詳細</th></tr></thead>
+<tbody>
+<tr><td>ACF</td><td>Autocorrelation Function</td><td>自己相関関数</td><td>ラグk離れた自分自身との相関。時系列モデル同定の指紋</td><td><a href="time-series.html">時系列</a></td></tr>
+<tr><td>AIC</td><td>Akaike Information Criterion</td><td>赤池情報量規準</td><td>−2lnL̂+2k。予測の良さでモデルを採点</td><td><a href="model-selection.html">モデル選択</a></td></tr>
+<tr><td>ANOVA</td><td>Analysis of Variance</td><td>分散分析</td><td>3群以上の平均差をF検定で調べる</td><td><a href="anova-doe.html">分散分析</a></td></tr>
+<tr><td>AR / MA / ARMA / ARIMA</td><td>Autoregressive / Moving Average / AR+MA / AR Integrated MA</td><td>自己回帰 / 移動平均(モデル)</td><td>時系列の定常過程モデルの基本形と、差分を加えた拡張</td><td><a href="time-series.html">時系列</a></td></tr>
+<tr><td>ATE</td><td>Average Treatment Effect</td><td>平均処置効果</td><td>E[Y(1)−Y(0)]。因果推論の主目的量</td><td><a href="causal-inference.html">因果推論</a></td></tr>
+<tr><td>BIC</td><td>Bayesian Information Criterion</td><td>ベイズ情報量規準</td><td>−2lnL̂+k ln n。真のモデル特定を狙う(罰則がAICより重い)</td><td><a href="model-selection.html">モデル選択</a></td></tr>
+<tr><td>CDF</td><td>Cumulative Distribution Function</td><td>累積分布関数</td><td>F(x)=P(X≤x)。離散・連続共通の分布表現</td><td><a href="random-variables.html">基礎</a></td></tr>
+<tr><td>CLT</td><td>Central Limit Theorem</td><td>中心極限定理</td><td>標本平均の分布は元の分布によらず正規に近づく</td><td><a href="probability-foundations.html">確率</a> / <a href="distributions.html">分布</a></td></tr>
+<tr><td>CV</td><td>Cross-Validation</td><td>交差検証</td><td>データを分割し「見せていないデータ」で予測性能を測る</td><td><a href="model-selection.html">モデル選択</a></td></tr>
+<tr><td>DAG</td><td>Directed Acyclic Graph</td><td>有向非巡回グラフ</td><td>因果の向きを矢印で描く。調整すべき変数の判定に使う</td><td><a href="causal-inference.html">因果推論</a></td></tr>
+<tr><td>EM</td><td>Expectation–Maximization</td><td>EMアルゴリズム</td><td>欠測を条件付き期待値で埋める→最尤推定、を交互反復</td><td><a href="missing-data.html">欠測値</a></td></tr>
+<tr><td>FPC</td><td>Finite Population Correction</td><td>有限母集団修正</td><td>非復元抽出で分散に掛かる (1−n/N)</td><td><a href="sampling.html">標本調査</a></td></tr>
+<tr><td>GLM</td><td>Generalized Linear Model</td><td>一般化線形モデル</td><td>分布+線形予測子+リンク関数で回帰を拡張する枠組み</td><td><a href="glm.html">GLM</a></td></tr>
+<tr><td>GPR</td><td>Gaussian Process Regression</td><td>ガウス過程回帰</td><td>関数に事前分布を置き、予測を分布(平均±帯)で返す回帰</td><td><a href="regression.html">回帰</a></td></tr>
+<tr><td>IQR</td><td>Interquartile Range</td><td>四分位範囲</td><td>Q3−Q1。中央50%の幅。外れ値に頑健な散布度</td><td><a href="descriptive-stats.html">記述統計</a></td></tr>
+<tr><td>IRLS</td><td>Iteratively Reweighted Least Squares</td><td>反復重み付き最小二乗</td><td>GLMの最尤解を数値的に求める標準アルゴリズム</td><td><a href="glm.html">GLM</a></td></tr>
+<tr><td>k-NN</td><td>k-Nearest Neighbors</td><td>k近傍法</td><td>最も近いk個の点の平均(多数決)で予測する</td><td><a href="regression.html">回帰</a> / <a href="multivariate.html">多変量</a></td></tr>
+<tr><td>LDA</td><td>Linear Discriminant Analysis</td><td>(線形)判別分析</td><td>クラス間/クラス内分散比を最大にする方向で分類</td><td><a href="multivariate.html">多変量</a></td></tr>
+<tr><td>LOESS</td><td>LOcally Estimated Scatterplot Smoothing</td><td>局所回帰</td><td>近傍ごとに重み付き直線を当てる平滑化。散布図の傾向線</td><td><a href="regression.html">回帰</a></td></tr>
+<tr><td>LOOCV</td><td>Leave-One-Out Cross-Validation</td><td>1個抜き交差検証</td><td>k-fold CVの k=n 版</td><td><a href="model-selection.html">モデル選択</a></td></tr>
+<tr><td>MAP</td><td>Maximum A Posteriori</td><td>事後確率最大(推定)</td><td>事後分布の最頻値を推定値にする</td><td><a href="bayes.html">ベイズ</a></td></tr>
+<tr><td>MAR</td><td>Missing At Random</td><td>ランダムな欠測</td><td>欠測確率が「観測済みの変数」だけに依存。多重代入等で対処可</td><td><a href="missing-data.html">欠測値</a></td></tr>
+<tr><td>MCAR</td><td>Missing Completely At Random</td><td>完全にランダムな欠測</td><td>欠測が何にも依存しない。削除しても偏らない</td><td><a href="missing-data.html">欠測値</a></td></tr>
+<tr><td>MCMC</td><td>Markov Chain Monte Carlo</td><td>マルコフ連鎖モンテカルロ法</td><td>事後分布を定常分布にもつ連鎖を走らせてサンプルを得る</td><td><a href="bayes.html">ベイズ</a></td></tr>
+<tr><td>MGF</td><td>Moment Generating Function</td><td>モーメント母関数(積率母関数)</td><td>M(t)=E[e^tX]。微分でモーメントが出る</td><td><a href="probability-foundations.html">確率</a></td></tr>
+<tr><td>MLE</td><td>Maximum Likelihood Estimation / Estimator</td><td>最尤推定(法・量)</td><td>尤度(データの出やすさ)を最大にする母数を選ぶ</td><td><a href="estimation.html">推定</a></td></tr>
+<tr><td>MNAR</td><td>Missing Not At Random</td><td>ランダムでない欠測</td><td>欠測確率が欠けた値そのものに依存。観測データだけでは対処不能</td><td><a href="missing-data.html">欠測値</a></td></tr>
+<tr><td>MSE</td><td>Mean Squared Error</td><td>平均二乗誤差</td><td>予測誤差の2乗平均。CVの標準的な採点基準</td><td><a href="model-selection.html">モデル選択</a></td></tr>
+<tr><td>OR</td><td>Odds Ratio</td><td>オッズ比</td><td>ad/bc。分割表とロジスティック回帰をつなぐ関連の指標</td><td><a href="contingency.html">分割表</a></td></tr>
+<tr><td>PACF</td><td>Partial Autocorrelation Function</td><td>偏自己相関関数</td><td>途中のラグの影響を除いた自己相関。AR次数の同定に使う</td><td><a href="time-series.html">時系列</a></td></tr>
+<tr><td>PCA</td><td>Principal Component Analysis</td><td>主成分分析</td><td>分散最大の方向に軸を取り直して次元を縮約</td><td><a href="multivariate.html">多変量</a></td></tr>
+<tr><td>PGF</td><td>Probability Generating Function</td><td>確率母関数</td><td>G(s)=E[s^X]。離散分布用の母関数</td><td><a href="probability-foundations.html">確率</a></td></tr>
+<tr><td>RBF</td><td>Radial Basis Function</td><td>動径基底関数(ガウス核)</td><td>exp(−距離²/2ℓ²)型のカーネル。GPRの標準選択</td><td><a href="regression.html">回帰</a></td></tr>
+<tr><td>RCT</td><td>Randomized Controlled Trial</td><td>無作為化比較試験</td><td>処置をコインで割り付け、交絡を根こそぎ消す実験デザイン</td><td><a href="causal-inference.html">因果推論</a></td></tr>
+<tr><td>RR</td><td>Risk Ratio (Relative Risk)</td><td>リスク比(相対リスク)</td><td>発生率の比。コホート研究で使える関連の指標</td><td><a href="contingency.html">分割表</a></td></tr>
+<tr><td>SE</td><td>Standard Error</td><td>標準誤差</td><td>推定量の標準偏差。σ/√n が代表例</td><td><a href="estimation.html">推定</a></td></tr>
+<tr><td>SRS</td><td>Simple Random Sampling</td><td>単純無作為抽出</td><td>全員に等確率の抽出。標本調査の基準方式</td><td><a href="sampling.html">標本調査</a></td></tr>
+<tr><td>SSB / SSW / SST / SSE</td><td>Sum of Squares (Between / Within / Total / Error)</td><td>群間・群内・全体・誤差平方和</td><td>ばらつきの分解の部品。SST=SSB+SSW</td><td><a href="anova-doe.html">分散分析</a> / <a href="regression.html">回帰</a></td></tr>
+<tr><td>VIF</td><td>Variance Inflation Factor</td><td>分散拡大係数</td><td>1/(1−Rⱼ²)。多重共線性の診断(目安: >10で問題)</td><td><a href="regression.html">回帰</a></td></tr>
+<tr><td>WCSS</td><td>Within-Cluster Sum of Squares</td><td>クラスタ内平方和</td><td>k-meansが最小化する量</td><td><a href="multivariate.html">多変量</a></td></tr>
+</tbody>
+</table></div>
+
+<div class="note-box">表記ルール: 本文では初出時に「最尤推定(MLE: Maximum Likelihood Estimation)」の形式で示し、2回目以降は略語のみを使います。見つからない略語があればこのページで検索を。</div>
+
+<div class="page-nav">
+  <a href="../index.html">← ホーム</a>
+  <a href="descriptive-stats.html">学習を最初から始める →</a>
+</div>
+</main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+const tbody = document.querySelector("#gtable tbody");
+[...tbody.rows].forEach(tr => {
+  tr.dataset.search = tr.textContent.toLowerCase();
+});
+$("#gfilter").addEventListener("input", e => {
+  const q = e.target.value.trim().toLowerCase();
+  [...tbody.rows].forEach(tr => {
+    tr.style.display = (!q || tr.dataset.search.includes(q)) ? "" : "none";
+  });
+});
+</script>
+</body>
+</html>

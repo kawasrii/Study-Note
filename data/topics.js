@@ -171,6 +171,15 @@ const TOPICS = [
     ready: true,
   },
 
+  {
+    title: "略語・用語集",
+    path: "stats/glossary.html",
+    cat: "stats",
+    desc: "MLE・GLM・AIC・MCMC…サイト内の略語を正式名称(英)・和訳・一言説明・リンク付きで一覧。絞り込み検索つき。",
+    tags: ["用語集", "略語", "MLE", "GLM", "AIC", "BIC", "CLT", "MCMC", "PCA", "LDA", "ACF", "リファレンス"],
+    ready: true,
+  },
+
   // ===== 英語(語彙中心) =====
   {
     title: "コア語彙 100",

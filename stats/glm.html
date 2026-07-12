@@ -25,7 +25,7 @@
 <p class="lead">前提知識: <a href="regression.html">回帰分析</a>(重回帰と係数の解釈)、<a href="estimation.html">推定</a>(最尤法 — GLMの係数推定はこれ)、オッズ・オッズ比は<a href="contingency.html">分割表の解析</a>にも登場します。</p>
 
 <h2>全体マップ — この分野の体系</h2>
-<p><a href="regression.html">通常の回帰</a>は「連続な y を正規ノイズで」という前提だった。y が 0/1 や回数のとき、その前提を外して回帰の枠組みを拡張したのが一般化線形モデル(GLM)。「<b>質的な変数が説明側に来る場合(ダミー変数)</b>」と「<b>応答側に来る場合(ロジスティック回帰など)</b>」を区別して整理する。</p>
+<p><a href="regression.html">通常の回帰</a>は「連続な y を正規ノイズで」という前提だった。y が 0/1 や回数のとき、その前提を外して回帰の枠組みを拡張したのが一般化線形モデル(GLM: Generalized Linear Model)。「<b>質的な変数が説明側に来る場合(ダミー変数)</b>」と「<b>応答側に来る場合(ロジスティック回帰など)</b>」を区別して整理する。</p>
 
 <div class="tree"><ul>
 <li class="t-root">質的変数と回帰・GLM
@@ -89,7 +89,7 @@
 </details>
 
 <h2>推定と評価 — 最尤法・逸脱度・AIC</h2>
-<p>GLMの係数は<a href="estimation.html">最尤法</a>で推定するが、線形回帰と違い閉じた式がなく、<b>反復重み付き最小二乗(IRLS)</b>で数値的に解く(統計ソフトが中でやっていること)。当てはまりの評価には残差平方和の代わりに<b>逸脱度(deviance)</b>を使う:</p>
+<p>GLMの係数は<a href="estimation.html">最尤法</a>で推定するが、線形回帰と違い閉じた式がなく、<b>反復重み付き最小二乗(IRLS: Iteratively Reweighted Least Squares)</b>で数値的に解く(統計ソフトが中でやっていること)。当てはまりの評価には残差平方和の代わりに<b>逸脱度(deviance)</b>を使う:</p>
 <div class="formula">$$D = -2\big(\ln L_{\text{モデル}} - \ln L_{\text{飽和モデル}}\big) \qquad (\text{小さいほど良い。線形回帰のSSEに相当})$$</div>
 <p>ネストしたモデルの比較は逸脱度の差(尤度比検定、χ²分布)、ネストしない比較は<a href="model-selection.html">AIC</a> — 線形回帰で学んだ道具立てが尤度の言葉でそのまま再現される。</p>
 

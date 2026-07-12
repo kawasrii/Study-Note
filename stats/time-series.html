@@ -37,8 +37,8 @@
   <li><span class="t-cat">定常過程のモデル</span> — 平均・分散・自己相関が時間によらない
     <ul>
     <li><span class="here">ホワイトノイズ</span> — 無相関な雑音。全モデルの材料</li>
-    <li><span class="here">ARモデル(自己回帰)</span> — 自分の過去に回帰する。ACFは指数減衰</li>
-    <li><span class="here">MAモデル(移動平均)</span> — 過去のノイズの合成。ACFは有限で切断</li>
+    <li><span class="here">ARモデル(Autoregressive: 自己回帰)</span> — 自分の過去に回帰する。ACFは指数減衰</li>
+    <li><span class="here">MAモデル(Moving Average: 移動平均)</span> — 過去のノイズの合成。ACFは有限で切断</li>
     <li class="soon">ARMA(p,q) — ARとMAの合成 — 解説のみ</li>
     </ul>
   </li>
@@ -65,7 +65,7 @@
 <p>(弱)定常とは、<b>①平均が一定、②分散が一定、③自己共分散がラグ k だけで決まる</b>(時点によらない)こと。定常でないと「標本平均や標本ACFが何を推定しているのか」が定まらず、推測の土台が崩れる。だから実務の第一歩は<b>定常化(差分・対数変換・トレンド除去)</b>になる。</p>
 <div class="note-box">AR(1) が定常になる条件 <b>|φ|&lt;1</b> は最頻出。定常時の性質: E[xₜ]=0、V[xₜ]=σ²/(1−φ²)、自己相関 ρₖ=φᵏ。φ→1 の極限がランダムウォークで、V[xₜ]=tσ² と時間に比例して発散する(=単位根、非定常)。</div>
 
-<h2>自己相関関数 ACF — 時系列の指紋</h2>
+<h2>自己相関関数(ACF: Autocorrelation Function)— 時系列の指紋</h2>
 <div class="formula">$$\rho_k = \frac{\mathrm{Cov}(x_t,\,x_{t+k})}{V(x_t)}, \qquad \text{標本ACF: } r_k = \frac{\sum_t (x_t-\bar{x})(x_{t+k}-\bar{x})}{\sum_t (x_t-\bar{x})^2}$$</div>
 <p>ラグ k 離れた観測同士の相関。モデルによって特徴的な形になるため、<b>ACFの形からモデルを同定する</b>のが古典的手順:AR(p)は指数的に減衰(切れない)、MA(q)は<b>ラグ q で切断</b>。ARを見分けるには偏自己相関 PACF(AR(p)は ラグ p で切断)を併用する。</p>
 

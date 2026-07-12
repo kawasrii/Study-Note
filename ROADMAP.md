@@ -28,6 +28,10 @@
 | 13 | causal-inference.html 因果推論 | シンプソンのパラドックス可視化ラボ(合計⇄層別の切替)/ 傾向スコアの数値例 | 未着手 |
 
 横断タスク(随時): 導入版ページの「※導入版」表記を、深掘り完了時に外す。
+**完了**: 略語・用語集 stats/glossary.html 新設(2026-07-12。約40略語、絞り込み検索つき、
+index学習マップ「リファレンス」とtopics.jsに登録済み)。初出表記ルールはCLAUDE.mdに記録、
+主要ページのMLE/GLM/MGF/PGF/AIC/BIC/CV/CLT/ACF/AR/MA/MCMC/PCA/LDA/LOESS/k-NN/GPR/IRLS/
+MCAR/MAR/MNARの初出を修正済み。
 英語側(紛らわしい語・コロケーション)はフェーズ2完了後。
 
 ## 品質基準(全ページ共通・CLAUDE.mdと同期)
