@@ -21,7 +21,7 @@
 <main>
 <h1>質的変数の回帰と一般化線形モデル(GLM)</h1>
 <p class="lead">タグ: ダミー変数 / ロジスティック回帰 / オッズ / オッズ比 / ロジット / ポアソン回帰 / リンク関数 / 一般化線形モデル</p>
-<p class="lead">※導入版(フェーズ1): 全体像と主要概念・例題を押さえるページ。ロジスティック曲線のラボはフェーズ2で追加予定。</p>
+<p class="lead">フェーズ2対応済み: ロジスティック曲線ラボ・推定と評価(逸脱度)の節つき。</p>
 <p class="lead">前提知識: <a href="regression.html">回帰分析</a>(重回帰と係数の解釈)、<a href="estimation.html">推定</a>(最尤法 — GLMの係数推定はこれ)、オッズ・オッズ比は<a href="contingency.html">分割表の解析</a>にも登場します。</p>
 
 <h2>全体マップ — この分野の体系</h2>
@@ -69,6 +69,30 @@
 <p>確率 p をそのまま直線で当てると 0–1 の範囲を飛び出す。そこで p を<b>オッズ p/(1−p)(起こる:起こらない の比)</b>にし、対数を取ったロジットを線形にする。すると p は滑らかなS字(シグモイド)曲線になり、必ず 0–1 に収まる。</p>
 <div class="note-box"><b>係数の解釈が最頻出</b>: x が1増えるとロジットが β₁ 増える = <b>オッズが e^β₁ 倍</b>になる(オッズ比)。e^β₁=1.5 なら「x が1増えるとオッズが1.5倍」。確率 p そのものが1.5倍になるのではない点に注意。推定は最尤法(閉じた式はなく反復計算)、係数の検定はWald検定 z=β̂/SE。</div>
 
+<div class="widget">
+  <div class="w-title">ロジスティック曲線ラボ — 係数がS字とオッズをどう動かすか</div>
+  <div class="controls">
+    <label>β₀(切片) <input type="range" id="b0" min="-8" max="2" step="0.1" value="-4"> <span class="val" id="b0Val">-4.0</span></label>
+    <label>β₁(傾き) <input type="range" id="b1" min="-2" max="2" step="0.05" value="0.8"> <span class="val" id="b1Val">0.80</span></label>
+  </div>
+  <canvas class="plot" id="plotLogit"></canvas>
+  <div class="readout" id="readoutLogit"></div>
+</div>
+<p class="lead">試してほしい操作:β₁ を大きく → <b>S字が急峻になる</b>(判別がシャープに)。β₁ を 0 に → 水平線(x が結果に無関係)。<b>β₁ を負に → S字が反転</b>(x が増えるほど確率低下)。β₀ を動かす → 曲線が左右に平行移動し、<b>50%になる位置 x₅₀ = −β₀/β₁ が滑る</b>。readoutのオッズ比 e^β₁ は β₁ だけで決まり、β₀ には依存しないことも確認。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このラボが実際に計算していること)</summary>
+<ul>
+<li>曲線は p(x)=1/(1+e^{−(β₀+β₁x)}) を x∈[0,10](300点)で評価。y軸は[0,1]固定</li>
+<li>50%点 x₅₀=−β₀/β₁(β₁≠0のとき)に縦点線。オッズ比 e^{β₁} と p(5) をreadout表示</li>
+<li>データからの推定(IRLS)・信頼帯は未実装 — 係数→形の対応を体感する決定的可視化に絞っている</li>
+</ul>
+</details>
+
+<h2>推定と評価 — 最尤法・逸脱度・AIC</h2>
+<p>GLMの係数は<a href="estimation.html">最尤法</a>で推定するが、線形回帰と違い閉じた式がなく、<b>反復重み付き最小二乗(IRLS)</b>で数値的に解く(統計ソフトが中でやっていること)。当てはまりの評価には残差平方和の代わりに<b>逸脱度(deviance)</b>を使う:</p>
+<div class="formula">$$D = -2\big(\ln L_{\text{モデル}} - \ln L_{\text{飽和モデル}}\big) \qquad (\text{小さいほど良い。線形回帰のSSEに相当})$$</div>
+<p>ネストしたモデルの比較は逸脱度の差(尤度比検定、χ²分布)、ネストしない比較は<a href="model-selection.html">AIC</a> — 線形回帰で学んだ道具立てが尤度の言葉でそのまま再現される。</p>
+
 <h2>ポアソン回帰 — 回数データの回帰</h2>
 <div class="formula">$$\ln\lambda = \beta_0+\beta_1 x \qquad \big(y \sim \mathrm{Po}(\lambda)\big)$$</div>
 <p>事故件数・来店回数など非負の計数データ用。対数リンクなので係数は乗法的に効く:x が1増えると期待回数が e^β₁ 倍。観測期間が違うデータはオフセット項 ln(期間) を加えて率を揃える。<b>過分散(分散&gt;平均)</b>のときはポアソンの前提が崩れており、負の二項回帰などを検討 — という論点が頻出。</p>
@@ -91,10 +115,87 @@
 </details>
 </div>
 
+<div class="ex-box">
+確率 p=0.2 のとき、オッズとロジット(対数オッズ)を求めよ。また p=0.8 のときのロジットとの関係を述べよ。
+<details class="ans"><summary>解答を見る</summary>
+<p>オッズ = 0.2/0.8 = <b>0.25</b>、ロジット = ln 0.25 ≈ <b>−1.386</b>。<br>
+p=0.8 のオッズは 4、ロジットは +1.386 — <b>p と 1−p でロジットは符号が反転するだけ</b>(ロジットは p=0.5 を中心に対称)。</p>
+</details>
+</div>
+
+<div class="ex-box">
+ロジスティックモデルで予測確率がちょうど50%になる x の値を β₀, β₁ で表せ。β₀=−4, β₁=0.8 のときの値は?
+<details class="ans"><summary>解答を見る</summary>
+<p>p=0.5 ⇔ ロジット=0 ⇔ β₀+β₁x=0 → <b>x₅₀ = −β₀/β₁</b>。<br>
+β₀=−4, β₁=0.8 なら x₅₀ = 4/0.8 = <b>5</b>(上のラボの初期設定で縦点線が x=5 に立つ)。</p>
+</details>
+</div>
+
 <div class="page-nav">
   <a href="regression.html">← 回帰分析</a>
   <a href="model-selection.html">モデル選択 →</a>
 </div>
 </main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+function drawLogit() {
+  const b0 = +$("#b0").value, b1 = +$("#b1").value;
+  $("#b0Val").textContent = b0.toFixed(1);
+  $("#b1Val").textContent = b1.toFixed(2);
+
+  const p = x => 1 / (1 + Math.exp(-(b0 + b1 * x)));
+  const canvas = $("#plotLogit");
+  const { ctx, W, H } = setupCanvas(canvas, 260);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 40, padB = 26, padT = 10, padR = 10;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const X = x => padL + x / 10 * pw;
+  const Y = y => padT + (1 - y) * ph;
+
+  ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ph); ctx.lineTo(padL + pw, padT + ph); ctx.stroke();
+  ctx.beginPath(); ctx.setLineDash([2, 4]); ctx.moveTo(padL, Y(0.5)); ctx.lineTo(padL + pw, Y(0.5)); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = col.soft; ctx.font = "11px sans-serif"; ctx.textAlign = "center";
+  [0, 2, 4, 6, 8, 10].forEach(v => ctx.fillText(v, X(v), padT + ph + 16));
+  ctx.textAlign = "right";
+  [0, 0.5, 1].forEach(v => ctx.fillText(v, padL - 5, Y(v) + 4));
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(padL, padT, pw, ph); ctx.clip();
+  ctx.strokeStyle = col.accent; ctx.lineWidth = 2.6;
+  ctx.beginPath();
+  for (let i = 0; i <= 300; i++) {
+    const x = 10 * i / 300;
+    i ? ctx.lineTo(X(x), Y(p(x))) : ctx.moveTo(X(x), Y(p(x)));
+  }
+  ctx.stroke();
+
+  if (Math.abs(b1) > 1e-9) {
+    const x50 = -b0 / b1;
+    if (x50 >= 0 && x50 <= 10) {
+      ctx.strokeStyle = col.ok; ctx.lineWidth = 1.6; ctx.setLineDash([3, 4]);
+      ctx.beginPath(); ctx.moveTo(X(x50), padT); ctx.lineTo(X(x50), padT + ph); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = col.ok; ctx.textAlign = "center";
+      ctx.fillText("x₅₀=" + x50.toFixed(2), X(x50), padT + 12);
+    }
+  }
+  ctx.restore();
+
+  const r = $("#readoutLogit");
+  r.replaceChildren();
+  const bb = document.createElement("b");
+  bb.textContent = "オッズ比 e^β₁ = " + Math.exp(b1).toFixed(2);
+  r.append(bb, " ・ p(x=5) = " + p(5).toFixed(3) +
+    (Math.abs(b1) > 1e-9 ? " ・ 50%点 x₅₀ = " + (-b0 / b1).toFixed(2) : " ・ β₁=0: xは無関係(水平線)"));
+}
+["b0", "b1"].forEach(id => $("#" + id).addEventListener("input", drawLogit));
+window.addEventListener("resize", drawLogit);
+drawLogit();
+</script>
 </body>
 </html>
