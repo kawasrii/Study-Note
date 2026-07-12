@@ -21,7 +21,7 @@
 <main>
 <h1>確率と確率変数:条件付き確率・母関数・極限定理</h1>
 <p class="lead">タグ: 条件付き確率 / 独立 / 全確率の公式 / 期待値・分散の性質 / 確率母関数 / モーメント母関数 / 変数変換 / 大数の法則 / 中心極限定理 / デルタ法</p>
-<p class="lead">※導入版(フェーズ1): 全体像と主要概念・例題を押さえるページ。ラボと深い導出はフェーズ2で追加予定。</p>
+<p class="lead">フェーズ2対応済み: 中心極限定理シミュレータつき。</p>
 <p class="lead">前提知識: 期待値・分散の<b>定義</b>は<a href="random-variables.html">確率変数と期待値・分散の定義</a>、平均・分散の<b>データ版</b>は<a href="descriptive-stats.html">記述統計の基礎</a>を先にどうぞ。</p>
 
 <h2>全体マップ — この分野の体系</h2>
@@ -93,6 +93,33 @@ $$V[X\pm Y]=V[X]+V[Y]\pm 2\,\mathrm{Cov}(X,Y)$$</div>
 <h2>極限定理 — nが大きいときの普遍法則</h2>
 <div class="formula">$$\text{大数の法則: } \bar{X}_n \xrightarrow{\;p\;} \mu \qquad \text{中心極限定理: } \frac{\sqrt{n}\,(\bar{X}_n-\mu)}{\sigma} \xrightarrow{\;d\;} N(0,1)$$</div>
 <p>大数の法則は「標本平均が真の値に<b>収束する</b>」(一致性の根拠)、中心極限定理は「その<b>ゆらぎ方が正規分布</b>になる」(検定・区間推定の根拠)。役割の違いを言い分けられることが大切。</p>
+
+<div class="widget">
+  <div class="w-title">中心極限定理シミュレータ — どんな分布でも「平均」は正規に向かう</div>
+  <div class="controls">
+    <label>元の分布:
+      <select id="srcDist">
+        <option value="exp">指数分布(強い右歪み)</option>
+        <option value="unif">一様分布(平ら)</option>
+        <option value="bimodal">二峰分布(山が2つ)</option>
+      </select>
+    </label>
+    <label>標本サイズ n <input type="range" id="clt-n" min="1" max="50" step="1" value="1"> <span class="val" id="cltNVal">1</span></label>
+    <button id="cltRegen">↻ 再抽出</button>
+  </div>
+  <canvas class="plot" id="plotClt"></canvas>
+  <div class="readout" id="readoutClt"></div>
+</div>
+<p class="lead">試してほしい操作:指数分布で n=1 → ヒストグラムは<b>元の分布の形そのまま(強い右歪み)</b>。n を 5, 30 と上げる → <b>歪みが消えて赤点線(標準正規)にぴったり重なっていく</b> — これが中心極限定理の実演。二峰分布(正規から最も遠い形)でも n=30 でほぼ正規になることを確認。「元の分布が何であっても」の凄みが分かる。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このシミュレータが実際に計算していること)</summary>
+<ul>
+<li><b>手順</b>: 選択した分布から n 個抽出→標本平均→標準化 z=(x̄−μ)/(σ/√n)、を<b>10,000回</b>繰り返し、z のヒストグラム(幅0.2、範囲[−4,4])を描画</li>
+<li><b>元の分布と(μ, σ²)</b>: 指数(λ=1): (1, 1)、逆関数法 −ln(1−U) で生成 / 一様[0,1]: (0.5, 1/12) / 二峰: ±1.5 を等確率で選び N(±1.5, 0.5²)、(0, 2.5)</li>
+<li><b>赤点線</b>: 標準正規 N(0,1) の密度(理論曲線)。ヒストグラムは密度スケール(度数/(回数×ビン幅))</li>
+<li><b>軸固定</b>: x∈[−4,4]、y∈[0, 0.6]。正規乱数はBox–Muller法</li>
+</ul>
+</details>
 <p>さらに準1級では<b>デルタ法</b>まで問われる。<b>なぜ必要か</b>: 実際に報告したい量は推定量そのものではなく、その関数であることが多い(比率の推定値からオッズ p/(1−p)、分散から標準偏差、係数から e^β…)。CLTが教えてくれるのは X̄ の分布だけなので、<b>その関数 g(X̄) の分布(=誤差の大きさ)を出す変換規則</b>が要る — それがデルタ法:</p>
 <div class="formula">$$\text{デルタ法: } \sqrt{n}\,\big(g(\bar{X}_n)-g(\mu)\big) \xrightarrow{\;d\;} N\!\big(0,\,[g'(\mu)]^2\sigma^2\big)$$</div>
 <p>「g で変換すると、分散は微分係数の2乗倍になる」— テイラー展開の1次近似 g(X̄)≈g(μ)+g′(μ)(X̄−μ) がそのまま結論になっている。</p>
@@ -118,5 +145,86 @@ X̄ₙ が平均 μ=2、分散 σ²=4 の分布からの標本平均のとき、
   <a href="distributions.html">確率分布ラボ →</a>
 </div>
 </main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+function randn() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+const SRC = {
+  exp:     { mu: 1,   sd: 1,                draw: () => -Math.log(1 - Math.random()) },
+  unif:    { mu: 0.5, sd: Math.sqrt(1 / 12), draw: () => Math.random() },
+  bimodal: { mu: 0,   sd: Math.sqrt(2.5),    draw: () => (Math.random() < 0.5 ? -1.5 : 1.5) + 0.5 * randn() },
+};
+const REPS = 10000, BIN = 0.2, ZMIN = -4, ZMAX = 4;
+
+function drawClt() {
+  const src = SRC[$("#srcDist").value];
+  const n = +$("#clt-n").value;
+  $("#cltNVal").textContent = n;
+
+  const nbins = Math.round((ZMAX - ZMIN) / BIN);
+  const hist = new Array(nbins).fill(0);
+  let zm = 0, zs = 0;
+  for (let r = 0; r < REPS; r++) {
+    let s = 0;
+    for (let i = 0; i < n; i++) s += src.draw();
+    const z = (s / n - src.mu) / (src.sd / Math.sqrt(n));
+    zm += z; zs += z * z;
+    const b = Math.floor((z - ZMIN) / BIN);
+    if (b >= 0 && b < nbins) hist[b]++;
+  }
+  zm /= REPS; zs = Math.sqrt(zs / REPS - zm * zm);
+
+  const canvas = $("#plotClt");
+  const { ctx, W, H } = setupCanvas(canvas, 260);
+  const col = themeColors();
+  ctx.clearRect(0, 0, W, H);
+  const padL = 40, padB = 26, padT = 10, padR = 10;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const YMAXD = 0.6;
+  const X = z => padL + (z - ZMIN) / (ZMAX - ZMIN) * pw;
+  const Y = d => padT + (1 - d / YMAXD) * ph;
+
+  ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ph); ctx.lineTo(padL + pw, padT + ph); ctx.stroke();
+  ctx.fillStyle = col.soft; ctx.font = "11px sans-serif"; ctx.textAlign = "center";
+  [-4, -2, 0, 2, 4].forEach(v => ctx.fillText("z=" + v, X(v), padT + ph + 16));
+  ctx.textAlign = "right";
+  [0, 0.3, 0.6].forEach(v => ctx.fillText(v, padL - 5, Y(v) + 4));
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(padL, padT, pw, ph); ctx.clip();
+  ctx.fillStyle = col.accent;
+  const bw = pw / nbins;
+  hist.forEach((c, i) => {
+    const d = c / (REPS * BIN);
+    ctx.fillRect(padL + i * bw, Y(d), bw * 0.92, padT + ph - Y(d));
+  });
+  ctx.strokeStyle = col.ng; ctx.lineWidth = 2; ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  for (let i = 0; i <= 300; i++) {
+    const z = ZMIN + (ZMAX - ZMIN) * i / 300;
+    const d = normPdf(z, 0, 1);
+    i ? ctx.lineTo(X(z), Y(d)) : ctx.moveTo(X(z), Y(d));
+  }
+  ctx.stroke(); ctx.setLineDash([]);
+  ctx.restore();
+
+  const r = $("#readoutClt");
+  r.replaceChildren();
+  const b1 = document.createElement("b");
+  b1.textContent = "標準化した標本平均 z の分布(10,000回)";
+  r.append(b1, " ・ 実測 mean=" + zm.toFixed(2) + ", sd=" + zs.toFixed(2) + "(理論 0, 1) ・ 赤点線 = N(0,1)");
+}
+["srcDist", "clt-n"].forEach(id => $("#" + id).addEventListener("input", drawClt));
+$("#cltRegen").addEventListener("click", drawClt);
+window.addEventListener("resize", drawClt);
+drawClt();
+</script>
 </body>
 </html>
