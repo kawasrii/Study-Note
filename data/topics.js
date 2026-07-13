@@ -172,6 +172,22 @@ const TOPICS = [
   },
 
   {
+    title: "公式チートシート(直前復習用)",
+    path: "stats/formulas.html",
+    cat: "stats",
+    desc: "全分布のE/V/MGF早見表、検定・推定・回帰・ベイズ共役・頻出定数を1ページに圧縮。試験直前の毎日1周用。",
+    tags: ["公式集", "チートシート", "直前対策", "早見表", "頻出定数"],
+    ready: true,
+  },
+  {
+    title: "総合演習(模擬テスト)",
+    path: "stats/practice-exam.html",
+    cat: "stats",
+    desc: "全分野40問のバンクから毎回10問をランダム出題。分野別成績と弱点分野への復習リンクつき。",
+    tags: ["模擬テスト", "演習", "問題集", "弱点診断", "直前対策"],
+    ready: true,
+  },
+  {
     title: "略語・用語集",
     path: "stats/glossary.html",
     cat: "stats",

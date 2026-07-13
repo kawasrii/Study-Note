@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>公式チートシート(直前復習用) | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="../assets/math.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 公式チートシート</span>
+  </div>
+</header>
+
+<main>
+<h1>公式チートシート — 試験直前の高速復習用</h1>
+<p class="lead">タグ: 公式集 / 直前対策 / 分布早見表 / 検定一覧 / 頻出定数</p>
+<p class="lead">使い方: 各行を見て「導出・使いどころが言えるか」を自問 → 言えなければリンク先へ戻る。<b>暗記の最終確認</b>であって最初の学習用ではありません(理解は各ページで)。</p>
+
+<h2>分布早見表(<a href="distributions.html">分布ラボ</a> / <a href="probability-foundations.html">母関数</a>)</h2>
+<div class="tbl-wrap"><table>
+<tr><th>分布</th><th>確率(密度)関数</th><th>E[X]</th><th>V[X]</th><th>MGF / 覚えどころ</th></tr>
+<tr><td>二項 B(n,p)</td><td>ₙCₖ pᵏ(1−p)ⁿ⁻ᵏ</td><td>np</td><td>np(1−p)</td><td>(1−p+peᵗ)ⁿ。再生性(pが同じ同士)</td></tr>
+<tr><td>ポアソン Po(λ)</td><td>e⁻λ λᵏ/k!</td><td>λ</td><td>λ</td><td>exp(λ(eᵗ−1))。E=V、再生性あり</td></tr>
+<tr><td>幾何(初成功まで)</td><td>(1−p)ᵏ⁻¹p</td><td>1/p</td><td>(1−p)/p²</td><td>無記憶性(離散版)</td></tr>
+<tr><td>一様 U(a,b)</td><td>1/(b−a)</td><td>(a+b)/2</td><td>(b−a)²/12</td><td>U(0,1)の分散1/12は暗記</td></tr>
+<tr><td>指数 Exp(λ)</td><td>λe⁻λˣ</td><td>1/λ</td><td>1/λ²</td><td>λ/(λ−t)。無記憶性・ポアソン過程の間隔</td></tr>
+<tr><td>正規 N(μ,σ²)</td><td>(2πσ²)⁻¹ᐟ²exp(−(x−μ)²/2σ²)</td><td>μ</td><td>σ²</td><td>exp(μt+σ²t²/2)。再生性(引き算でも分散は和)</td></tr>
+<tr><td>χ²(k)</td><td>—</td><td>k</td><td>2k</td><td>標準正規の二乗和。指数・ガンマの親戚</td></tr>
+<tr><td>t(ν)</td><td>—</td><td>0 (ν&gt;1)</td><td>ν/(ν−2) (ν&gt;2)</td><td>ν→∞で N(0,1)。t²=F(1,ν)</td></tr>
+<tr><td>F(d₁,d₂)</td><td>—</td><td>d₂/(d₂−2)</td><td>—</td><td>χ²比。1/F ~ F(d₂,d₁)</td></tr>
+<tr><td>ベータ Beta(α,β)</td><td>∝ x^(α−1)(1−x)^(β−1)</td><td>α/(α+β)</td><td>αβ/((α+β)²(α+β+1))</td><td>二項の共役事前分布</td></tr>
+</table></div>
+
+<h2>確率の操作(<a href="probability-foundations.html">確率と確率変数</a> / <a href="multidim-dist.html">多次元</a>)</h2>
+<div class="tbl-wrap"><table>
+<tr><th>公式</th><th>式</th><th>注意</th></tr>
+<tr><td>ベイズの定理</td><td>P(A|B)=P(B|A)P(A)/P(B)</td><td>分母は全確率の公式で展開</td></tr>
+<tr><td>分散の展開</td><td>V[X]=E[X²]−(E[X])²</td><td>計算の主力</td></tr>
+<tr><td>和の分散</td><td>V[X±Y]=V[X]+V[Y]±2Cov</td><td>独立なら Cov=0。<b>引き算でも分散は増える</b></td></tr>
+<tr><td>全分散の公式</td><td>V[Y]=E[V[Y|X]]+V(E[Y|X])</td><td>層別・混合分布・ANOVAの背骨</td></tr>
+<tr><td>2変量正規の条件付き</td><td>E[Y|x]=μ_Y+ρ(σ_Y/σ_X)(x−μ_X), V=σ_Y²(1−ρ²)</td><td>回帰直線そのもの</td></tr>
+<tr><td>多項分布の共分散</td><td>Cov(Xᵢ,Xⱼ)=−npᵢpⱼ</td><td>必ず負(合計固定のため)</td></tr>
+<tr><td>デルタ法</td><td>√n(g(X̄)−g(μ)) → N(0, g′(μ)²σ²)</td><td>「微分の2乗倍」</td></tr>
+<tr><td>変数変換</td><td>f_Y(y)=f_X(g⁻¹(y))|dg⁻¹/dy|</td><td>単調でなければ区間分割</td></tr>
+</table></div>
+
+<h2>推定(<a href="estimation.html">推定</a>)</h2>
+<div class="tbl-wrap"><table>
+<tr><th>項目</th><th>結果</th><th>補足</th></tr>
+<tr><td>MLE代表例</td><td>正規: μ̂=x̄, σ̂²=(1/n)Σ(xᵢ−x̄)² / Po: λ̂=x̄ / 二項: p̂=x/n / 指数: λ̂=1/x̄</td><td>σ̂²は不偏でない(×(n−1)/n)</td></tr>
+<tr><td>CR下限</td><td>V[θ̂] ≥ 1/(nI(θ))</td><td>I(θ)=−E[∂²lnf/∂θ²]</td></tr>
+<tr><td>MLEの漸近分布</td><td>√n(θ̂−θ) → N(0, 1/I(θ))</td><td>一致・漸近有効・不変性</td></tr>
+<tr><td>区間推定(μ, σ未知)</td><td>x̄ ± t_{α/2}(n−1)·s/√n</td><td>σ既知なら z と σ</td></tr>
+<tr><td>区間推定(σ²)</td><td>[(n−1)s²/χ²_{α/2}, (n−1)s²/χ²_{1−α/2}]</td><td>非対称</td></tr>
+<tr><td>区間推定(比率)</td><td>p̂ ± z_{α/2}√(p̂(1−p̂)/n)</td><td>n大の正規近似</td></tr>
+</table></div>
+
+<h2>検定(<a href="hypothesis-testing.html">仮説検定</a> / <a href="nonparametric.html">ノンパラ</a> / <a href="contingency.html">分割表</a>)</h2>
+<div class="tbl-wrap"><table>
+<tr><th>検定</th><th>統計量</th><th>帰無分布</th></tr>
+<tr><td>1標本Z(σ既知)</td><td>(x̄−μ₀)/(σ/√n)</td><td>N(0,1)</td></tr>
+<tr><td>1標本t(σ未知)</td><td>(x̄−μ₀)/(s/√n)</td><td>t(n−1)</td></tr>
+<tr><td>分散のχ²</td><td>(n−1)s²/σ₀²</td><td>χ²(n−1)</td></tr>
+<tr><td>分散比のF</td><td>s₁²/s₂²</td><td>F(n₁−1, n₂−1)</td></tr>
+<tr><td>独立性のχ²</td><td>Σ(O−E)²/E, E=行計×列計/n</td><td>χ²((r−1)(c−1))</td></tr>
+<tr><td>順位和(Wilcoxon)</td><td>W: E=n₁(N+1)/2, V=n₁n₂(N+1)/12</td><td>正規近似(n大)</td></tr>
+<tr><td>尤度比検定</td><td>−2lnλ</td><td>χ²(制約数)</td></tr>
+<tr><td>一元配置ANOVA</td><td>F=MSB/MSW</td><td>F(a−1, n−a)</td></tr>
+<tr><td>サンプルサイズ(片側Z)</td><td>n=((z_α+z_β)σ/δ)²</td><td>検出力設計</td></tr>
+</table></div>
+
+<h2>回帰・モデル選択(<a href="regression.html">回帰</a> / <a href="glm.html">GLM</a> / <a href="model-selection.html">モデル選択</a>)</h2>
+<div class="tbl-wrap"><table>
+<tr><th>公式</th><th>式</th><th>注意</th></tr>
+<tr><td>回帰係数</td><td>β̂₁=S_xy/S_xx=r·s_y/s_x, β̂₀=ȳ−β̂₁x̄</td><td>重心を通る</td></tr>
+<tr><td>決定係数</td><td>R²=1−SSE/SST(単回帰は r²)</td><td>変数追加で必ず増える</td></tr>
+<tr><td>調整済みR²</td><td>1−(1−R²)(n−1)/(n−p−1)</td><td>モデル比較用</td></tr>
+<tr><td>VIF</td><td>1/(1−Rⱼ²)</td><td>&gt;10で多重共線性を疑う</td></tr>
+<tr><td>ロジット</td><td>ln(p/(1−p))=xβ、オッズ比=e^β</td><td>確率がe^β倍ではない</td></tr>
+<tr><td>AIC / BIC</td><td>−2lnL̂+2k / −2lnL̂+k ln n</td><td>小さいほど良い。BICはより単純を選ぶ</td></tr>
+</table></div>
+
+<h2>ベイズ・時系列・その他(<a href="bayes.html">ベイズ</a> / <a href="time-series.html">時系列</a> / <a href="sampling.html">標本調査</a>)</h2>
+<div class="tbl-wrap"><table>
+<tr><th>項目</th><th>結果</th></tr>
+<tr><td>共役: Beta×二項</td><td>Beta(α,β) + (s,f) → Beta(α+s, β+f)。事後平均 (α+s)/(α+β+s+f)</td></tr>
+<tr><td>マルコフ定常分布(2状態)</td><td>π₁ = q/(p+q)(πP=π を解く)</td></tr>
+<tr><td>AR(1)</td><td>定常⇔|φ|&lt;1。V=σ²/(1−φ²)、ρₖ=φᵏ。φ=1がランダムウォーク(V=tσ²)</td></tr>
+<tr><td>MA(1)</td><td>常に定常。ρ₁=θ/(1+θ²)(|ρ₁|≤0.5)、ρ₂以降0</td></tr>
+<tr><td>ACF/PACF同定</td><td>AR(p): PACFがpで切断 / MA(q): ACFがqで切断</td></tr>
+<tr><td>ポアソン過程</td><td>N(t)~Po(λt) ⇔ 間隔~Exp(λ)。ブラウン運動: W(t)~N(0,t), Cov=min(s,t)</td></tr>
+<tr><td>有限母集団修正</td><td>V(x̄)=(1−n/N)S²/n。ネイマン配分 n_h∝N_hS_h</td></tr>
+<tr><td>PCA</td><td>寄与率=λₖ/Σλ。固有値の和=全分散</td></tr>
+<tr><td>モンテカルロ誤差</td><td>SE ∝ 1/√n(精度10倍にはn百倍)</td></tr>
+</table></div>
+
+<h2>頻出定数(暗記必須)</h2>
+<div class="tbl-wrap"><table>
+<tr><th>記号</th><th>値</th><th>用途</th></tr>
+<tr><td>z₀.₀₂₅</td><td>1.960</td><td>両側5%(95%区間)</td></tr>
+<tr><td>z₀.₀₅</td><td>1.645</td><td>片側5%</td></tr>
+<tr><td>z₀.₁₀ / z₀.₂₀</td><td>1.282 / 0.842</td><td>検出力90% / 80%の設計</td></tr>
+<tr><td>χ²₀.₀₅(1)</td><td>3.841 (=1.96²)</td><td>尤度比・独立性検定(df=1)</td></tr>
+<tr><td>68-95-99.7</td><td>μ±1σ, 2σ, 3σ</td><td>正規分布の目安</td></tr>
+</table></div>
+
+<div class="warn-box">チートシートの正しい使い方: 試験1週間前から毎日1周し、<b>「なぜそうなるか」を言えない行をゼロにする</b>。言えない行はリンク先のラボを触り直すこと。公式の丸暗記は本番の応用問題(準1級は文章題主体)で崩れます。</div>
+
+<div class="page-nav">
+  <a href="glossary.html">← 略語・用語集</a>
+  <a href="practice-exam.html">総合演習(模擬テスト) →</a>
+</div>
+</main>
+</body>
+</html>

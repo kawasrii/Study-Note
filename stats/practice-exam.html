@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>総合演習(模擬テスト) | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">統計 › 総合演習</span>
+  </div>
+</header>
+
+<main>
+<h1>総合演習 — 全分野ミックスの模擬テスト</h1>
+<p class="lead">タグ: 模擬テスト / 総合演習 / 弱点診断 / 全分野 / 直前対策</p>
+<p><b>なぜこの形式か</b>: ページ順に学ぶと「どの章の問題か分かっている」状態で解いてしまう。本番は<b>分野の予告なし</b>に混ざって出る — この「取り出す練習(想起練習)」こそ記憶を定着させる、が学習科学の定番の結論。1回10問・毎回ランダムなので、通勤時間に1セット回すのに向いています。</p>
+
+<div class="widget">
+  <div class="w-title">模擬テスト(全40問のバンクから毎回10問をランダム出題)</div>
+  <div id="exam"></div>
+</div>
+
+<details class="impl"><summary>🔧 実装メモ(このページの仕組み)</summary>
+<ul>
+<li><b>問題バンク</b>: data/questions.js に全分野40問(確率4・分布4・推定4・検定4・ノンパラ分割表4・回帰GLM4・モデル選択分散分析4・多変量3・時系列3・ベイズ確率過程3・応用4)。毎回10問をFisher–Yatesで無作為抽出、選択肢順もシャッフル</li>
+<li><b>弱点診断</b>: 分野別の正答率を集計し、正答率50%以下の分野に復習リンクを提示</li>
+<li><b>記録</b>: ベストスコアのみ localStorage(キー: sa_exam_best)にこのブラウザ内保存。外部送信なし</li>
+<li>数値入力形式・時間制限・過去問の再現は未実装(全問4択)。問題は当サイトの学習内容から出題(公式過去問ではない)</li>
+</ul>
+</details>
+
+<div class="note-box">おすすめの使い方: <b>①全ページを一周したら毎日1セット → ②弱点分野が出たらそのページのラボを触り直す → ③3セット連続9割で仕上げ</b>。間違えた問題の解説にある「なぜ」を自分の言葉で言えるかが合格ライン。</div>
+
+<div class="page-nav">
+  <a href="formulas.html">← 公式チートシート</a>
+  <a href="../index.html">ホーム →</a>
+</div>
+</main>
+
+<script src="../data/questions.js"></script>
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+const NQ = 10;
+const root = $("#exam");
+let deck = [], idx = 0, answered = false;
+const fieldStat = {};
+let score = 0;
+
+const qEl = el("div", "quiz-q");
+const opts = el("div", "quiz-opts");
+const fb = el("div", "quiz-feedback");
+const nav = el("div", "fc-nav");
+const bNext = el("button", "primary", "次の問題 →");
+nav.appendChild(bNext);
+const prog = el("div", "quiz-score");
+root.append(qEl, opts, fb, nav, prog);
+
+function start() {
+  deck = shuffle(QUESTIONS).slice(0, NQ);
+  idx = 0; score = 0;
+  for (const k in fieldStat) delete fieldStat[k];
+  bNext.textContent = "次の問題 →";
+  render();
+}
+
+function render() {
+  answered = false;
+  const it = deck[idx];
+  qEl.textContent = "Q" + (idx + 1) + "/" + NQ + " [" + it.f + "] " + it.q;
+  fb.replaceChildren();
+  opts.replaceChildren();
+  prog.textContent = "スコア: " + score + " / " + idx;
+  shuffle([it.a, ...it.w]).forEach(choice => {
+    const b = el("button", null, choice);
+    b.addEventListener("click", () => {
+      if (answered) return;
+      answered = true;
+      const ok = choice === it.a;
+      fieldStat[it.f] = fieldStat[it.f] || { c: 0, t: 0 };
+      fieldStat[it.f].t++;
+      if (ok) { score++; fieldStat[it.f].c++; b.classList.add("correct"); }
+      else {
+        b.classList.add("wrong");
+        [...opts.children].find(x => x.textContent === it.a).classList.add("correct");
+      }
+      fb.replaceChildren();
+      fb.append((ok ? "○ 正解! " : "× 正解は「" + it.a + "」。") + it.note + " ");
+      const a = document.createElement("a");
+      a.href = it.link; a.textContent = "→ 復習ページ";
+      fb.appendChild(a);
+      [...opts.children].forEach(x => x.disabled = true);
+      prog.textContent = "スコア: " + score + " / " + (idx + 1);
+    });
+    opts.appendChild(b);
+  });
+}
+
+function finish() {
+  qEl.textContent = "結果: " + score + " / " + NQ + " 問正解" + (score >= 9 ? " 🎉 仕上がっています" : score >= 7 ? " — あと一歩" : " — 弱点を復習しよう");
+  opts.replaceChildren();
+  fb.replaceChildren();
+  // ベストスコア
+  const best = Math.max(score, +(store("sa_exam_best") || 0));
+  store("sa_exam_best", best);
+  // 分野別成績と弱点リンク
+  const list = el("div");
+  const title = el("div", null, "分野別成績(今回):");
+  title.style.fontWeight = "700";
+  list.appendChild(title);
+  Object.entries(fieldStat).forEach(([f, s]) => {
+    const row = el("div", null, "・" + f + ": " + s.c + "/" + s.t + (s.c / s.t <= 0.5 ? " ← 要復習: " : ""));
+    if (s.c / s.t <= 0.5) {
+      const q = QUESTIONS.find(x => x.f === f);
+      const a = document.createElement("a");
+      a.href = q.link; a.textContent = "復習ページへ";
+      row.appendChild(a);
+    }
+    list.appendChild(row);
+  });
+  list.appendChild(el("div", null, "ベストスコア: " + best + " / " + NQ + "(このブラウザ内)"));
+  fb.appendChild(list);
+  bNext.textContent = "もう一度(新しい10問)";
+  prog.textContent = "";
+}
+
+bNext.addEventListener("click", () => {
+  if (bNext.textContent.startsWith("もう一度")) { start(); return; }
+  if (!answered) { fb.textContent = "選択肢を選んでから進んでください。"; return; }
+  if (idx + 1 >= NQ) { finish(); return; }
+  idx++; render();
+});
+start();
+</script>
+</body>
+</html>
