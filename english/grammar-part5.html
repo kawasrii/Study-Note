@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Part5型文法演習:4類型の解法 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="page-eng">
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">英語 › Part5型文法演習</span>
+  </div>
+</header>
+
+<main>
+<h1>Part5型文法演習:まず「問題の型」を見抜く</h1>
+<p class="lead">タグ: TOEIC Part5 / 文法 / 品詞問題 / 前置詞 / 接続詞 / 解法ストラテジー</p>
+
+<h2>全体マップ — 空所補充は4つの型しかない</h2>
+<p><b>なぜ型なのか</b>: Part5(短文穴埋め30問)を1問20秒で処理するには、全文を読む前に「<b>何を試されているか</b>」を判定するのが先。選択肢を見れば型は数秒で分かり、型ごとに見る場所が決まっています。950点レベルとは「型判定の自動化」のこと。</p>
+
+<div class="tree"><ul>
+<li class="t-root">Part5の設問タイプ
+  <ul>
+  <li><span class="here">① 品詞問題</span> — 選択肢が同語源の変化形(economy/economic/economically…)
+    <ul>
+    <li>見る場所: <b>空所の前後だけ</b>。冠詞と名詞の間→形容詞、動詞の後→副詞、が典型</li>
+    </ul>
+  </li>
+  <li><span class="here">② 動詞の形</span> — 時制・態・主述一致(has done / was done / doing…)
+    <ul>
+    <li>見る場所: 主語との一致 → 能動/受動(目的語の有無)→ 時制のヒント語(since, by the time)</li>
+    </ul>
+  </li>
+  <li><span class="here">③ 前置詞 vs 接続詞</span> — despite/although, during/while, because of/because
+    <ul>
+    <li>見る場所: 空所の後ろが<b>名詞句なら前置詞、主語+動詞(節)なら接続詞</b></li>
+    </ul>
+  </li>
+  <li><span class="here">④ 語彙(意味)問題</span> — 型では解けない。<a href="vocab-core.html">語彙力</a>と<a href="collocations.html">コロケーション</a>の出番
+    <ul>
+    <li>見る場所: 文全体。①〜③を秒殺して、ここに時間を回すのが時間戦略</li>
+    </ul>
+  </li>
+  </ul>
+</li>
+</ul></div>
+
+<div class="tbl-wrap"><table>
+<tr><th>型</th><th>選択肢の見た目</th><th>判定のカギ</th><th>目標時間</th></tr>
+<tr><td>① 品詞</td><td>-tion / -al / -ly / 動詞形が並ぶ</td><td>空所の前後の品詞スロット</td><td>10秒</td></tr>
+<tr><td>② 動詞の形</td><td>同じ動詞の活用が並ぶ</td><td>主語の数・目的語の有無・時のヒント語</td><td>15秒</td></tr>
+<tr><td>③ 前置詞/接続詞</td><td>despite, although, during…が混在</td><td>後ろが名詞句か節か</td><td>10秒</td></tr>
+<tr><td>④ 語彙</td><td>意味の違う単語が並ぶ</td><td>文脈+コロケーション</td><td>20〜30秒</td></tr>
+</table></div>
+
+<h2>型別ミニ講義</h2>
+<p><b>① 品詞</b>: 英文は「スロット」の言語。<code>the ___ growth</code> なら冠詞と名詞に挟まれた空所=形容詞(economic)。<code>grew ___</code> なら動詞を修飾=副詞(rapidly)。意味を考える前に構造で確定する。</p>
+<p><b>② 動詞の形</b>: 手順は固定 — (1) 主語は単数か複数か (2) 空所の後に目的語があるか(なければ受動態の可能性大) (3) since+過去なら現在完了、by the time+過去なら過去完了。</p>
+<p><b>③ 前置詞/接続詞</b>: <code>___ the heavy rain, the game continued.</code> 後ろは the heavy rain(名詞句)→ 前置詞 Despite。<code>___ it rained heavily, ...</code> 後ろは節 → 接続詞 Although。この1点だけで即断できる。</p>
+
+<h2>演習(15問)</h2>
+<div class="widget">
+  <div class="w-title">型を判定してから解く(解説に型と根拠を明記)</div>
+  <div id="quiz"></div>
+</div>
+
+<details class="impl"><summary>🔧 実装メモ(このページの仕組み)</summary>
+<ul>
+<li>固定15問(①品詞5問・②動詞の形4問・③前置詞/接続詞4問・④語彙2問)。TOEIC公式問題の転載ではなく、頻出パターンを再現した自作問題</li>
+<li>出題順・選択肢順のみ毎回シャッフル(Fisher–Yates)。エンジンは共通QuizMC(assets/app.js)。学習記録は保存しない</li>
+<li>解説には必ず「型」と「見た場所(根拠)」を記載 — 答え合わせではなく判定プロセスの訓練が目的</li>
+</ul>
+</details>
+
+<div class="page-nav">
+  <a href="business-vocab.html">← ビジネス語彙100</a>
+  <a href="../index.html">ホーム →</a>
+</div>
+</main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+QuizMC("quiz", [
+  { q: "The company reported strong ___ growth this quarter.", a: "economic", wrong: ["economy", "economically", "economize"], note: "【型① 品詞】形容詞スロット(形容詞+名詞growth)。名詞economyや副詞は入らない。" },
+  { q: "Sales increased ___ after the campaign.", a: "significantly", wrong: ["significant", "significance", "signify"], note: "【型① 品詞】動詞increasedを修飾する副詞スロット。" },
+  { q: "Please review the ___ carefully before signing.", a: "agreement", wrong: ["agree", "agreeable", "agreeably"], note: "【型① 品詞】冠詞theの後は名詞スロット。" },
+  { q: "The ___ candidate will start next month.", a: "successful", wrong: ["succeed", "successfully", "success"], note: "【型① 品詞】the ___ candidate = 冠詞と名詞に挟まれた形容詞スロット。" },
+  { q: "We offer a ___ designed training program.", a: "carefully", wrong: ["careful", "care", "cares"], note: "【型① 品詞】過去分詞designedを修飾する副詞。a carefully designed X は頻出形。" },
+  { q: "The report ___ by the committee last week.", a: "was reviewed", wrong: ["reviewed", "has reviewed", "is reviewing"], note: "【型② 動詞の形】空所の後に目的語がない+by句 → 受動態。last weekで過去形。" },
+  { q: "Each of the employees ___ a security badge.", a: "has", wrong: ["have", "are having", "were"], note: "【型② 動詞の形】Each of + 複数名詞は単数扱い → has。主述一致の定番。" },
+  { q: "By the time the manager arrived, the meeting ___.", a: "had already started", wrong: ["already starts", "has already started", "will start"], note: "【型② 動詞の形】by the time+過去 → それ以前の完了=過去完了。" },
+  { q: "The new policy ___ effect on April 1.", a: "takes", wrong: ["taking", "to take", "taken"], note: "【型② 動詞の形】主語The policyに対する述語動詞が必要。take effect(発効する)はコロケーション。" },
+  { q: "___ the delay, the project was completed on budget.", a: "Despite", wrong: ["Although", "Because", "While"], note: "【型③ 前置詞/接続詞】後ろが名詞句(the delay)→ 前置詞Despite。Althoughは節が必要。" },
+  { q: "___ the presentation was long, no one left the room.", a: "Although", wrong: ["Despite", "During", "Because of"], note: "【型③ 前置詞/接続詞】後ろが節(S+V)→ 接続詞Although。" },
+  { q: "Visitors must wear a badge ___ their stay.", a: "during", wrong: ["while", "when", "as long as"], note: "【型③ 前置詞/接続詞】their stayは名詞句 → 前置詞during。whileは節を取る。" },
+  { q: "The flight was canceled ___ the storm.", a: "because of", wrong: ["because", "although", "so that"], note: "【型③ 前置詞/接続詞】the stormは名詞句 → 群前置詞because of。becauseは節用。" },
+  { q: "Employees are ___ to attend the annual training.", a: "required", wrong: ["reminded of", "prevented", "insisted"], note: "【型④ 語彙】be required to do(〜することが義務)。requireの語法とセットで覚える。" },
+  { q: "We would like to ___ the meeting until next week.", a: "postpone", wrong: ["proceed", "postage", "prolong"], note: "【型④ 語彙】延期する=postpone(post=後ろへ+pone=置く。語根ponはここでも活躍)。" },
+]);
+</script>
+</body>
+</html>

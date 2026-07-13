@@ -198,6 +198,22 @@ const TOPICS = [
 
   // ===== 英語(語彙中心) =====
   {
+    title: "TOEICビジネス語彙100",
+    path: "english/business-vocab.html",
+    cat: "eng",
+    desc: "invoice・reimburse・itinerary…TOEIC頻出シーン(経理・会議・人事・物流)の定番語。フラッシュカード+クイズ。",
+    tags: ["TOEIC", "ビジネス英語", "語彙", "フラッシュカード", "invoice", "頻出単語"],
+    ready: true,
+  },
+  {
+    title: "Part5型文法演習",
+    path: "english/grammar-part5.html",
+    cat: "eng",
+    desc: "空所補充は品詞・動詞の形・前置詞/接続詞・語彙の4型だけ。型判定ストラテジー+演習15問。",
+    tags: ["TOEIC", "Part5", "文法", "品詞問題", "前置詞", "接続詞", "演習"],
+    ready: true,
+  },
+  {
     title: "コア語彙 100",
     path: "english/vocab-core.html",
     cat: "eng",

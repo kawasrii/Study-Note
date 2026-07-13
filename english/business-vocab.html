@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TOEICビジネス語彙100 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="page-eng">
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">英語 › ビジネス語彙</span>
+  </div>
+</header>
+
+<main>
+<h1>TOEICビジネス語彙100:頻出シーン別</h1>
+<p class="lead">タグ: TOEIC / ビジネス英語 / 語彙 / 請求書 / 会議 / 人事 / 物流 / フラッシュカード</p>
+
+<h2>全体マップ — 語彙学習の体系の中での位置づけ</h2>
+
+<div class="tree"><ul>
+<li class="t-root">語彙力
+  <ul>
+  <li><span class="t-cat">広さ</span> — 知っている語の数
+    <ul>
+    <li>汎用の上級語: <a href="vocab-core.html">コア語彙100</a></li>
+    <li><span class="here">試験特化: TOEICビジネス語彙100(このページ)</span></li>
+    <li>推測力: <a href="word-parts.html">語根・接頭辞</a></li>
+    </ul>
+  </li>
+  <li><span class="t-cat">深さ</span>
+    <ul>
+    <li>使い分け: <a href="confusables.html">紛らわしい語ペア</a> / 組み合わせ: <a href="collocations.html">コロケーション</a></li>
+    </ul>
+  </li>
+  </ul>
+</li>
+</ul></div>
+
+<p><b>なぜこの100語か</b>: TOEICは<b>出題される世界が固定</b>されている — 請求書・会議・採用・出張・物流・カスタマーサービス。この「TOEIC宇宙」の常連語を押さえると、Part7の長文が「知っている話の穴埋め」に変わり、読解速度が跳ね上がる。900点台の壁は難単語ではなく、<b>この定番語を「見た瞬間に」処理できるか</b>で決まります。</p>
+
+<h2>フラッシュカード</h2>
+<div class="widget">
+  <div class="w-title">カードをタップでめくる ・ Space=めくる ・ →=次へ(学習記録つき)</div>
+  <div id="fc"></div>
+</div>
+
+<h2>4択クイズ</h2>
+<div class="widget">
+  <div class="w-title">英単語 → 意味を選ぶ(毎回20問ランダム)</div>
+  <div id="quiz"></div>
+</div>
+
+<h2>単語一覧(検索用)</h2>
+<div class="controls">
+  <input id="filter" type="search" placeholder="🔍 単語・意味で絞り込み" autocomplete="off"
+    style="flex:1; min-width:200px; font:inherit; padding:.4em .8em; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink);">
+</div>
+<div class="tbl-wrap"><table id="vtable">
+  <thead><tr><th>単語</th><th>品詞</th><th>意味</th><th>例文</th></tr></thead>
+  <tbody></tbody>
+</table></div>
+
+<details class="impl"><summary>🔧 実装メモ(このページの仕組み)</summary>
+<ul>
+<li><b>選定基準</b>: TOEIC Part5〜7の頻出シーン(経理・会議・人事・物流・契約・CS・出張)の定番語100。公式問題集の再現ではなく、シーン網羅を優先した独自選定</li>
+<li>エンジンは<a href="vocab-core.html">コア語彙100</a>と共通(Flashcards / QuizMC, assets/app.js)。シャッフルはFisher–Yates</li>
+<li>学習記録は localStorage(キー: sa_vocab_biz_known)にこのブラウザ内のみ保存</li>
+<li>クイズの誤答選択肢は他の99語の意味から無作為抽出。音声(リスニング)は未対応 — 例文を音読して代用を推奨</li>
+</ul>
+</details>
+
+<div class="page-nav">
+  <a href="collocations.html">← コロケーション</a>
+  <a href="grammar-part5.html">Part5型文法演習 →</a>
+</div>
+</main>
+
+<script src="../data/vocab-business.js"></script>
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+Flashcards("fc", VOCAB_BIZ, "sa_vocab_biz_known");
+
+QuizMC("quiz", shuffle(VOCAB_BIZ).slice(0, 20).map(v => {
+  const wrong = shuffle(VOCAB_BIZ.filter(x => x.w !== v.w)).slice(0, 3).map(x => x.m);
+  return { q: v.w + " の意味は?", a: v.m, wrong, note: v.w + ": " + v.ex };
+}));
+
+const tbody = document.querySelector("#vtable tbody");
+VOCAB_BIZ.forEach(v => {
+  const tr = document.createElement("tr");
+  [v.w, v.pos, v.m, v.ex].forEach(t => {
+    const td = document.createElement("td");
+    td.textContent = t;
+    tr.appendChild(td);
+  });
+  tr.dataset.search = (v.w + " " + v.m).toLowerCase();
+  tbody.appendChild(tr);
+});
+$("#filter").addEventListener("input", e => {
+  const q = e.target.value.trim().toLowerCase();
+  [...tbody.children].forEach(tr => tr.style.display = (!q || tr.dataset.search.includes(q)) ? "" : "none");
+});
+</script>
+</body>
+</html>
