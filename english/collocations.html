@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>コロケーション:自然な語の組み合わせ | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="page-eng">
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">英語 › コロケーション</span>
+  </div>
+</header>
+
+<main>
+<h1>コロケーション:自然な語の組み合わせ</h1>
+<p class="lead">タグ: コロケーション / make・do・take・have / 動詞+名詞 / 形容詞+名詞 / 表現力</p>
+
+<h2>全体マップ — 語彙学習の体系の中での位置づけ</h2>
+
+<div class="tree"><ul>
+<li class="t-root">語彙力
+  <ul>
+  <li><span class="t-cat">広さ</span> — 知っている語の数
+    <ul>
+    <li>直接暗記: <a href="vocab-core.html">コア語彙100</a></li>
+    <li>推測力: <a href="word-parts.html">語根・接頭辞</a></li>
+    </ul>
+  </li>
+  <li><span class="t-cat">深さ</span> — 正しく使い分けられる度合い
+    <ul>
+    <li>使い分け: <a href="confusables.html">紛らわしい語ペア</a></li>
+    <li><span class="here">組み合わせ: コロケーション(このページ)</span></li>
+    </ul>
+  </li>
+  </ul>
+</li>
+</ul></div>
+
+<p><b>なぜ学ぶのか</b>: 単語を知っていても "do a mistake"(正しくは make a mistake)のように<b>組み合わせが不自然だと一発で非ネイティブの英語になる</b>。コロケーションは文法規則では説明できない「慣習の相性」で、丸ごと覚えるしかない — 逆に言えば、頻出の組み合わせを塊で覚えるだけで、作文・会話の自然さが一段上がる即効性の高い分野。</p>
+
+<h2>最重要: make / do / take / have の使い分け</h2>
+<div class="tbl-wrap"><table>
+<tr><th>動詞</th><th>イメージ</th><th>定番の組み合わせ</th></tr>
+<tr><td><b>make</b></td><td>無から生み出す・決める</td><td>make a decision / a mistake / an effort / progress / a promise / money / a difference</td></tr>
+<tr><td><b>do</b></td><td>作業・義務をこなす</td><td>do homework / research / business / the dishes / one's best / harm / damage</td></tr>
+<tr><td><b>take</b></td><td>取り込む・引き受ける</td><td>take a break / a risk / responsibility / notes / a picture / action / part in</td></tr>
+<tr><td><b>have</b></td><td>経験・時間を持つ</td><td>have a look / a rest / breakfast / a meeting / fun / trouble / an effect on</td></tr>
+</table></div>
+<div class="note-box">迷ったら: <b>成果物や決定を「生む」なら make、作業を「こなす」なら do</b>。make progress(進歩を生む)と do research(研究作業をこなす)の対比が典型。「努力する」は make an effort と do one's best の両方があるが動詞は交換不可 — 塊で覚える理由がここにある。</div>
+
+<h2>その他の頻出コロケーション</h2>
+<div class="tbl-wrap"><table>
+<tr><th>型</th><th>自然な組み合わせ ○</th><th>ありがちな誤り ✗</th></tr>
+<tr><td>形容詞+名詞</td><td><b>heavy</b> rain / <b>strong</b> coffee / <b>high</b> temperature</td><td>strong rain ✗ / heavy coffee ✗ / tall temperature ✗</td></tr>
+<tr><td>形容詞+名詞</td><td><b>heavy</b> traffic / a <b>strong</b> possibility / <b>fast</b> food</td><td>crowded traffic ✗ / quick food ✗</td></tr>
+<tr><td>副詞+形容詞</td><td><b>highly</b> unlikely / <b>deeply</b> concerned / <b>fully</b> aware</td><td>very unlikely(可だが弱い)/ strongly concerned ✗</td></tr>
+<tr><td>動詞+名詞</td><td><b>pay</b> attention / <b>keep</b> a promise / <b>break</b> a record / <b>catch</b> a cold</td><td>give attention ✗ / hold a promise ✗</td></tr>
+<tr><td>動詞+名詞</td><td><b>raise</b> a question / <b>draw</b> a conclusion / <b>meet</b> a deadline</td><td>lift a question ✗ / take a conclusion ✗</td></tr>
+<tr><td>統計・学術系</td><td><b>conduct</b> research / <b>draw</b> a conclusion / <b>test</b> a hypothesis / a <b>significant</b> difference</td><td>make research ✗ / do a conclusion ✗</td></tr>
+</table></div>
+<p>最後の行は準1級の英語論文読解でもそのまま役立つ学術コロケーション。<a href="../stats/hypothesis-testing.html">仮説検定</a>の英語表現(test a hypothesis, reject the null hypothesis, statistically significant)は塊で覚えておくと洋書・論文がぐっと読みやすくなります。</p>
+
+<h2>コロケーション・クイズ</h2>
+<div class="widget">
+  <div class="w-title">自然な組み合わせを選ぶ(全12問)</div>
+  <div id="quiz"></div>
+</div>
+
+<details class="impl"><summary>🔧 実装メモ(このページの仕組み)</summary>
+<ul>
+<li>クイズは固定12問(make/do/take/have の判別6問+形容詞・動詞コロケーション6問)。出題順・選択肢順のみ毎回シャッフル(Fisher–Yates)。エンジンは共通 QuizMC(assets/app.js)</li>
+<li>学習記録は保存しない(localStorage不使用)</li>
+<li>収録基準: コーパス頻度が高く、日本人学習者の誤用が定番化しているもの。英米差の大きい表現は除外</li>
+</ul>
+</details>
+
+<div class="page-nav">
+  <a href="confusables.html">← 紛らわしい語ペア</a>
+  <a href="../index.html">ホーム →</a>
+</div>
+</main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+QuizMC("quiz", [
+  { q: "I need to ___ a decision by tomorrow.", a: "make", wrong: ["do", "take"], note: "決定を「生む」ので make a decision。" },
+  { q: "She is ___ research on climate change.", a: "doing", wrong: ["making", "taking"], note: "研究作業を「こなす」ので do research(conduct research も可)。" },
+  { q: "Let's ___ a break for ten minutes.", a: "take", wrong: ["make", "do"], note: "休憩を「取る」= take a break。" },
+  { q: "Did you ___ fun at the party?", a: "have", wrong: ["make", "take"], note: "経験を「持つ」= have fun。" },
+  { q: "Don't be afraid to ___ mistakes.", a: "make", wrong: ["do", "have"], note: "make a mistake は最頻出。do a mistake は定番の誤り。" },
+  { q: "We ___ good progress this week.", a: "made", wrong: ["did", "took"], note: "進歩を「生む」= make progress。" },
+  { q: "___ rain is expected tonight.(大雨)", a: "Heavy", wrong: ["Strong", "Hard"], note: "雨は heavy。strong は coffee や possibility に。" },
+  { q: "I'd like a cup of ___ coffee.(濃いコーヒー)", a: "strong", wrong: ["heavy", "thick"], note: "コーヒーは strong。" },
+  { q: "It is ___ unlikely that he will come.(まず来ない)", a: "highly", wrong: ["strongly", "heavily"], note: "unlikely を強めるのは highly。" },
+  { q: "Please ___ attention to the details.", a: "pay", wrong: ["give", "put"], note: "pay attention が定番の塊。" },
+  { q: "She ___ a new world record.", a: "broke", wrong: ["beat down", "cut"], note: "記録は break a record(beat the record も可だが選択肢では break)。" },
+  { q: "The study ___ the hypothesis that sleep improves memory.", a: "tested", wrong: ["made", "did"], note: "test a hypothesis — 統計の英語論文の定番表現。" },
+]);
+</script>
+</body>
+</html>
