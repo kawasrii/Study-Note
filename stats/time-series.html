@@ -39,7 +39,7 @@
     <li><span class="here">ホワイトノイズ</span> — 無相関な雑音。全モデルの材料</li>
     <li><span class="here">ARモデル(Autoregressive: 自己回帰)</span> — 自分の過去に回帰する。ACFは指数減衰</li>
     <li><span class="here">MAモデル(Moving Average: 移動平均)</span> — 過去のノイズの合成。ACFは有限で切断</li>
-    <li class="soon">ARMA(p,q) — ARとMAの合成 — 解説のみ</li>
+    <li><span class="here">ARMA(p,q)とモデル同定(ACF/PACFの切断表)</span> — 解説</li>
     </ul>
   </li>
   <li><span class="t-cat">非定常過程</span> — 平均や分散が時間とともに変わる
@@ -67,7 +67,16 @@
 
 <h2>自己相関関数(ACF: Autocorrelation Function)— 時系列の指紋</h2>
 <div class="formula">$$\rho_k = \frac{\mathrm{Cov}(x_t,\,x_{t+k})}{V(x_t)}, \qquad \text{標本ACF: } r_k = \frac{\sum_t (x_t-\bar{x})(x_{t+k}-\bar{x})}{\sum_t (x_t-\bar{x})^2}$$</div>
-<p>ラグ k 離れた観測同士の相関。モデルによって特徴的な形になるため、<b>ACFの形からモデルを同定する</b>のが古典的手順:AR(p)は指数的に減衰(切れない)、MA(q)は<b>ラグ q で切断</b>。ARを見分けるには偏自己相関 PACF(AR(p)は ラグ p で切断)を併用する。</p>
+<p>ラグ k 離れた観測同士の相関。モデルによって特徴的な形になるため、<b>ACFの形からモデルを同定する</b>のが古典的手順:AR(p)は指数的に減衰(切れない)、MA(q)は<b>ラグ q で切断</b>。ARを見分けるには偏自己相関を併用する。</p>
+
+<h3>PACF(Partial Autocorrelation Function: 偏自己相関関数)とモデル同定</h3>
+<p><b>なぜ必要か</b>: AR過程のACFは切れずに減衰するため、ACFだけではARの次数 p が読めない。PACFは「<b>途中のラグの影響を取り除いた、ラグkとの直接の相関</b>」(x_t を x_{t−1},…,x_{t−k+1} で回帰した残り同士の相関)で、<b>AR(p)ならラグpでスパッと切断</b>される — ACFとPACFで役割が鏡像になっている:</p>
+<div class="tbl-wrap"><table>
+<tr><th></th><th>AR(p)</th><th>MA(q)</th><th>ARMA(p,q)</th></tr>
+<tr><td>ACF</td><td>減衰(切れない)</td><td><b>ラグqで切断</b></td><td>減衰</td></tr>
+<tr><td>PACF</td><td><b>ラグpで切断</b></td><td>減衰(切れない)</td><td>減衰</td></tr>
+</table></div>
+<p>「どちらかが切断→切れた側から次数を読む。両方減衰→ARMA」という同定手順が古典的なボックス・ジェンキンス法の第一歩。実務では<a href="model-selection.html">AIC</a>による次数選択と併用する。</p>
 
 <div class="widget">
   <div class="w-title">時系列シミュレータ — モデルの「見た目」と「ACFの指紋」を対応させる</div>
