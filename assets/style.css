@@ -235,6 +235,26 @@ canvas.plot { width: 100%; height: auto; display: block; border-radius: 6px; }
 .quiz-feedback { min-height: 1.6em; font-size: .92rem; }
 .quiz-score { font-size: .85rem; color: var(--ink-soft); }
 
+/* ---------- ホーム: カテゴリ入り口 ---------- */
+.entry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 1em 0; }
+.entry-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: .8em 1em; border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--surface); color: var(--ink); text-decoration: none;
+  border-left: 4px solid var(--line);
+}
+.entry-card.stat { border-left-color: var(--stat); }
+.entry-card.eng { border-left-color: var(--eng); }
+.entry-card:hover { border-color: var(--accent); }
+.entry-card .e-icon { font-size: 1.5rem; flex: none; }
+.entry-card .e-body { display: flex; flex-direction: column; min-width: 0; }
+.entry-card .e-t { font-weight: 700; }
+.entry-card .e-d { font-size: .78rem; color: var(--ink-soft); }
+.entry-card .e-arrow { margin-left: auto; color: var(--ink-soft); flex: none; }
+@media (max-width: 600px) {
+  .entry-grid { grid-template-columns: 1fr; }
+}
+
 /* ---------- SRS(間隔反復フラッシュカード) ---------- */
 .srs-board { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: .7em 1em; margin: .8em 0; }
 .srs-board .row { display: flex; justify-content: space-between; align-items: baseline; padding: .35em 0; font-size: .95rem; }
