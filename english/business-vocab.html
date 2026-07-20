@@ -41,11 +41,12 @@
 
 <p><b>なぜこの100語か</b>: TOEICは<b>出題される世界が固定</b>されている — 請求書・会議・採用・出張・物流・カスタマーサービス。この「TOEIC宇宙」の常連語を押さえると、Part7の長文が「知っている話の穴埋め」に変わり、読解速度が跳ね上がる。900点台の壁は難単語ではなく、<b>この定番語を「見た瞬間に」処理できるか</b>で決まります。</p>
 
-<h2>フラッシュカード</h2>
+<h2>フラッシュカード(間隔反復)</h2>
 <div class="widget">
-  <div class="w-title">カードをタップでめくる ・ Space=めくる ・ →=次へ(学習記録つき)</div>
+  <div class="w-title">毎日「今日の復習」を消化する ・ カードをタップ/Space=答え ・ 1〜4=評価</div>
   <div id="fc"></div>
 </div>
+<p>試してほしい操作:「復習をはじめる」→ 答えを見て<b>「再・難・可・易」で自己評価</b>→ ボタン下の日数(次の出題間隔)が変わるのを確認。TOEIC本番前は「➕カード追加」から公式問題集で拾った単語を足していくと、自分専用の弱点デッキになります。</p>
 
 <h2>4択クイズ</h2>
 <div class="widget">
@@ -66,9 +67,10 @@
 <details class="impl"><summary>🔧 実装メモ(このページの仕組み)</summary>
 <ul>
 <li><b>選定基準</b>: TOEIC Part5〜7の頻出シーン(経理・会議・人事・物流・契約・CS・出張)の定番語100。公式問題集の再現ではなく、シーン網羅を優先した独自選定</li>
-<li>エンジンは<a href="vocab-core.html">コア語彙100</a>と共通(Flashcards / QuizMC, assets/app.js)。シャッフルはFisher–Yates</li>
-<li>学習記録は localStorage(キー: sa_vocab_biz_known)にこのブラウザ内のみ保存</li>
-<li>クイズの誤答選択肢は他の99語の意味から無作為抽出。音声(リスニング)は未対応 — 例文を音読して代用を推奨</li>
+<li>エンジンは<a href="vocab-core.html">コア語彙100</a>と共通(SRSFlashcards / QuizMC, assets/app.js)。シャッフルはFisher–Yates</li>
+<li><b>間隔反復(SRS)</b>: SM-2簡易版(パラメータの詳細は<a href="vocab-core.html">コア語彙100</a>の実装メモ参照)。再=10分後に再出題、難/可/易で間隔が1.2×〜ease×1.3倍に伸長、上限365日</li>
+<li>学習記録は localStorage(キー: sa_vocab_biz_srs)にこのブラウザ内のみ保存。旧記録(sa_vocab_biz_known)は「間隔3日」として初回に自動移行。JSONで書き出し/読み込み可</li>
+<li>音声はWeb Speech API(en-US・外部通信なし)。クイズの誤答選択肢は他の99語の意味から無作為抽出</li>
 </ul>
 </details>
 
@@ -82,7 +84,7 @@
 <script src="../assets/app.js"></script>
 <script>
 "use strict";
-Flashcards("fc", VOCAB_BIZ, "sa_vocab_biz_known");
+SRSFlashcards("fc", VOCAB_BIZ, "sa_vocab_biz_srs", "sa_vocab_biz_known");
 
 QuizMC("quiz", shuffle(VOCAB_BIZ).slice(0, 20).map(v => {
   const wrong = shuffle(VOCAB_BIZ.filter(x => x.w !== v.w)).slice(0, 3).map(x => x.m);

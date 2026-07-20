@@ -116,6 +116,279 @@ function Flashcards(rootId, data, storageKey) {
   render();
 }
 
+/* ---------- SRSフラッシュカードエンジン(間隔反復・簡易SM-2) ---------- */
+/* data: [{w:単語, pos:品詞, m:意味, ex:例文}] 固定デッキ
+   storageKey: SRS状態+自作カードの保存先(localStorage)
+   legacyKey: 旧Flashcardsの「覚えた」配列キー。あれば「間隔3日」として1回だけ移行 */
+function SRSFlashcards(rootId, data, storageKey, legacyKey) {
+  const DAY = 86400000;
+  const root = $("#" + rootId);
+
+  /* --- 状態(読み込み+旧記録の移行) --- */
+  let S = store(storageKey);
+  if (!S || !S.st) {
+    S = { v: 1, st: {}, custom: [] };
+    const old = legacyKey ? store(legacyKey) : null;
+    if (Array.isArray(old)) old.forEach(w => {
+      S.st[w] = { ease: 2.5, ivl: 3, due: Date.now() + 3 * DAY, reps: 1, lapses: 0 };
+    });
+    save();
+  }
+  if (!Array.isArray(S.custom)) S.custom = [];
+  function save() { store(storageKey, S); }
+  function deck() { return data.concat(S.custom); }
+  function stateOf(c) { return S.st[c.w]; }
+
+  /* --- 簡易SM-2: 評価g(0=再/1=難/2=可/3=易)で間隔を更新 --- */
+  function applyGrade(c, g) {
+    const now = Date.now();
+    const s = S.st[c.w] || (S.st[c.w] = { ease: 2.5, ivl: 0, due: 0, reps: 0, lapses: 0 });
+    s.reps++;
+    if (g === 0) {
+      s.lapses++; s.ease = Math.max(1.3, s.ease - 0.2);
+      s.ivl = 0; s.due = now + 10 * 60000; // 10分後にセッション内で再出題
+      return false;
+    }
+    if (g === 1) { s.ease = Math.max(1.3, s.ease - 0.15); s.ivl = Math.max(1, Math.round(s.ivl * 1.2) || 1); }
+    else if (g === 2) { s.ivl = s.ivl < 1 ? 1 : Math.round(s.ivl * s.ease); }
+    else { s.ease += 0.15; s.ivl = s.ivl < 1 ? 3 : Math.round(s.ivl * s.ease * 1.3); }
+    s.ivl = Math.min(s.ivl, 365);
+    s.due = now + s.ivl * DAY;
+    return true;
+  }
+  function previewIvl(c, g) {
+    const s = stateOf(c) || { ease: 2.5, ivl: 0 };
+    let ivl;
+    if (g === 1) ivl = Math.max(1, Math.round(s.ivl * 1.2) || 1);
+    else if (g === 2) ivl = s.ivl < 1 ? 1 : Math.round(s.ivl * s.ease);
+    else ivl = s.ivl < 1 ? 3 : Math.round(s.ivl * s.ease * 1.3);
+    return Math.min(ivl, 365) + "日";
+  }
+  function dueCards() {
+    const now = Date.now();
+    return deck().filter(c => { const s = stateOf(c); return !s || s.due <= now; })
+      .sort((a, b) => ((stateOf(a) || { due: 0 }).due) - ((stateOf(b) || { due: 0 }).due));
+  }
+  function nextDueDays() {
+    const now = Date.now();
+    let min = Infinity;
+    deck().forEach(c => { const s = stateOf(c); if (s && s.due > now && s.due < min) min = s.due; });
+    return min === Infinity ? null : Math.max(1, Math.ceil((min - now) / DAY));
+  }
+
+  /* --- 音声読み上げ(端末内のWeb Speech API。外部通信なし) --- */
+  function speak(text) {
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-US"; u.rate = 0.95;
+      speechSynthesis.speak(u);
+    } catch (e) { /* 非対応端末では無音 */ }
+  }
+
+  /* --- セッション --- */
+  const mainEl = el("div"); // 描画先(下のtools欄は書き換えない)
+  let ses = null; // {queue, total, done, revealed}
+  function startSession() {
+    ses = { queue: dueCards(), total: dueCards().length, done: 0, revealed: false };
+    render();
+  }
+  function answer(g) {
+    const c = ses.queue.shift();
+    if (applyGrade(c, g)) ses.done++;
+    else ses.queue.splice(Math.min(3, ses.queue.length), 0, c); // 3枚後に再挿入
+    save();
+    ses.revealed = false;
+    render();
+  }
+
+  /* --- 描画部品 --- */
+  function boardRow(k, v, hot) {
+    const r = el("div", "row");
+    r.append(el("span", "k", k), el("span", "v" + (hot ? " hot" : ""), v));
+    return r;
+  }
+  function routeBar(done, total) {
+    const wrap = el("div", "srs-route");
+    if (!total) return wrap;
+    const stops = Math.min(total + 1, 9), ratio = done / total;
+    for (let i = 0; i < stops; i++) {
+      const p = i / (stops - 1);
+      const cls = p < ratio ? "done" : (Math.abs(p - ratio) < 1 / (stops - 1) / 1.9 ? "here" : "");
+      wrap.appendChild(el("div", "stop " + cls));
+      if (i < stops - 1) wrap.appendChild(el("div", "rail " + (p < ratio ? "done" : "")));
+    }
+    return wrap;
+  }
+  function gradeBtn(cls, label, sub, g) {
+    const b = el("button", cls, label);
+    b.appendChild(el("span", "lbl", sub));
+    b.addEventListener("click", () => answer(g));
+    return b;
+  }
+
+  function renderHome() {
+    const due = dueCards().length;
+    const newCount = dueCards().filter(c => !stateOf(c)).length;
+    const board = el("div", "srs-board");
+    board.append(
+      boardRow("今日の復習", String(due), due > 0),
+      boardRow("うち新規", String(newCount)),
+      boardRow("カード総数", deck().length + (S.custom.length ? "(自作 " + S.custom.length + ")" : ""))
+    );
+    const btn = el("button", "srs-main", due ? "復習をはじめる(" + due + "枚)" : "今日の復習は完了");
+    btn.disabled = !due;
+    btn.addEventListener("click", startSession);
+    mainEl.replaceChildren(board, btn);
+    if (!due) {
+      const nd = nextDueDays();
+      mainEl.appendChild(el("p", "srs-hint", nd ? "次の復習は " + nd + " 日後です。" : ""));
+    }
+  }
+
+  function renderReview() {
+    if (!ses.queue.length) {
+      const doneMsg = el("div", "srs-done");
+      doneMsg.append(el("div", "big", "本日終着です 🎉"),
+        el("div", "sub", ses.total + "枚のカードを消化しました。おつかれさまでした。"));
+      const back = el("button", "srs-main", "ホームに戻る");
+      back.addEventListener("click", () => { ses = null; render(); });
+      mainEl.replaceChildren(doneMsg, back);
+      return;
+    }
+    const c = ses.queue[0];
+    const s = stateOf(c);
+    const meta = el("div", "srs-meta");
+    const tts = el("button", "srs-tts", "🔊 読み上げ");
+    tts.addEventListener("click", () => speak(c.w));
+    meta.append(el("span", null, "残り " + ses.queue.length),
+      tts,
+      el("span", null, s && s.reps ? "復習 ×" + s.reps : "NEW"));
+
+    const stage = el("div", "fc-stage");
+    const card = el("div", "fc-card");
+    const front = el("div", "fc-face front");
+    front.append(el("div", "fc-word", c.w), el("div", "fc-pos", c.pos || ""));
+    const back = el("div", "fc-face back");
+    back.append(el("div", "fc-mean", c.m), el("div", "fc-ex", c.ex || ""));
+    card.append(front, back);
+    card.classList.toggle("flipped", ses.revealed);
+    card.addEventListener("click", () => { ses.revealed = true; render(); });
+    stage.appendChild(card);
+
+    mainEl.replaceChildren(routeBar(ses.done, ses.total), meta, stage);
+    if (ses.revealed) {
+      const g = el("div", "srs-grades");
+      g.append(gradeBtn("g0", "再", "10分", 0), gradeBtn("g1", "難", previewIvl(c, 1), 1),
+        gradeBtn("g2", "可", previewIvl(c, 2), 2), gradeBtn("g3", "易", previewIvl(c, 3), 3));
+      mainEl.appendChild(g);
+    } else {
+      const show = el("button", "srs-main", "答えを表示(カードをタップ/Space)");
+      show.addEventListener("click", () => { ses.revealed = true; render(); });
+      mainEl.appendChild(show);
+    }
+  }
+
+  function render() { ses ? renderReview() : renderHome(); }
+
+  /* --- カード追加・バックアップ(折りたたみ) --- */
+  function buildTools() {
+    const d = el("details", "srs-tools");
+    d.appendChild(el("summary", null, "➕ カード追加・バックアップ・リセット"));
+
+    d.appendChild(el("label", null, "単語を1枚追加(単語 / 意味 は必須)"));
+    const iw = el("input"); iw.type = "text"; iw.placeholder = "deteriorate";
+    const im = el("input"); im.type = "text"; im.placeholder = "悪化する";
+    const ie = el("input"); ie.type = "text"; ie.placeholder = "例文(任意)";
+    const bAdd = el("button", null, "追加する");
+    const msg = el("p", "srs-hint", "");
+    bAdd.addEventListener("click", () => {
+      const w = iw.value.trim(), m = im.value.trim(), ex = ie.value.trim();
+      if (!w || !m) { msg.textContent = "単語と意味を入力してください。"; return; }
+      if (deck().some(x => x.w.toLowerCase() === w.toLowerCase())) { msg.textContent = "「" + w + "」は登録済みです。"; return; }
+      S.custom.push({ w, pos: "", m, ex });
+      save(); render();
+      iw.value = im.value = ie.value = "";
+      msg.textContent = "「" + w + "」を追加しました。今日の復習キューに入ります。";
+    });
+    d.append(iw, im, ie, bAdd, msg);
+
+    d.appendChild(el("label", null, "まとめて追加(1行1枚、「単語,意味」形式。タブ・読点も可)"));
+    const ta = el("textarea");
+    ta.placeholder = "deteriorate,悪化する\nendeavor,努力・試み";
+    const bBulk = el("button", null, "まとめて追加");
+    bBulk.addEventListener("click", () => {
+      let n = 0;
+      ta.value.split("\n").map(l => l.trim()).filter(Boolean).forEach(l => {
+        const p = l.split(/\t|,|、/);
+        const w = (p[0] || "").trim(), m = p.slice(1).join(", ").trim();
+        if (w && m && !deck().some(x => x.w.toLowerCase() === w.toLowerCase())) {
+          S.custom.push({ w, pos: "", m, ex: "" }); n++;
+        }
+      });
+      if (n) { save(); ta.value = ""; render(); }
+      msg.textContent = n ? n + "枚追加しました。" : "追加できる行がありません(重複や形式を確認)。";
+    });
+    d.append(ta, bBulk);
+
+    d.appendChild(el("label", null, "バックアップ(学習記録+自作カードをJSONで書き出し/読み込み)"));
+    const bExp = el("button", null, "書き出す");
+    bExp.addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(S, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = storageKey + "-" + new Date().toISOString().slice(0, 10) + ".json";
+      a.click(); URL.revokeObjectURL(a.href);
+    });
+    const fi = el("input"); fi.type = "file"; fi.accept = ".json"; fi.style.display = "none";
+    const bImp = el("button", null, "読み込む");
+    bImp.addEventListener("click", () => fi.click());
+    fi.addEventListener("change", () => {
+      const f = fi.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = () => {
+        try {
+          const d2 = JSON.parse(r.result);
+          if (!d2 || typeof d2.st !== "object") throw 0;
+          Object.keys(d2.st).forEach(w => { S.st[w] = d2.st[w]; });
+          let n = 0;
+          (d2.custom || []).forEach(c => {
+            if (c.w && c.m && !deck().some(x => x.w.toLowerCase() === c.w.toLowerCase())) { S.custom.push(c); n++; }
+          });
+          save(); render();
+          msg.textContent = "読み込みました(自作カード " + n + " 枚追加)。";
+        } catch (e) { msg.textContent = "読み込めませんでした。書き出したJSONを選んでください。"; }
+      };
+      r.readAsText(f); fi.value = "";
+    });
+    const bReset = el("button", null, "⟲ 学習記録をリセット");
+    bReset.addEventListener("click", () => {
+      if (!confirm("間隔反復の学習記録をリセットしますか?(自作カードは残ります)")) return;
+      S.st = {}; save(); ses = null; render();
+    });
+    const bDelCustom = el("button", null, "自作カードを全削除");
+    bDelCustom.addEventListener("click", () => {
+      if (!S.custom.length || !confirm("自作カード " + S.custom.length + " 枚を削除しますか?")) return;
+      S.custom = []; save(); ses = null; render();
+    });
+    d.append(bExp, bImp, fi, bReset, bDelCustom);
+    return d;
+  }
+
+  /* --- キーボード: Space=表示 / 1〜4=評価 --- */
+  document.addEventListener("keydown", e => {
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+    if (!ses || !ses.queue.length) return;
+    if (e.code === "Space") { e.preventDefault(); if (!ses.revealed) { ses.revealed = true; render(); } return; }
+    if (ses.revealed && ["Digit1", "Digit2", "Digit3", "Digit4"].includes(e.code)) {
+      answer(Number(e.code.slice(-1)) - 1);
+    }
+  });
+
+  root.replaceChildren(mainEl, buildTools());
+  render();
+}
+
 /* ---------- 4択クイズエンジン ---------- */
 /* items: [{q:問題文, a:正解, wrong:[誤答3つ], note:解説}] */
 function QuizMC(rootId, items) {
@@ -240,3 +513,16 @@ function fPdf(x, d1, d2) {
   return Math.exp((d1 / 2) * Math.log(d1 / d2) + (d1 / 2 - 1) * Math.log(x)
     - ((d1 + d2) / 2) * Math.log(1 + d1 * x / d2) - lnB);
 }
+
+/* ---------- PWA: Service Worker登録(オフライン閲覧用) ----------
+   sw.js はサイト配下のみキャッシュ+KaTeX(jsdelivr)のみ例外。他の外部通信なし。
+   file:// や非対応ブラウザでは静かにスキップ */
+(function () {
+  try {
+    if (!("serviceWorker" in navigator)) return;
+    const sc = document.currentScript;
+    if (!sc || !sc.src || sc.src.indexOf("http") !== 0) return;
+    const siteRoot = sc.src.replace(/assets\/app\.js.*$/, "");
+    navigator.serviceWorker.register(siteRoot + "sw.js").catch(function () {});
+  } catch (e) { /* noop */ }
+})();

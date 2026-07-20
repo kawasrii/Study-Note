@@ -1,5 +1,5 @@
 // トピック登録簿:ページを追加したらここに1件追加すると目次と検索に反映される
-// rev: 2026-07-11-1 フェーズ1(広さ)完了: 準1級全15大項目+因果推論をカバー
+// rev: 2026-07-20-1 語彙2ページをSRS化(SM-2簡易版)+PWAオフライン対応(manifest/sw.js)
 const TOPICS = [
   // ===== 統計検定 準1級(学習順) =====
   {
@@ -201,8 +201,8 @@ const TOPICS = [
     title: "TOEICビジネス語彙100",
     path: "english/business-vocab.html",
     cat: "eng",
-    desc: "invoice・reimburse・itinerary…TOEIC頻出シーン(経理・会議・人事・物流)の定番語。フラッシュカード+クイズ。",
-    tags: ["TOEIC", "ビジネス英語", "語彙", "フラッシュカード", "invoice", "頻出単語"],
+    desc: "invoice・reimburse・itinerary…TOEIC頻出シーン(経理・会議・人事・物流)の定番語。間隔反復(SRS)カード+クイズ。",
+    tags: ["TOEIC", "ビジネス英語", "語彙", "フラッシュカード", "間隔反復", "SRS", "invoice", "頻出単語"],
     ready: true,
   },
   {
@@ -217,8 +217,8 @@ const TOPICS = [
     title: "コア語彙 100",
     path: "english/vocab-core.html",
     cat: "eng",
-    desc: "上級レベル頻出語をフラッシュカード+4択クイズで回す。学習記録つき。",
-    tags: ["語彙", "フラッシュカード", "クイズ", "頻出単語"],
+    desc: "上級レベル頻出語を間隔反復(SRS)フラッシュカード+4択クイズで回す。単語の自作追加・音声つき。",
+    tags: ["語彙", "フラッシュカード", "間隔反復", "SRS", "クイズ", "頻出単語", "音声"],
     ready: true,
   },
   {

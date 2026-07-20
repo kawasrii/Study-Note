@@ -235,6 +235,48 @@ canvas.plot { width: 100%; height: auto; display: block; border-radius: 6px; }
 .quiz-feedback { min-height: 1.6em; font-size: .92rem; }
 .quiz-score { font-size: .85rem; color: var(--ink-soft); }
 
+/* ---------- SRS(間隔反復フラッシュカード) ---------- */
+.srs-board { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: .7em 1em; margin: .8em 0; }
+.srs-board .row { display: flex; justify-content: space-between; align-items: baseline; padding: .35em 0; font-size: .95rem; }
+.srs-board .row + .row { border-top: 1px dashed var(--line); }
+.srs-board .k { color: var(--ink-soft); }
+.srs-board .v { font-weight: 700; }
+.srs-board .v.hot { color: var(--eng); }
+.srs-main {
+  display: block; width: 100%; font: inherit; font-weight: 700; padding: .8em;
+  border-radius: 10px; border: 1px solid var(--eng); background: var(--eng); color: #fff;
+  cursor: pointer; margin: .6em 0;
+}
+.srs-main:disabled { background: var(--surface); color: var(--ink-soft); border-color: var(--line); cursor: default; }
+.srs-route { display: flex; align-items: center; margin: .8em 2px .4em; }
+.srs-route .stop { width: 8px; height: 8px; border-radius: 50%; background: var(--line); flex: none; }
+.srs-route .stop.done, .srs-route .rail.done { background: var(--eng); }
+.srs-route .stop.here { background: var(--eng); box-shadow: 0 0 0 4px color-mix(in srgb, var(--eng) 22%, transparent); }
+.srs-route .rail { height: 2px; background: var(--line); flex: 1; }
+.srs-meta { display: flex; justify-content: space-between; align-items: center; font-size: .82rem; color: var(--ink-soft); margin-bottom: .3em; }
+.srs-tts { font: inherit; font-size: .82rem; padding: .25em .7em; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.srs-grades { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: .8em 0; }
+.srs-grades button { font: inherit; font-weight: 700; padding: .55em 4px .45em; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); cursor: pointer; }
+.srs-grades .lbl { display: block; font-size: .7rem; font-weight: 400; color: var(--ink-soft); margin-top: 2px; }
+.srs-grades .g0 { border-color: var(--ng); color: var(--ng); }
+.srs-grades .g1 { border-color: #c8863c; color: #c8863c; }
+.srs-grades .g2 { border-color: var(--ok); color: var(--ok); }
+.srs-grades .g3 { border-color: var(--accent); color: var(--accent); }
+.srs-done { text-align: center; padding: 1.2em 0 .4em; }
+.srs-done .big { font-size: 1.25rem; font-weight: 700; margin-bottom: .3em; }
+.srs-done .sub { color: var(--ink-soft); font-size: .9rem; }
+.srs-hint { font-size: .85rem; color: var(--ink-soft); margin: .4em 0; }
+.srs-tools { margin: 1em 0; border: 1px dashed var(--line); border-radius: 10px; padding: .5em .9em; font-size: .92rem; }
+.srs-tools summary { cursor: pointer; color: var(--ink-soft); }
+.srs-tools label { display: block; font-size: .8rem; color: var(--ink-soft); margin: .9em 0 .2em; }
+.srs-tools input[type="text"], .srs-tools textarea {
+  width: 100%; box-sizing: border-box; font: inherit; padding: .45em .7em; margin: .2em 0;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink);
+}
+.srs-tools textarea { min-height: 70px; }
+.srs-tools button { font: inherit; padding: .45em .9em; margin: .3em 6px 0 0; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.srs-tools button:hover { border-color: var(--accent); }
+
 /* ---------- ページ末ナビ ---------- */
 .page-nav {
   display: flex; justify-content: space-between; gap: 10px;
