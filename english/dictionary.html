@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>英語辞書+マイ単語帳 | StudyAcceleration</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="page-eng">
+<header class="site-header">
+  <div class="inner">
+    <a class="home" href="../index.html">📚 StudyAcceleration</a>
+    <span class="crumb">英語 › 辞書+マイ単語帳</span>
+  </div>
+</header>
+
+<main>
+<h1>英語辞書+マイ単語帳</h1>
+<p class="lead">タグ: 辞書 / 英和 / 英英 / マイ単語帳 / 間隔反復(SRS) / リスニング</p>
+
+<h2>全体マップ — 語彙学習の体系の中での位置づけ</h2>
+
+<div class="tree"><ul>
+<li class="t-root">語彙力
+  <ul>
+  <li><span class="t-cat">広さ</span> — 知っている語の数
+    <ul>
+    <li>固定デッキ: <a href="vocab-core.html">コア語彙100</a> ・ <a href="business-vocab.html">TOEICビジネス語彙100</a></li>
+    <li><span class="here">出会った語を拾う: 辞書+マイ単語帳(このページ)</span> — 自分専用デッキが育つ</li>
+    <li>推測力: <a href="word-parts.html">語根・接頭辞</a></li>
+    </ul>
+  </li>
+  <li><span class="t-cat">深さ</span>: <a href="confusables.html">紛らわしい語ペア</a> ・ <a href="collocations.html">コロケーション</a></li>
+  </ul>
+</li>
+</ul></div>
+
+<p><b>なぜこのページか</b>: 語彙が一番伸びるのは「実際に出会って困った単語」を拾った瞬間です。TEDやポッドキャストで<b>聞き取れなかった単語をその場で調べ、聞いた文と一緒にワンタップでカード化</b>→ あとは間隔反復(SRS)が忘れる直前に再出題してくれます。固定100語デッキと違い、ここは自分の弱点だけでできた専用デッキになります。</p>
+
+<h2>辞書検索</h2>
+<div class="widget">
+  <div class="w-title">単語を入力 → 和訳(EJDict)+英英定義・例文(オンライン時)</div>
+  <div class="controls">
+    <input id="q" type="search" placeholder="🔍 例: deteriorate" autocomplete="off" autocapitalize="off"
+      style="flex:1; min-width:180px; font:inherit; padding:.5em .8em; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink);">
+    <button id="btn-search" class="srs-tools-btn" style="font:inherit; padding:.5em 1.2em; border-radius:8px; border:1px solid var(--eng); background:var(--eng); color:#fff; cursor:pointer;">検索</button>
+  </div>
+  <div id="dict-out"></div>
+</div>
+<p>試してほしい操作:単語を検索 →「<b>➕カード化</b>」→ 下の登録フォームに単語と意味が自動で入るので、<b>聞き取れなかった文をメモ欄に貼って</b>「登録」。そのまま下の「マイ単語帳」の今日の復習に入ります。🔊で発音確認。英英の例文の「メモ欄へ」を押すと例文がそのままメモに入ります。</p>
+
+<h2>カード登録</h2>
+<div class="widget">
+  <div class="w-title">辞書結果から自動入力 ・ 手入力でもOK</div>
+  <div id="add-form">
+    <label class="dict-label">単語</label>
+    <input id="add-w" type="text" autocapitalize="off" class="dict-input">
+    <label class="dict-label">意味</label>
+    <input id="add-m" type="text" class="dict-input">
+    <label class="dict-label">メモ・例文(任意) — 聞いた文・出典を書くと文脈ごと覚えられる</label>
+    <input id="add-ex" type="text" class="dict-input" placeholder="The situation deteriorated rapidly. (TED: ○○)">
+    <button id="btn-add" class="srs-main" style="margin-top:.6em">マイ単語帳に登録</button>
+    <p id="add-msg" class="srs-hint"></p>
+  </div>
+</div>
+
+<h2>マイ単語帳(間隔反復)</h2>
+<div class="widget">
+  <div class="w-title">登録した単語だけの自分専用SRSデッキ ・ 1〜4=評価</div>
+  <div id="srs"></div>
+</div>
+
+<details class="impl"><summary>🔧 実装メモ(このページの仕組み)</summary>
+<ul>
+<li><b>英和辞書</b>: EJDict-hand(パブリックドメイン、約4.8万見出し、kujirahand/EJDict)。頭文字別ファイルを jsdelivr CDN から<b>初回検索時に取得</b>し、Service Worker がキャッシュ優先で保存 → 一度引いた頭文字は以後オフラインでも検索可。サイトには同梱していない(リポジトリ肥大化の回避)</li>
+<li><b>英英定義・例文</b>: dictionaryapi.dev(無料API)。<b>オンライン時のみ</b>。取得するのは入力した単語のみで、学習記録などは一切送信しない</li>
+<li><b>外部通信の例外</b>: cdn.jsdelivr.net(KaTeX・EJDict)と api.dictionaryapi.dev の2ドメインのみ(2026-07-20 方針更新)。それ以外の通信はなし</li>
+<li><b>検索</b>: 完全一致+前方一致(最大15件)。<b>未実装</b>: 活用形の見出し語化(lemmatization)— 「ran」では「run」はヒットしない。前方一致と英英API側の補正で部分的に補う</li>
+<li><b>マイ単語帳</b>: 共通SRSエンジン(SM-2簡易版、パラメータは<a href="vocab-core.html">コア語彙100</a>の実装メモ参照)。localStorage(キー: sa_dict_my_srs)にこのブラウザ内のみ保存。JSONで書き出し/読み込み可</li>
+<li><b>音声</b>: ブラウザ内蔵のWeb Speech API(en-US)。外部通信なし</li>
+</ul>
+</details>
+
+<div class="page-nav">
+  <a href="../index.html">← ホーム</a>
+  <a href="vocab-core.html">コア語彙100 →</a>
+</div>
+</main>
+
+<script src="../assets/app.js"></script>
+<script>
+"use strict";
+
+/* ---- マイ単語帳(空の固定デッキ+自作カードのみ) ---- */
+const myDeck = SRSFlashcards("srs", [], "sa_dict_my_srs");
+
+/* ---- EJDict 読み込み(頭文字別・jsdelivr経由・SWがキャッシュ) ---- */
+const DICT = {}; // letter -> [[headword, meaning], ...]
+function loadLetter(letter) {
+  if (DICT[letter]) return Promise.resolve(DICT[letter]);
+  const url = "https://cdn.jsdelivr.net/gh/kujirahand/EJDict@master/src/" + letter + ".txt";
+  return fetch(url).then(r => {
+    if (!r.ok) throw 0;
+    return r.text();
+  }).then(txt => {
+    const arr = [];
+    txt.split("\n").forEach(line => {
+      const i = line.indexOf("\t");
+      if (i > 0) arr.push([line.slice(0, i), line.slice(i + 1)]);
+    });
+    DICT[letter] = arr;
+    return arr;
+  });
+}
+
+/* ---- 検索 ---- */
+const out = document.getElementById("dict-out");
+function speak(t) {
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = "en-US"; u.rate = 0.95;
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+function toForm(w, m, ex) {
+  document.getElementById("add-w").value = w;
+  document.getElementById("add-m").value = m;
+  if (ex !== undefined) document.getElementById("add-ex").value = ex;
+  document.getElementById("add-msg").textContent = "";
+  document.getElementById("add-ex").focus();
+  document.getElementById("add-form").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+function resultRow(w, m) {
+  const row = el("div", "dict-item");
+  const body = el("div", "dict-body");
+  body.append(el("div", "dict-w", w), el("div", "dict-m", m));
+  const acts = el("div", "dict-actions");
+  const bS = el("button", null, "🔊");
+  bS.addEventListener("click", () => speak(w));
+  const bA = el("button", "add", "➕カード化");
+  bA.addEventListener("click", () => toForm(w, m));
+  acts.append(bS, bA);
+  row.append(body, acts);
+  return row;
+}
+function search() {
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  out.replaceChildren();
+  if (!q) return;
+  const status = el("p", "srs-hint", "検索中…");
+  out.appendChild(status);
+  const secEJ = el("div");
+  const secAPI = el("div");
+  out.append(secEJ, secAPI);
+
+  /* 英和(EJDict) */
+  const letter = q[0];
+  if (letter >= "a" && letter <= "z") {
+    loadLetter(letter).then(arr => {
+      status.textContent = "";
+      const exact = [], prefix = [];
+      arr.forEach(([w, m]) => {
+        const wl = w.toLowerCase();
+        if (wl === q || wl.split(",").map(s => s.trim()).includes(q)) exact.push([w, m]);
+        else if (wl.startsWith(q)) prefix.push([w, m]);
+      });
+      const hits = exact.concat(prefix).slice(0, 15);
+      secEJ.appendChild(el("h3", "dict-h", "英和(EJDict)"));
+      if (!hits.length) secEJ.appendChild(el("p", "srs-hint", "見つかりませんでした。活用形(ran等)は原形(run)で引いてください。"));
+      hits.forEach(([w, m]) => secEJ.appendChild(resultRow(w, m)));
+    }).catch(() => {
+      status.textContent = "";
+      secEJ.appendChild(el("p", "srs-hint", "英和辞書データを取得できません(この頭文字は初回のみオンラインが必要です)。"));
+    });
+  } else {
+    status.textContent = "";
+    secEJ.appendChild(el("p", "srs-hint", "英和検索はアルファベット始まりの単語のみ対応。"));
+  }
+
+  /* 英英+例文(dictionaryapi.dev) */
+  fetch("https://api.dictionaryapi.dev/api/v2/entries/en/" + encodeURIComponent(q))
+    .then(r => { if (!r.ok) throw 0; return r.json(); })
+    .then(data => {
+      if (!Array.isArray(data) || !data.length) return;
+      secAPI.appendChild(el("h3", "dict-h", "英英・例文(dictionaryapi.dev)"));
+      const e0 = data[0];
+      if (e0.phonetic) secAPI.appendChild(el("p", "dict-phon", e0.word + "  " + e0.phonetic));
+      let n = 0;
+      (e0.meanings || []).forEach(mn => {
+        (mn.definitions || []).forEach(df => {
+          if (n >= 4) return;
+          n++;
+          const row = el("div", "dict-item");
+          const body = el("div", "dict-body");
+          body.appendChild(el("div", "dict-m", "[" + (mn.partOfSpeech || "") + "] " + df.definition));
+          if (df.example) {
+            const exLine = el("div", "dict-ex", "“" + df.example + "”");
+            body.appendChild(exLine);
+            const acts = el("div", "dict-actions");
+            const bE = el("button", null, "メモ欄へ");
+            bE.addEventListener("click", () => {
+              document.getElementById("add-ex").value = df.example;
+              document.getElementById("add-msg").textContent = "例文をメモ欄に入れました。";
+            });
+            acts.appendChild(bE);
+            row.append(body, acts);
+          } else {
+            row.appendChild(body);
+          }
+          secAPI.appendChild(row);
+        });
+      });
+    })
+    .catch(() => {
+      secAPI.appendChild(el("p", "srs-hint", "英英定義・例文はオンライン時のみ表示されます(未収載の場合もあります)。"));
+    });
+}
+document.getElementById("btn-search").addEventListener("click", search);
+document.getElementById("q").addEventListener("keydown", e => { if (e.key === "Enter") search(); });
+
+/* ---- 登録 ---- */
+document.getElementById("btn-add").addEventListener("click", () => {
+  const w = document.getElementById("add-w").value;
+  const m = document.getElementById("add-m").value;
+  const ex = document.getElementById("add-ex").value;
+  const res = myDeck.addCard(w, m, ex);
+  const msg = document.getElementById("add-msg");
+  if (res === "ok") {
+    msg.textContent = "「" + w.trim() + "」を登録しました(計" + myDeck.count() + "枚)。今日の復習キューに入っています。";
+    document.getElementById("add-w").value = "";
+    document.getElementById("add-m").value = "";
+    document.getElementById("add-ex").value = "";
+  } else if (res === "dup") {
+    msg.textContent = "この単語は登録済みです。";
+  } else {
+    msg.textContent = "単語と意味を入力してください。";
+  }
+});
+</script>
+</body>
+</html>

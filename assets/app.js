@@ -387,6 +387,19 @@ function SRSFlashcards(rootId, data, storageKey, legacyKey) {
 
   root.replaceChildren(mainEl, buildTools());
   render();
+
+  /* 外部(辞書ページ等)からのカード登録用API */
+  return {
+    addCard: function (w, m, ex) {
+      w = String(w || "").trim(); m = String(m || "").trim();
+      if (!w || !m) return "invalid";
+      if (deck().some(x => x.w.toLowerCase() === w.toLowerCase())) return "dup";
+      S.custom.push({ w, pos: "", m, ex: String(ex || "").trim() });
+      save(); render();
+      return "ok";
+    },
+    count: function () { return deck().length; }
+  };
 }
 
 /* ---------- 4択クイズエンジン ---------- */

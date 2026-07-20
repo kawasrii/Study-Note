@@ -297,6 +297,31 @@ canvas.plot { width: 100%; height: auto; display: block; border-radius: 6px; }
 .srs-tools button { font: inherit; padding: .45em .9em; margin: .3em 6px 0 0; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
 .srs-tools button:hover { border-color: var(--accent); }
 
+/* ---------- 辞書ページ ---------- */
+.dict-h { font-size: .95rem; margin: 1em 0 .4em; color: var(--ink-soft); }
+.dict-item {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+  padding: .55em .8em; margin-bottom: 6px;
+}
+.dict-body { min-width: 0; }
+.dict-w { font-weight: 700; font-size: 1.05rem; }
+.dict-m { font-size: .88rem; color: var(--ink); line-height: 1.55; }
+.dict-ex { font-size: .84rem; color: var(--ink-soft); font-style: italic; margin-top: .2em; }
+.dict-phon { font-family: monospace; color: var(--ink-soft); margin: .2em 0 .5em; }
+.dict-actions { display: flex; gap: 6px; flex: none; }
+.dict-actions button {
+  font: inherit; font-size: .82rem; padding: .35em .6em; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer;
+}
+.dict-actions button.add { border-color: var(--eng); color: var(--eng); font-weight: 700; }
+.dict-label { display: block; font-size: .8rem; color: var(--ink-soft); margin: .8em 0 .2em; }
+.dict-input {
+  width: 100%; box-sizing: border-box; font: inherit; padding: .5em .7em;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink);
+}
+.dict-input:focus { outline: none; border-color: var(--eng); }
+
 /* ---------- ページ末ナビ ---------- */
 .page-nav {
   display: flex; justify-content: space-between; gap: 10px;

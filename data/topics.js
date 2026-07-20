@@ -1,5 +1,5 @@
 // トピック登録簿:ページを追加したらここに1件追加すると目次と検索に反映される
-// rev: 2026-07-20-1 語彙2ページをSRS化(SM-2簡易版)+PWAオフライン対応(manifest/sw.js)
+// rev: 2026-07-20-2 英語辞書+マイ単語帳ページ追加(EJDict+dictionaryapi.dev)
 const TOPICS = [
   // ===== 統計検定 準1級(学習順) =====
   {
@@ -197,6 +197,14 @@ const TOPICS = [
   },
 
   // ===== 英語(語彙中心) =====
+  {
+    title: "英語辞書+マイ単語帳",
+    path: "english/dictionary.html",
+    cat: "eng",
+    desc: "単語を引くと和訳+英英定義・例文。聞き取れなかった単語をその場でカード化して自分専用SRSデッキに。",
+    tags: ["辞書", "英和", "英英", "マイ単語帳", "間隔反復", "SRS", "リスニング", "例文"],
+    ready: true,
+  },
   {
     title: "TOEICビジネス語彙100",
     path: "english/business-vocab.html",
