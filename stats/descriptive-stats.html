@@ -20,7 +20,7 @@
 
 <main>
 <h1>記述統計の基礎:平均・中央値・分散・箱ひげ図</h1>
-<p class="lead">タグ: 平均 / 中央値 / 最頻値 / 分散 / 標準偏差 / 四分位数 / 箱ひげ図 / 不偏分散 / 基礎</p>
+<p class="lead">タグ: 平均 / 中央値 / 最頻値 / 分散 / 標準偏差 / 四分位数 / 箱ひげ図 / 不偏分散 / カーネル密度推定 / KDE / 基礎</p>
 <p class="lead">このサイトの最初の一歩。<b>手元のデータを数個の数字に要約する</b>技術(記述統計)を定義から積み上げます。ここが全ページの前提知識です。</p>
 
 <h2>全体マップ — データ要約の体系</h2>
@@ -41,6 +41,12 @@
     <li><span class="here">分散・標準偏差</span> — 平均からの離れ具合の2乗平均(とその平方根)</li>
     <li><span class="here">四分位数・四分位範囲(IQR)・箱ひげ図</span> — 頑健な散布度と可視化</li>
     <li class="soon">範囲・変動係数 — 触りのみ</li>
+    </ul>
+  </li>
+  <li><span class="t-cat">分布の形を見る</span>
+    <ul>
+    <li><span class="here">ヒストグラム / 箱ひげ図</span> — 定番の可視化</li>
+    <li><span class="here">カーネル密度推定(KDE)</span> — ビン依存をなくした滑らかなヒストグラム</li>
     </ul>
   </li>
   <li><span class="t-cat">標本と母集団の区別</span>
@@ -98,6 +104,55 @@
 
 <h2>四分位数と箱ひげ図 — 頑健な5数要約</h2>
 <p>データを4等分する点が四分位数(Q1: 下から25%、Q2=中央値、Q3: 75%)。<b>IQR=Q3−Q1</b> は中央50%の幅で、外れ値に強い散布度。箱ひげ図は「最小値・Q1・中央値・Q3・最大値」の5数要約の可視化で、複数グループの分布を並べて比べるのに強い。慣例として Q1−1.5×IQR / Q3+1.5×IQR を超える点を外れ値の目安として個別に打つ。</p>
+
+<h2>カーネル密度推定(KDE: Kernel Density Estimation)— 滑らかなヒストグラム</h2>
+<p><b>なぜ学ぶのか</b>: ヒストグラムは分布の形を見る定番だが、<b>ビンの幅と境界の取り方で見た目が別物になる</b>という弱点がある(同じデータでもビン境界を少しずらすと山の数が変わって見える)。KDEは各データ点に小さな山(カーネル)を1つずつ置いて足し合わせることで、<b>ビン境界に依存しない滑らかな密度</b>を描く。ヒストグラムの正当な進化形で、分布の可視化・多変量の密度推定・<a href="regression.html">カーネル回帰</a>と同じ道具立て(準1級のノンパラメトリック領域)。</p>
+<div class="formula">$$\hat{f}(x) = \frac{1}{nh}\sum_{i=1}^{n} K\!\left(\frac{x-x_i}{h}\right)$$</div>
+<p>K はカーネル(山の形、面積1)、<b>h はバンド幅(山の広さ=平滑化の強さ)</b>。KDEはどんな n・h でも<b>全体の面積が必ず1</b>になる正規化された密度。左のパネルで各点が生む薄い山を、右のパネルでその合計=推定密度を見比べてほしい。</p>
+
+<div class="widget">
+  <div class="w-title">KDEラボ — 左: 点を打つ(もう一度クリックで削除)／ 右: 打った点から推定した密度</div>
+  <div class="controls">
+    <label>バンド幅 h <input type="range" id="kdeH" min="0.2" max="3" step="0.1" value="0.7"> <span class="val" id="kdeHVal">0.7</span></label>
+    <label>カーネル:
+      <select id="kdeK">
+        <option value="gauss">ガウス</option>
+        <option value="epa">エパネチニコフ</option>
+        <option value="tri">三角</option>
+        <option value="uni">一様(矩形)</option>
+      </select>
+    </label>
+    <label><input type="checkbox" id="kdeBumps" checked> 左に個々の山を表示</label>
+  </div>
+  <div class="controls">
+    <button id="kdeClear">全消去</button>
+    <button id="kdeSample">サンプル(二峰)</button>
+    <button id="kdeSampleU">サンプル(一様)</button>
+    <button id="kdeSilver">h をシルバーマンの目安に</button>
+  </div>
+  <div style="display:flex; flex-wrap:wrap; gap:12px;">
+    <div style="flex:1; min-width:260px;">
+      <div class="readout" style="margin:0 0 4px; font-weight:700;">◀ データ編集(クリックで点を追加/削除)</div>
+      <canvas class="plot" id="kdeLeft" style="touch-action: manipulation;"></canvas>
+    </div>
+    <div style="flex:1; min-width:260px;">
+      <div class="readout" style="margin:0 0 4px; font-weight:700;">推定された密度 f̂(x) ▶</div>
+      <canvas class="plot" id="kdeRight"></canvas>
+    </div>
+  </div>
+  <div class="readout" id="kdeReadout">左のグレー帯をクリックして点を打ってください。</div>
+</div>
+<p class="lead">試してほしい操作:「サンプル(二峰)」→ <b>h を小さく</b>(0.2付近)すると密度が<b>点ごとにギザギザ</b>(過小平滑化=バリアンス大)、<b>h を大きく</b>(3付近)すると<b>2つの山が1つに潰れる</b>(過大平滑化=バイアス大)。ちょうど良い h で二峰がきれいに見える — <a href="regression.html">回帰のバンド幅</a>と全く同じトレードオフ。「h をシルバーマンの目安に」でデータに応じた自動値が入る。カーネルの種類を変えても大枠は変わらない(<b>h ほど結果を左右しない</b>)のがKDEの重要な教訓。左の薄い山ひとつひとつを足したものが右の密度、という対応も確認。</p>
+
+<details class="impl"><summary>🔧 実装メモ(このラボが実際に計算していること)</summary>
+<ul>
+<li><b>推定式</b>: f̂(x)=(1/nh)ΣK((x−xᵢ)/h)。どんな n・h でも面積が1になる正規化密度(左の薄い山を全部足すと右の曲線に一致する)</li>
+<li><b>カーネル K(u)</b>(いずれも面積1・左右対称): ガウス (2π)⁻¹ᐟ²e^(−u²/2) / エパネチニコフ (3/4)(1−u²)₊ / 三角 (1−|u|)₊ / 一様 (1/2)·[|u|≤1]。ガウス以外は |u|≤1 の有限台</li>
+<li><b>シルバーマンの目安</b>: h = 0.9·min(σ̂, IQR/1.34)·n^(−1/5)(経験則。真の密度が正規に近いとき最適に近い)。四分位数は線形補間で算出</li>
+<li><b>軸固定</b>: 両パネルとも x∈[0,10]、密度の y軸は0–0.6上限でクリップ(点が密集+hが小さいと上端で切れる=過小平滑化のサイン)。曲線は左右とも301点グリッドで評価</li>
+<li>クリックは x 座標のみ採用(1次元データ)。2次元KDE・境界補正・交差検証によるh自動選択は未実装(hは手動またはシルバーマン)</li>
+</ul>
+</details>
 
 <div class="ex-box">
 データ 2, 4, 4, 6, 9 について、平均・中央値・標本分散(n割り)・不偏分散(n−1割り)を求めよ。
@@ -235,6 +290,169 @@ $("#sampleSkew").addEventListener("click", () => {
 $("#outlierD").addEventListener("click", () => { pts.push(9.5); redraw(); });
 window.addEventListener("resize", redraw);
 redraw();
+</script>
+
+<script>
+/* KDEラボ(既存スクリプトと変数が衝突しないようIIFEで隔離) */
+(function () {
+  "use strict";
+  const KXMIN = 0, KXMAX = 10, YMAXK = 0.6;
+  let kpts = [];
+  let leftGeom = null;
+  const left = $("#kdeLeft"), right = $("#kdeRight");
+
+  const KERN = {
+    gauss: u => Math.exp(-u * u / 2) / Math.sqrt(2 * Math.PI),
+    epa:   u => Math.abs(u) <= 1 ? 0.75 * (1 - u * u) : 0,
+    tri:   u => Math.abs(u) <= 1 ? (1 - Math.abs(u)) : 0,
+    uni:   u => Math.abs(u) <= 1 ? 0.5 : 0,
+  };
+  function grand() {
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+  function density(x, h, kf) {
+    const n = kpts.length;
+    if (n === 0) return 0;
+    let s = 0;
+    for (const xi of kpts) s += kf((x - xi) / h);
+    return s / (n * h);
+  }
+  function bumpAt(x, xi, h, kf) {
+    return kf((x - xi) / h) / (kpts.length * h);
+  }
+  function silverman() {
+    const n = kpts.length;
+    if (n < 2) return 1;
+    const mean = kpts.reduce((a, b) => a + b, 0) / n;
+    const sd = Math.sqrt(kpts.reduce((a, b) => a + (b - mean) ** 2, 0) / (n - 1));
+    const sorted = kpts.slice().sort((a, b) => a - b);
+    const q = p => {
+      const idx = (n - 1) * p, lo = Math.floor(idx), hi = Math.ceil(idx);
+      return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
+    };
+    const iqr = q(0.75) - q(0.25);
+    const a = sd > 0 ? sd : Infinity, b = iqr > 0 ? iqr / 1.34 : Infinity;
+    let spread = Math.min(a, b);
+    if (!isFinite(spread)) spread = 1;
+    return Math.max(0.2, Math.min(3, 0.9 * spread * Math.pow(n, -0.2)));
+  }
+
+  function drawPanel(canvas, mode) {
+    const { ctx, W, H } = setupCanvas(canvas, 240);
+    const col = themeColors();
+    ctx.clearRect(0, 0, W, H);
+    const padL = 34, padB = 24, padT = 10, padR = 10;
+    const pw = W - padL - padR, ph = H - padT - padB;
+    const X = x => padL + (x - KXMIN) / (KXMAX - KXMIN) * pw;
+    const Y = d => padT + (1 - Math.min(d, YMAXK) / YMAXK) * ph;
+
+    ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ph); ctx.lineTo(padL + pw, padT + ph); ctx.stroke();
+    ctx.fillStyle = col.soft; ctx.font = "11px sans-serif"; ctx.textAlign = "center";
+    [0, 2, 4, 6, 8, 10].forEach(v => ctx.fillText(v, X(v), padT + ph + 15));
+    ctx.textAlign = "right";
+    [0, 0.3, 0.6].forEach(v => ctx.fillText(v, padL - 4, Y(v) + 4));
+
+    const h = +$("#kdeH").value;
+    const kf = KERN[$("#kdeK").value];
+
+    ctx.save();
+    ctx.beginPath(); ctx.rect(padL, padT, pw, ph); ctx.clip();
+
+    if (mode === "left") {
+      leftGeom = { invX: px => KXMIN + (px - padL) / pw * (KXMAX - KXMIN) };
+      // 背景の帯(クリック領域が分かるように)
+      ctx.fillStyle = "rgba(128,128,128,.06)";
+      ctx.fillRect(padL, padT, pw, ph);
+      if ($("#kdeBumps").checked && kpts.length) {
+        ctx.strokeStyle = "rgba(43,108,176,.35)"; ctx.lineWidth = 1.2;
+        kpts.forEach(xi => {
+          ctx.beginPath();
+          for (let i = 0; i <= 300; i++) {
+            const x = KXMIN + (KXMAX - KXMIN) * i / 300;
+            const y = bumpAt(x, xi, h, kf);
+            i ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y));
+          }
+          ctx.stroke();
+        });
+      }
+      ctx.fillStyle = col.ink;
+      kpts.forEach(xi => {
+        ctx.beginPath(); ctx.arc(X(xi), padT + ph - 4, 4, 0, Math.PI * 2); ctx.fill();
+      });
+    } else if (kpts.length) {
+      ctx.fillStyle = "rgba(43,108,176,.20)";
+      ctx.beginPath();
+      ctx.moveTo(X(KXMIN), Y(0));
+      for (let i = 0; i <= 300; i++) {
+        const x = KXMIN + (KXMAX - KXMIN) * i / 300;
+        ctx.lineTo(X(x), Y(density(x, h, kf)));
+      }
+      ctx.lineTo(X(KXMAX), Y(0));
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = col.accent; ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      for (let i = 0; i <= 300; i++) {
+        const x = KXMIN + (KXMAX - KXMIN) * i / 300;
+        const y = density(x, h, kf);
+        i ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y));
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function kdeRedraw() {
+    $("#kdeHVal").textContent = (+$("#kdeH").value).toFixed(1);
+    drawPanel(left, "left");
+    drawPanel(right, "right");
+    const r = $("#kdeReadout");
+    const n = kpts.length;
+    if (!n) { r.textContent = "左のグレー帯をクリックして点を打ってください。"; return; }
+    r.replaceChildren();
+    const b1 = el("b", null, "n = " + n + " 点");
+    r.append(b1, " ・ h = " + (+$("#kdeH").value).toFixed(1) +
+      " ・ カーネル: " + $("#kdeK").selectedOptions[0].textContent +
+      " ・ シルバーマンの目安 h ≈ " + silverman().toFixed(2) + " ・ 面積は常に1");
+  }
+
+  left.addEventListener("click", e => {
+    if (!leftGeom) return;
+    const rect = left.getBoundingClientRect();
+    const x = leftGeom.invX(e.clientX - rect.left);
+    if (x < KXMIN || x > KXMAX) return;
+    const hit = kpts.findIndex(v => Math.abs(v - x) < 0.2);
+    if (hit >= 0) kpts.splice(hit, 1); else kpts.push(Math.round(x * 4) / 4);
+    kdeRedraw();
+  });
+  $("#kdeClear").addEventListener("click", () => { kpts = []; kdeRedraw(); });
+  $("#kdeSample").addEventListener("click", () => {
+    kpts = [];
+    const put = (c, sd, k) => { for (let i = 0; i < k; i++) { let x = c + sd * grand(); x = Math.max(0.2, Math.min(9.8, x)); kpts.push(Math.round(x * 4) / 4); } };
+    put(3, 0.7, 8); put(7, 0.7, 8);
+    kdeRedraw();
+  });
+  $("#kdeSampleU").addEventListener("click", () => {
+    kpts = [];
+    for (let i = 0; i < 16; i++) kpts.push(Math.round((1 + Math.random() * 8) * 4) / 4);
+    kdeRedraw();
+  });
+  $("#kdeSilver").addEventListener("click", () => {
+    $("#kdeH").value = silverman().toFixed(1);
+    kdeRedraw();
+  });
+  ["kdeH", "kdeK", "kdeBumps"].forEach(id => $("#" + id).addEventListener("input", kdeRedraw));
+  window.addEventListener("resize", kdeRedraw);
+  // 初期表示: 二峰サンプルで見せる
+  (function () {
+    const put = (c, sd, k) => { for (let i = 0; i < k; i++) { let x = c + sd * grand(); x = Math.max(0.2, Math.min(9.8, x)); kpts.push(Math.round(x * 4) / 4); } };
+    put(3, 0.7, 8); put(7, 0.7, 8);
+  })();
+  kdeRedraw();
+})();
 </script>
 </body>
 </html>
